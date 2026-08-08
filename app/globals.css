@@ -5470,6 +5470,288 @@ a {
   white-space: nowrap;
 }
 
+.manual-mapping-panel {
+  background: #ffffff;
+  border: 1px solid #dfe8e3;
+  border-radius: var(--radius-lg);
+  margin-top: 20px;
+  overflow: hidden;
+}
+
+.manual-mapping-intro {
+  align-items: center;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 20px 22px;
+}
+
+.manual-mapping-intro > span {
+  align-items: center;
+  background: var(--mint);
+  border-radius: 10px;
+  color: var(--green);
+  display: flex;
+  height: 39px;
+  justify-content: center;
+  width: 39px;
+}
+
+.manual-mapping-intro h2 {
+  font-size: 15px;
+  letter-spacing: -0.02em;
+  margin: 3px 0 2px;
+}
+
+.manual-mapping-intro > div > p:last-child {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+  margin: 0;
+  max-width: 650px;
+}
+
+.manual-mapping-intro > button,
+.manual-mapping-actions button {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #ccd9d2;
+  border-radius: 9px;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 700;
+  gap: 6px;
+  justify-content: center;
+  min-height: 36px;
+  padding: 8px 12px;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.manual-mapping-intro > button:hover,
+.manual-mapping-intro > button:focus-visible,
+.manual-mapping-actions button:hover,
+.manual-mapping-actions button:focus-visible {
+  background: #eef6f1;
+  border-color: #a9c5b6;
+  color: var(--green);
+  outline: none;
+}
+
+.manual-mapping-form {
+  background: #f8fbf9;
+  border-top: 1px solid var(--line);
+  padding: 20px 22px;
+}
+
+.manual-mapping-fields {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(230px, 0.65fr);
+}
+
+.manual-mapping-fields label > span {
+  color: #52645b;
+  display: block;
+  font-size: 10px;
+  font-weight: 750;
+  margin-bottom: 6px;
+}
+
+.manual-mapping-fields select {
+  appearance: none;
+  background: #ffffff;
+  border: 1px solid #cedbd4;
+  border-radius: 9px;
+  color: var(--ink);
+  font-size: 11px;
+  min-height: 40px;
+  padding: 9px 34px 9px 11px;
+  width: 100%;
+}
+
+.manual-mapping-fields select:focus-visible {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(23, 107, 80, 0.09);
+  outline: none;
+}
+
+.manual-mapping-fields select:disabled {
+  background: #edf1ef;
+  color: #849089;
+}
+
+.manual-evidence-preview {
+  background: #ffffff;
+  border: 1px solid #dfe8e3;
+  border-radius: 11px;
+  margin-top: 14px;
+  padding: 14px;
+}
+
+.manual-evidence-preview > div:first-child {
+  align-items: flex-start;
+  display: flex;
+  gap: 9px;
+}
+
+.manual-evidence-preview > div:first-child > span {
+  align-items: center;
+  background: #edf5f0;
+  border-radius: 8px;
+  color: var(--green);
+  display: flex;
+  flex: 0 0 auto;
+  height: 31px;
+  justify-content: center;
+  width: 31px;
+}
+
+.manual-evidence-preview strong,
+.manual-evidence-preview p {
+  display: block;
+  margin: 0;
+}
+
+.manual-evidence-preview strong {
+  font-size: 11px;
+}
+
+.manual-evidence-preview p {
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 1px;
+}
+
+.manual-evidence-preview ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 11px 0 0 40px;
+  padding: 0;
+}
+
+.manual-evidence-preview li {
+  align-items: center;
+  background: #f6faf7;
+  border: 1px solid #dce8e1;
+  border-radius: 8px;
+  color: #52665c;
+  display: inline-flex;
+  font-size: 9px;
+  gap: 5px;
+  padding: 5px 7px;
+}
+
+.manual-evidence-preview li svg {
+  color: var(--green);
+}
+
+.manual-evidence-warning {
+  align-items: flex-start;
+  color: #7d6845;
+  display: flex;
+  font-size: 9px;
+  gap: 6px;
+  line-height: 1.5;
+  margin: 10px 0 0 40px;
+}
+
+.manual-evidence-warning svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.manual-mapping-actions {
+  align-items: center;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  margin-top: 14px;
+}
+
+.manual-mapping-actions > p {
+  color: #a3464a;
+  font-size: 10px;
+  margin: 0;
+}
+
+.manual-mapping-actions > div {
+  display: flex;
+  gap: 8px;
+}
+
+.manual-mapping-actions button.primary {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #ffffff;
+}
+
+.manual-mapping-actions button.primary:hover,
+.manual-mapping-actions button.primary:focus-visible {
+  background: var(--green);
+  border-color: var(--green);
+  color: #ffffff;
+}
+
+.manual-mapping-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.manual-mapping-results {
+  border-top: 1px solid var(--line);
+}
+
+.manual-mapping-results article {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 14px 22px;
+}
+
+.manual-mapping-results article + article {
+  border-top: 1px solid #e7ede9;
+}
+
+.manual-mapping-results article > span {
+  align-items: center;
+  background: var(--mint);
+  border-radius: 50%;
+  color: var(--green);
+  display: flex;
+  height: 25px;
+  justify-content: center;
+  width: 25px;
+}
+
+.manual-mapping-results strong,
+.manual-mapping-results p {
+  display: block;
+  margin: 0;
+}
+
+.manual-mapping-results strong {
+  font-size: 10px;
+}
+
+.manual-mapping-results p,
+.manual-mapping-results small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.manual-mapping-results p {
+  line-height: 1.45;
+  margin-top: 2px;
+}
+
+.manual-mapping-results small {
+  white-space: nowrap;
+}
+
 .mapping-requirements {
   background: #ffffff;
   border: 1px solid #dfe8e3;
@@ -6756,6 +7038,20 @@ a {
     justify-self: start;
   }
 
+  .manual-mapping-intro {
+    align-items: flex-start;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .manual-mapping-intro > button {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .manual-mapping-fields {
+    grid-template-columns: 1fr;
+  }
+
   .mapping-section-heading {
     align-items: flex-start;
     flex-direction: column;
@@ -6812,6 +7108,31 @@ a {
 
   .mapping-auto-summary > small {
     grid-column: auto;
+  }
+
+  .manual-mapping-intro {
+    grid-template-columns: 1fr;
+  }
+
+  .manual-mapping-intro > button {
+    grid-column: auto;
+  }
+
+  .manual-mapping-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .manual-mapping-actions > div {
+    flex-wrap: wrap;
+  }
+
+  .manual-mapping-results article {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .manual-mapping-results small {
+    grid-column: 2;
   }
 
   .mapping-row {

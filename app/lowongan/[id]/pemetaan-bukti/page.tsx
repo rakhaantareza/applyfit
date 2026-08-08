@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { AppSidebar } from "../../../components/AppSidebar";
 import { jobs } from "../../mockJobs";
+import { ManualEvidenceMappingForm } from "./ManualEvidenceMappingForm";
 
 type EvidenceMappingPageProps = {
   params: Promise<{ id: string }>;
@@ -284,6 +285,11 @@ export default async function EvidenceMappingPage({
             </div>
             <small>Exact match contoh</small>
           </div>
+
+          <ManualEvidenceMappingForm
+            requirements={skillRequirements}
+            skills={profileSkills}
+          />
 
           <section className="mapping-requirements" aria-labelledby="mapping-list-title">
             <div className="mapping-section-heading">
