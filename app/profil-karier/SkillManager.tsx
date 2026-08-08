@@ -32,11 +32,13 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
   const [editor, setEditor] = useState<EditorState>(null);
   const [draftName, setDraftName] = useState("");
   const [draftStatus, setDraftStatus] = useState<CareerSkill["status"]>("Aktif");
+  const [draftLevel, setDraftLevel] = useState<CareerSkill["level"]>("Dasar");
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
   const skillNameId = useId();
   const skillStatusId = useId();
+  const skillLevelId = useId();
   const skillNameRef = useRef<HTMLInputElement>(null);
 
   const activeSkillCount = skills.filter((skill) => skill.status === "Aktif").length;
@@ -59,6 +61,7 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
   function openAddEditor() {
     setDraftName("");
     setDraftStatus("Aktif");
+    setDraftLevel("Dasar");
     setPendingDeleteId(null);
     setError("");
     setEditor({ mode: "add" });
@@ -67,6 +70,7 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
   function openEditEditor(skill: CareerSkill) {
     setDraftName(skill.name);
     setDraftStatus(skill.status);
+    setDraftLevel(skill.level);
     setPendingDeleteId(null);
     setError("");
     setEditor({ mode: "edit", skillId: skill.id });
@@ -102,7 +106,12 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
       setSkills((current) =>
         current.map((skill) =>
           skill.id === editor.skillId
-            ? { ...skill, name: normalizedName, status: draftStatus }
+            ? {
+                ...skill,
+                name: normalizedName,
+                status: draftStatus,
+                level: draftLevel,
+              }
             : skill,
         ),
       );
@@ -113,7 +122,7 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
         {
           id: `skill-${Date.now()}`,
           name: normalizedName,
-          level: "Dasar",
+          level: draftLevel,
           status: draftStatus,
           evidenceCount: 0,
         },
@@ -163,8 +172,7 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
           <div className="skill-editor-heading">
             <strong>{editor.mode === "add" ? "Tambah skill" : "Edit skill"}</strong>
             <span>
-              Level awal untuk skill baru adalah Dasar dan dapat diatur pada kontrol
-              tingkat keahlian.
+              Atur status dan tingkat keahlian sesuai kondisi profil saat ini.
             </span>
           </div>
           <label htmlFor={skillNameId}>
@@ -189,6 +197,20 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
             >
               <option>Aktif</option>
               <option>Dipelajari</option>
+            </select>
+          </label>
+          <label htmlFor={skillLevelId}>
+            <span>Tingkat keahlian</span>
+            <select
+              id={skillLevelId}
+              value={draftLevel}
+              onChange={(event) =>
+                setDraftLevel(event.target.value as CareerSkill["level"])
+              }
+            >
+              <option>Dasar</option>
+              <option>Menengah</option>
+              <option>Mahir</option>
             </select>
           </label>
           <div className="skill-editor-actions">
@@ -217,7 +239,7 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
                 <span aria-hidden="true">{skill.name.slice(0, 2).toUpperCase()}</span>
                 <div>
                   <h3>{skill.name}</h3>
-                  <small>Level {skill.level.toLowerCase()}</small>
+                  <small>Skill profil</small>
                 </div>
               </div>
 
@@ -229,7 +251,11 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
                 >
                   {skill.status}
                 </span>
-                <span className="skill-level">{skill.level}</span>
+                <span
+                  className={`skill-level level-${skill.level.toLocaleLowerCase("id-ID")}`}
+                >
+                  Level {skill.level}
+                </span>
               </div>
 
               <div className="profile-skill-evidence">

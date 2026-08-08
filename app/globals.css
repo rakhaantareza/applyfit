@@ -2245,7 +2245,7 @@ a {
   border-radius: var(--radius-md);
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(190px, 0.8fr) minmax(240px, 1.2fr) minmax(150px, 0.6fr);
+  grid-template-columns: minmax(175px, 0.75fr) minmax(220px, 1.15fr) minmax(130px, 0.55fr) minmax(140px, 0.6fr);
   margin-top: 18px;
   padding: 18px;
 }
@@ -2386,8 +2386,25 @@ a {
 }
 
 .skill-level {
-  color: var(--muted);
-  font-size: var(--text-xs);
+  background: #f1f5f2;
+  border: 1px solid #e0e8e3;
+  border-radius: 999px;
+  color: #5f7068;
+  font-size: 10px;
+  font-weight: 690;
+  padding: 4px 7px;
+}
+
+.skill-level.level-mahir {
+  background: #e4f3ea;
+  border-color: #d4e9dd;
+  color: var(--green);
+}
+
+.skill-level.level-menengah {
+  background: #f7f2e8;
+  border-color: #ebe1cc;
+  color: #86652e;
 }
 
 .profile-skill-evidence {
