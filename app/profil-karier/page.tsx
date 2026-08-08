@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
-import {
-  BadgeCheck,
-  BookOpen,
-  Layers3,
-  Link2,
-} from "lucide-react";
+import { BadgeCheck } from "lucide-react";
 import { AppSidebar } from "../components/AppSidebar";
 import { CareerDirectionEditor } from "./CareerDirectionEditor";
+import { SkillManager, type CareerSkill } from "./SkillManager";
 
 export const metadata: Metadata = {
   title: "Profil Karier",
@@ -24,51 +20,50 @@ const profile = {
   completeness: 80,
 };
 
-const skills = [
+const skills: CareerSkill[] = [
   {
+    id: "react",
     name: "React",
     level: "Mahir",
     status: "Aktif",
     evidenceCount: 2,
   },
   {
+    id: "nextjs",
     name: "Next.js",
     level: "Menengah",
     status: "Aktif",
     evidenceCount: 2,
   },
   {
+    id: "typescript",
     name: "TypeScript",
     level: "Menengah",
     status: "Aktif",
     evidenceCount: 1,
   },
   {
+    id: "git-github",
     name: "Git & GitHub",
     level: "Menengah",
     status: "Aktif",
     evidenceCount: 0,
   },
   {
+    id: "figma",
     name: "Figma",
     level: "Dasar",
     status: "Aktif",
     evidenceCount: 1,
   },
   {
+    id: "tailwind-css",
     name: "Tailwind CSS",
     level: "Dasar",
     status: "Dipelajari",
     evidenceCount: 0,
   },
-] as const;
-
-const activeSkillCount = skills.filter((skill) => skill.status === "Aktif").length;
-const learningSkillCount = skills.length - activeSkillCount;
-const linkedEvidenceCount = skills.reduce(
-  (total, skill) => total + skill.evidenceCount,
-  0,
-);
+];
 
 export default function CareerProfilePage() {
   return (
@@ -109,92 +104,9 @@ export default function CareerProfilePage() {
               initialTargetRole={profile.targetRole}
             />
 
-            <div className="profile-foundation" aria-label="Ringkasan profil">
-              <div>
-                <span className="profile-foundation-icon" aria-hidden="true">
-                  <Layers3 size={18} strokeWidth={1.8} />
-                </span>
-                <span>
-                  <strong>{skills.length} skill</strong>
-                  <small>tercatat di profil</small>
-                </span>
-              </div>
-              <div>
-                <span className="profile-foundation-icon" aria-hidden="true">
-                  <BadgeCheck size={18} strokeWidth={1.8} />
-                </span>
-                <span>
-                  <strong>{activeSkillCount} aktif</strong>
-                  <small>siap dipetakan</small>
-                </span>
-              </div>
-              <div>
-                <span className="profile-foundation-icon" aria-hidden="true">
-                  <BookOpen size={18} strokeWidth={1.8} />
-                </span>
-                <span>
-                  <strong>{learningSkillCount} dipelajari</strong>
-                  <small>masih bertumbuh</small>
-                </span>
-              </div>
-              <div>
-                <span className="profile-foundation-icon" aria-hidden="true">
-                  <Link2 size={18} strokeWidth={1.8} />
-                </span>
-                <span>
-                  <strong>{linkedEvidenceCount} tautan bukti</strong>
-                  <small>di seluruh skill</small>
-                </span>
-              </div>
-            </div>
           </section>
 
-          <section className="profile-skills-section" aria-labelledby="profile-skills-title">
-            <div className="profile-section-heading">
-              <div>
-                <p className="eyebrow">Fondasi keahlian</p>
-                <h2 id="profile-skills-title">Skill yang membentuk profilmu</h2>
-              </div>
-              <p>
-                Status skill di profil berbeda dari status requirement. Bukti yang
-                terhubung akan menentukan hasil pemetaan pada setiap lowongan.
-              </p>
-            </div>
-
-            <div className="profile-skill-list">
-              {skills.map((skill) => (
-                <article className="profile-skill-row" key={skill.name}>
-                  <div className="profile-skill-name">
-                    <span aria-hidden="true">{skill.name.slice(0, 2).toUpperCase()}</span>
-                    <div>
-                      <h3>{skill.name}</h3>
-                      <small>Level {skill.level.toLowerCase()}</small>
-                    </div>
-                  </div>
-
-                  <div className="profile-skill-state">
-                    <span
-                      className={`skill-state-badge ${
-                        skill.status === "Aktif" ? "active" : "learning"
-                      }`}
-                    >
-                      {skill.status}
-                    </span>
-                    <span className="skill-level">{skill.level}</span>
-                  </div>
-
-                  <div className="profile-skill-evidence">
-                    <Link2 aria-hidden="true" size={15} strokeWidth={1.8} />
-                    <span>
-                      {skill.evidenceCount > 0
-                        ? `${skill.evidenceCount} bukti terhubung`
-                        : "Belum ada bukti"}
-                    </span>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
+          <SkillManager initialSkills={skills} />
 
           <p className="demo-note">
             Kelengkapan profil contoh: {profile.completeness}%.
