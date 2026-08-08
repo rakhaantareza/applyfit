@@ -3,6 +3,7 @@
 import {
   Check,
   CircleAlert,
+  Combine,
   GraduationCap,
   ListChecks,
   Pencil,
@@ -103,6 +104,9 @@ export function RequirementReviewEditor() {
   const [draftPriority, setDraftPriority] = useState<RequirementPriority>("Wajib");
   const [draftType, setDraftType] = useState<RequirementType>("Skill");
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedRequirementIds, setSelectedRequirementIds] = useState<string[]>([]);
+  const [selectionError, setSelectionError] = useState("");
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
   const textId = useId();
@@ -113,6 +117,9 @@ export function RequirementReviewEditor() {
   const requiredRequirements = requirements.filter((item) => item.priority === "Wajib");
   const preferredRequirements = requirements.filter((item) => item.priority === "Preferensi");
   const excludedRequirementCount = requirements.filter((item) => item.type !== "Skill").length;
+  const selectedRequirements = requirements.filter((item) =>
+    selectedRequirementIds.includes(item.id),
+  );
 
   useEffect(() => {
     if (!editor) return;
@@ -128,6 +135,9 @@ export function RequirementReviewEditor() {
     setError("");
     setAnnouncement("");
     setPendingDeleteId(null);
+    setIsSelectionMode(false);
+    setSelectedRequirementIds([]);
+    setSelectionError("");
     setEditor({ mode: "add" });
   }
 
@@ -138,6 +148,9 @@ export function RequirementReviewEditor() {
     setError("");
     setAnnouncement("");
     setPendingDeleteId(null);
+    setIsSelectionMode(false);
+    setSelectedRequirementIds([]);
+    setSelectionError("");
     setEditor({ mode: "edit", requirementId: requirement.id });
   }
 
@@ -193,10 +206,78 @@ export function RequirementReviewEditor() {
       current.filter((item) => item.id !== requirement.id),
     );
     setPendingDeleteId(null);
+    setSelectedRequirementIds((current) =>
+      current.filter((id) => id !== requirement.id),
+    );
     if (editor?.mode === "edit" && editor.requirementId === requirement.id) {
       setEditor(null);
     }
     setAnnouncement("Requirement dihapus dari data contoh.");
+  }
+
+  function openSelectionMode() {
+    setEditor(null);
+    setPendingDeleteId(null);
+    setSelectedRequirementIds([]);
+    setSelectionError("");
+    setAnnouncement("");
+    setIsSelectionMode(true);
+  }
+
+  function closeSelectionMode() {
+    setSelectedRequirementIds([]);
+    setSelectionError("");
+    setIsSelectionMode(false);
+  }
+
+  function toggleRequirementSelection(requirementId: string) {
+    setSelectedRequirementIds((current) =>
+      current.includes(requirementId)
+        ? current.filter((id) => id !== requirementId)
+        : [...current, requirementId],
+    );
+    setSelectionError("");
+  }
+
+  function mergeSelectedRequirements() {
+    if (selectedRequirements.length < 2) {
+      setSelectionError("Pilih minimal dua requirement untuk digabungkan.");
+      return;
+    }
+
+    const [firstRequirement] = selectedRequirements;
+    const hasMixedClassification = selectedRequirements.some(
+      (requirement) =>
+        requirement.priority !== firstRequirement.priority ||
+        requirement.type !== firstRequirement.type,
+    );
+
+    if (hasMixedClassification) {
+      setSelectionError(
+        "Gabungkan requirement dengan tipe dan prioritas yang sama.",
+      );
+      return;
+    }
+
+    const mergedText = `${selectedRequirements
+      .map((requirement) => requirement.text.trim().replace(/[.;]+$/, ""))
+      .join("; ")}.`;
+    const selectedIds = new Set(selectedRequirementIds);
+
+    setRequirements((current) => [
+      ...current.filter((requirement) => !selectedIds.has(requirement.id)),
+      {
+        id: `requirement-merged-${Date.now()}`,
+        text: mergedText,
+        priority: firstRequirement.priority,
+        type: firstRequirement.type,
+        reviewed: true,
+      },
+    ]);
+    setSelectedRequirementIds([]);
+    setSelectionError("");
+    setIsSelectionMode(false);
+    setAnnouncement(`${selectedRequirements.length} requirement berhasil digabungkan.`);
   }
 
   function updateRequirementPriority(
@@ -239,7 +320,27 @@ export function RequirementReviewEditor() {
             const isPendingDelete = pendingDeleteId === requirement.id;
 
             return (
-              <article key={requirement.id}>
+              <article
+                className={`${isSelectionMode ? "selection-mode" : ""}${
+                  selectedRequirementIds.includes(requirement.id) ? " selected" : ""
+                }`}
+                key={requirement.id}
+              >
+                {isSelectionMode ? (
+                  <label className="requirement-selection-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={selectedRequirementIds.includes(requirement.id)}
+                      onChange={() => toggleRequirementSelection(requirement.id)}
+                    />
+                    <span aria-hidden="true">
+                      {selectedRequirementIds.includes(requirement.id) ? (
+                        <Check size={12} strokeWidth={2.3} />
+                      ) : null}
+                    </span>
+                    <span className="sr-only">Pilih requirement: {requirement.text}</span>
+                  </label>
+                ) : null}
                 <span className="requirement-review-number">{index + 1}</span>
                 <div>
                   <span className="requirement-review-type">
@@ -248,23 +349,25 @@ export function RequirementReviewEditor() {
                   </span>
                   <p>{requirement.text}</p>
                 </div>
-                <div
-                  className="requirement-priority-control"
-                  role="group"
-                  aria-label={`Prioritas requirement: ${requirement.text}`}
-                >
-                  {(["Wajib", "Preferensi"] as const).map((priority) => (
-                    <button
-                      className={requirement.priority === priority ? "active" : undefined}
-                      type="button"
-                      aria-pressed={requirement.priority === priority}
-                      key={priority}
-                      onClick={() => updateRequirementPriority(requirement, priority)}
-                    >
-                      {priority}
-                    </button>
-                  ))}
-                </div>
+                {!isSelectionMode ? (
+                  <div
+                    className="requirement-priority-control"
+                    role="group"
+                    aria-label={`Prioritas requirement: ${requirement.text}`}
+                  >
+                    {(["Wajib", "Preferensi"] as const).map((priority) => (
+                      <button
+                        className={requirement.priority === priority ? "active" : undefined}
+                        type="button"
+                        aria-pressed={requirement.priority === priority}
+                        key={priority}
+                        onClick={() => updateRequirementPriority(requirement, priority)}
+                      >
+                        {priority}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
                 <span className={`requirement-review-state${requirement.reviewed ? " reviewed" : ""}`}>
                   {requirement.reviewed ? (
                     <UserRoundCheck aria-hidden="true" size={12} strokeWidth={1.8} />
@@ -273,7 +376,7 @@ export function RequirementReviewEditor() {
                   )}
                   {requirement.reviewed ? "Diedit pengguna" : "Hasil AI"}
                 </span>
-                <div className="requirement-row-actions">
+                {!isSelectionMode ? <div className="requirement-row-actions">
                   {isPendingDelete ? (
                     <div
                       className="requirement-delete-confirmation"
@@ -315,7 +418,7 @@ export function RequirementReviewEditor() {
                       </button>
                     </>
                   )}
-                </div>
+                </div> : null}
               </article>
             );
           })}
@@ -337,12 +440,40 @@ export function RequirementReviewEditor() {
             <span><strong>{preferredRequirements.length}</strong> preferensi</span>
             <span><strong>{excludedRequirementCount}</strong> di luar skor MVP</span>
           </div>
-          <button type="button" onClick={openAddEditor}>
-            <Plus aria-hidden="true" size={15} strokeWidth={2} />
-            Tambah requirement
-          </button>
+          <div>
+            <button className="secondary" type="button" onClick={openSelectionMode}>
+              <Combine aria-hidden="true" size={15} strokeWidth={1.9} />
+              Pilih & gabungkan
+            </button>
+            <button type="button" onClick={openAddEditor}>
+              <Plus aria-hidden="true" size={15} strokeWidth={2} />
+              Tambah requirement
+            </button>
+          </div>
         </div>
       </div>
+
+      {isSelectionMode ? (
+        <div className="requirement-selection-toolbar" role="status">
+          <div>
+            <strong>{selectedRequirementIds.length} dipilih</strong>
+            <span>Pilih requirement dengan tipe dan prioritas yang sama.</span>
+          </div>
+          {selectionError ? <p role="alert">{selectionError}</p> : null}
+          <div>
+            <button type="button" onClick={closeSelectionMode}>Batal</button>
+            <button
+              className="primary"
+              type="button"
+              disabled={selectedRequirementIds.length < 2}
+              onClick={mergeSelectedRequirements}
+            >
+              <Combine aria-hidden="true" size={14} strokeWidth={1.9} />
+              Gabungkan {selectedRequirementIds.length || ""}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {editor ? (
         <form className="requirement-editor" onSubmit={handleSubmit}>
