@@ -4233,7 +4233,7 @@ a {
   border-top: 1px solid var(--line);
   display: grid;
   gap: 14px;
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: auto 1fr auto auto auto;
   padding: 14px 2px;
 }
 
@@ -4281,6 +4281,36 @@ a {
 .requirement-review-state.reviewed {
   background: #e3f1e8;
   color: #24664e;
+}
+
+.requirement-priority-control {
+  background: #f1f4f2;
+  border-radius: 8px;
+  display: inline-flex;
+  padding: 2px;
+}
+
+.requirement-priority-control button {
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: #738179;
+  cursor: pointer;
+  font: inherit;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 5px 6px;
+}
+
+.requirement-priority-control button.active {
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(16, 42, 32, 0.1);
+  color: var(--green);
+}
+
+.requirement-priority-control button:focus-visible {
+  outline: 2px solid #8db8a3;
+  outline-offset: 1px;
 }
 
 .requirement-row-actions {
@@ -5547,6 +5577,11 @@ a {
   }
 
   .requirement-review-state {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .requirement-priority-control {
     grid-column: 2;
     justify-self: start;
   }

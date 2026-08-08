@@ -44,13 +44,13 @@ const mockRequirements = [
   },
   {
     id: "nextjs",
-    priority: "Diutamakan",
+    priority: "Preferensi",
     category: "Skill",
     text: "Memiliki pengalaman menggunakan Next.js.",
   },
   {
     id: "automated-testing",
-    priority: "Diutamakan",
+    priority: "Preferensi",
     category: "Skill",
     text: "Memahami automated testing untuk aplikasi web.",
   },
@@ -248,7 +248,7 @@ export function JobDescriptionEditor({
             <div className="job-requirement-preview-actions">
               <div aria-label="Ringkasan prioritas requirement">
                 <span><strong>4</strong> wajib</span>
-                <span><strong>2</strong> diutamakan</span>
+                <span><strong>2</strong> preferensi</span>
               </div>
               <Link href={reviewHref}>Tinjau hasil <span aria-hidden="true">→</span></Link>
             </div>

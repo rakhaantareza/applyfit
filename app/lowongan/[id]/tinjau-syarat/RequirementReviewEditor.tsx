@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 
-type RequirementPriority = "Wajib" | "Diutamakan";
+type RequirementPriority = "Wajib" | "Preferensi";
 type RequirementType = "Skill" | "Pengalaman" | "Pendidikan";
 
 type Requirement = {
@@ -69,21 +69,21 @@ const initialRequirements: Requirement[] = [
   },
   {
     id: "nextjs",
-    priority: "Diutamakan",
+    priority: "Preferensi",
     type: "Skill",
     text: "Memiliki pengalaman menggunakan Next.js.",
     reviewed: false,
   },
   {
     id: "automated-testing",
-    priority: "Diutamakan",
+    priority: "Preferensi",
     type: "Skill",
     text: "Memahami automated testing untuk aplikasi web.",
     reviewed: false,
   },
   {
     id: "education",
-    priority: "Diutamakan",
+    priority: "Preferensi",
     type: "Pendidikan",
     text: "Latar belakang pendidikan di bidang ilmu komputer atau bidang terkait.",
     reviewed: false,
@@ -111,7 +111,7 @@ export function RequirementReviewEditor() {
   const textRef = useRef<HTMLTextAreaElement>(null);
 
   const requiredRequirements = requirements.filter((item) => item.priority === "Wajib");
-  const preferredRequirements = requirements.filter((item) => item.priority === "Diutamakan");
+  const preferredRequirements = requirements.filter((item) => item.priority === "Preferensi");
   const excludedRequirementCount = requirements.filter((item) => item.type !== "Skill").length;
 
   useEffect(() => {
@@ -199,13 +199,33 @@ export function RequirementReviewEditor() {
     setAnnouncement("Requirement dihapus dari data contoh.");
   }
 
+  function updateRequirementPriority(
+    requirement: Requirement,
+    priority: RequirementPriority,
+  ) {
+    if (requirement.priority === priority) return;
+
+    setRequirements((current) =>
+      current.map((item) =>
+        item.id === requirement.id
+          ? { ...item, priority, reviewed: true }
+          : item,
+      ),
+    );
+    setPendingDeleteId(null);
+    if (editor?.mode === "edit" && editor.requirementId === requirement.id) {
+      setEditor(null);
+    }
+    setAnnouncement(`Prioritas diubah menjadi ${priority}.`);
+  }
+
   function renderRequirementGroup(
     title: RequirementPriority,
     description: string,
     items: Requirement[],
   ) {
     return (
-      <div className={`requirement-review-group${title === "Diutamakan" ? " preferred" : ""}`}>
+      <div className={`requirement-review-group${title === "Preferensi" ? " preferred" : ""}`}>
         <div className="requirement-review-group-heading">
           <span aria-hidden="true"><ListChecks size={16} strokeWidth={1.8} /></span>
           <div>
@@ -227,6 +247,23 @@ export function RequirementReviewEditor() {
                     {requirement.type}
                   </span>
                   <p>{requirement.text}</p>
+                </div>
+                <div
+                  className="requirement-priority-control"
+                  role="group"
+                  aria-label={`Prioritas requirement: ${requirement.text}`}
+                >
+                  {(["Wajib", "Preferensi"] as const).map((priority) => (
+                    <button
+                      className={requirement.priority === priority ? "active" : undefined}
+                      type="button"
+                      aria-pressed={requirement.priority === priority}
+                      key={priority}
+                      onClick={() => updateRequirementPriority(requirement, priority)}
+                    >
+                      {priority}
+                    </button>
+                  ))}
                 </div>
                 <span className={`requirement-review-state${requirement.reviewed ? " reviewed" : ""}`}>
                   {requirement.reviewed ? (
@@ -297,7 +334,7 @@ export function RequirementReviewEditor() {
         <div className="requirement-review-heading-actions">
           <div className="requirement-review-counts" aria-label="Ringkasan hasil ekstraksi">
             <span><strong>{requiredRequirements.length}</strong> wajib</span>
-            <span><strong>{preferredRequirements.length}</strong> diutamakan</span>
+            <span><strong>{preferredRequirements.length}</strong> preferensi</span>
             <span><strong>{excludedRequirementCount}</strong> di luar skor MVP</span>
           </div>
           <button type="button" onClick={openAddEditor}>
@@ -331,7 +368,7 @@ export function RequirementReviewEditor() {
               onChange={(event) => setDraftPriority(event.target.value as RequirementPriority)}
             >
               <option>Wajib</option>
-              <option>Diutamakan</option>
+              <option>Preferensi</option>
             </select>
           </label>
           <label htmlFor={typeId}>
@@ -368,7 +405,7 @@ export function RequirementReviewEditor() {
         requiredRequirements,
       )}
       {renderRequirementGroup(
-        "Diutamakan",
+        "Preferensi",
         "Kualifikasi tambahan yang memberi konteks, dengan bobot lebih rendah.",
         preferredRequirements,
       )}
