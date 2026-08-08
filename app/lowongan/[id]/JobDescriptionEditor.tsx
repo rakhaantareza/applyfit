@@ -1,11 +1,58 @@
 "use client";
 
-import { Check, FileText, Pencil, X } from "lucide-react";
+import {
+  Check,
+  FileSearch,
+  FileText,
+  LoaderCircle,
+  Pencil,
+  Sparkles,
+  X,
+} from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 
 type JobDescriptionEditorProps = {
   initialDescription: string;
 };
+
+const mockRequirements = [
+  {
+    id: "react-typescript",
+    priority: "Wajib",
+    category: "Skill",
+    text: "Mampu membangun fitur web menggunakan React dan TypeScript.",
+  },
+  {
+    id: "html-css",
+    priority: "Wajib",
+    category: "Skill",
+    text: "Memahami JavaScript modern, HTML, dan CSS.",
+  },
+  {
+    id: "git-collaboration",
+    priority: "Wajib",
+    category: "Skill",
+    text: "Terbiasa menggunakan Git dan berpartisipasi dalam code review.",
+  },
+  {
+    id: "communication",
+    priority: "Wajib",
+    category: "Skill",
+    text: "Mampu berkomunikasi dan memecahkan masalah secara terstruktur.",
+  },
+  {
+    id: "nextjs",
+    priority: "Diutamakan",
+    category: "Skill",
+    text: "Memiliki pengalaman menggunakan Next.js.",
+  },
+  {
+    id: "automated-testing",
+    priority: "Diutamakan",
+    category: "Skill",
+    text: "Memahami automated testing untuk aplikasi web.",
+  },
+] as const;
 
 function renderDescription(description: string) {
   return description.split(/\n\s*\n/).map((block, index) => {
@@ -35,9 +82,12 @@ export function JobDescriptionEditor({
   const [description, setDescription] = useState(initialDescription);
   const [draftDescription, setDraftDescription] = useState(initialDescription);
   const [isEditing, setIsEditing] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [hasExtracted, setHasExtracted] = useState(false);
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const extractionTimeoutRef = useRef<number | null>(null);
   const wordCount = draftDescription.trim()
     ? draftDescription.trim().split(/\s+/).length
     : 0;
@@ -48,6 +98,14 @@ export function JobDescriptionEditor({
     const focusFrame = window.requestAnimationFrame(() => textareaRef.current?.focus());
     return () => window.cancelAnimationFrame(focusFrame);
   }, [isEditing]);
+
+  useEffect(() => {
+    return () => {
+      if (extractionTimeoutRef.current !== null) {
+        window.clearTimeout(extractionTimeoutRef.current);
+      }
+    };
+  }, []);
 
   function openEditor() {
     setDraftDescription(description);
@@ -75,7 +133,23 @@ export function JobDescriptionEditor({
     setDraftDescription(normalizedDescription);
     setError("");
     setIsEditing(false);
+    setHasExtracted(false);
     setAnnouncement("Deskripsi lowongan contoh berhasil diperbarui.");
+  }
+
+  function extractRequirements() {
+    if (extractionTimeoutRef.current !== null) {
+      window.clearTimeout(extractionTimeoutRef.current);
+    }
+
+    setIsExtracting(true);
+    setAnnouncement("Deskripsi sedang diproses menggunakan data contoh.");
+    extractionTimeoutRef.current = window.setTimeout(() => {
+      setIsExtracting(false);
+      setHasExtracted(true);
+      setAnnouncement(`${mockRequirements.length} requirement contoh berhasil diekstrak.`);
+      extractionTimeoutRef.current = null;
+    }, 650);
   }
 
   return (
@@ -129,6 +203,71 @@ export function JobDescriptionEditor({
       ) : (
         <div className="job-description-rendered">{renderDescription(description)}</div>
       )}
+
+      {!isEditing ? (
+        <div className="job-extraction-panel">
+          <div>
+            <span className="job-extraction-icon" aria-hidden="true">
+              <FileSearch size={18} strokeWidth={1.8} />
+            </span>
+            <div>
+              <strong>Ubah deskripsi menjadi requirement terstruktur</strong>
+              <p>
+                Ekstraksi memakai respons tiruan. Hasilnya tetap perlu diperiksa dan
+                diperbaiki pengguna sebelum dipakai dalam analisis.
+              </p>
+            </div>
+          </div>
+          <button type="button" disabled={isExtracting} onClick={extractRequirements}>
+            {isExtracting ? (
+              <LoaderCircle className="spin" aria-hidden="true" size={16} strokeWidth={1.9} />
+            ) : (
+              <Sparkles aria-hidden="true" size={16} strokeWidth={1.9} />
+            )}
+            {isExtracting
+              ? "Mengekstrak..."
+              : hasExtracted
+                ? "Ekstrak ulang"
+                : "Ekstrak requirement"}
+          </button>
+        </div>
+      ) : null}
+
+      {hasExtracted && !isEditing ? (
+        <section className="job-requirement-preview" aria-labelledby="requirement-preview-title">
+          <div className="job-requirement-preview-heading">
+            <div>
+              <p className="eyebrow">Hasil ekstraksi contoh</p>
+              <h3 id="requirement-preview-title">
+                {mockRequirements.length} requirement ditemukan
+              </h3>
+            </div>
+            <div aria-label="Ringkasan prioritas requirement">
+              <span><strong>4</strong> wajib</span>
+              <span><strong>2</strong> diutamakan</span>
+            </div>
+          </div>
+
+          <div className="job-requirement-preview-list">
+            {mockRequirements.map((requirement) => (
+              <article key={requirement.id}>
+                <span className={`requirement-priority ${
+                  requirement.priority === "Wajib" ? "required" : "preferred"
+                }`}>
+                  {requirement.priority}
+                </span>
+                <p>{requirement.text}</p>
+                <small>{requirement.category}</small>
+              </article>
+            ))}
+          </div>
+
+          <p className="job-requirement-preview-note">
+            Belum ada status Proven, Partial, Learning, atau Missing pada tahap ini.
+            Status baru diturunkan setelah requirement dipetakan ke skill dan bukti.
+          </p>
+        </section>
+      ) : null}
 
       <span className="sr-only" aria-live="polite">{announcement}</span>
     </article>
