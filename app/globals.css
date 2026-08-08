@@ -3857,19 +3857,34 @@ a {
   margin: 0;
 }
 
-.job-requirement-preview-heading > div:last-child {
+.job-requirement-preview-actions,
+.job-requirement-preview-actions > div {
+  align-items: center;
   display: flex;
   gap: 13px;
 }
 
-.job-requirement-preview-heading > div:last-child span {
+.job-requirement-preview-actions > div > span {
   color: var(--muted);
   font-size: 9px;
 }
 
-.job-requirement-preview-heading > div:last-child strong {
+.job-requirement-preview-actions > div > span strong {
   color: var(--ink);
   margin-right: 3px;
+}
+
+.job-requirement-preview-actions > a {
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 750;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.job-requirement-preview-actions > a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .job-requirement-preview-list {
@@ -3922,6 +3937,255 @@ a {
   line-height: 1.55;
   margin: 15px 0 0;
   padding: 10px 11px;
+}
+
+.requirement-review-page {
+  gap: 26px;
+}
+
+.requirement-review-header {
+  align-items: flex-end;
+  display: flex;
+  gap: 32px;
+  justify-content: space-between;
+}
+
+.requirement-review-header > div > a {
+  align-items: center;
+  color: #64766d;
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 700;
+  gap: 7px;
+  margin-bottom: 22px;
+  text-decoration: none;
+}
+
+.requirement-review-header > div > a:hover {
+  color: var(--green);
+}
+
+.requirement-review-header h1 {
+  font-size: var(--text-display);
+  letter-spacing: -0.045em;
+  line-height: 1.08;
+  margin: 0;
+}
+
+.requirement-review-header > div > p:last-child {
+  color: var(--muted);
+  font-size: var(--text-base);
+  line-height: 1.65;
+  margin: 12px 0 0;
+  max-width: 760px;
+}
+
+.requirement-review-overview,
+.requirement-review-list-section {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.requirement-review-overview > div:first-child {
+  align-items: center;
+  display: flex;
+  gap: 20px;
+  padding: clamp(28px, 4vw, 40px);
+}
+
+.requirement-review-overview-icon {
+  align-items: center;
+  background: var(--mint);
+  border-radius: 15px;
+  color: var(--green);
+  display: flex;
+  flex: 0 0 auto;
+  height: 52px;
+  justify-content: center;
+  width: 52px;
+}
+
+.requirement-review-overview h2 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  letter-spacing: -0.04em;
+  margin: 0;
+}
+
+.requirement-review-overview > div:first-child p:last-child {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.65;
+  margin: 9px 0 0;
+}
+
+.requirement-review-overview dl {
+  background: #f1f7f3;
+  border-top: 1px solid #e1ebe5;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  padding: 0 clamp(24px, 4vw, 40px);
+}
+
+.requirement-review-overview dl > div {
+  padding: 16px 12px;
+}
+
+.requirement-review-overview dl > div + div {
+  border-left: 1px solid #e0e9e3;
+}
+
+.requirement-review-overview dt {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.requirement-review-overview dd {
+  font-size: 11px;
+  font-weight: 720;
+  margin: 4px 0 0;
+}
+
+.requirement-review-list-section {
+  padding: clamp(26px, 4vw, 38px);
+}
+
+.requirement-review-section-heading {
+  align-items: flex-end;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+}
+
+.requirement-review-section-heading h2 {
+  font-size: clamp(1.3rem, 2vw, 1.6rem);
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.requirement-review-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: flex-end;
+}
+
+.requirement-review-counts span {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.requirement-review-counts strong {
+  color: var(--ink);
+  margin-right: 3px;
+}
+
+.requirement-review-group {
+  margin-top: 28px;
+}
+
+.requirement-review-group + .requirement-review-group {
+  border-top: 1px solid #e1e8e4;
+  padding-top: 28px;
+}
+
+.requirement-review-group-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+}
+
+.requirement-review-group-heading > span {
+  color: var(--green);
+  margin-top: 1px;
+}
+
+.requirement-review-group-heading h3 {
+  font-size: 13px;
+  margin: 0;
+}
+
+.requirement-review-group-heading p {
+  color: var(--muted);
+  font-size: 9px;
+  margin: 3px 0 0;
+}
+
+.requirement-review-list {
+  margin-top: 13px;
+}
+
+.requirement-review-list article {
+  align-items: center;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 14px;
+  grid-template-columns: auto 1fr auto;
+  padding: 14px 2px;
+}
+
+.requirement-review-number {
+  align-items: center;
+  background: #edf4f0;
+  border-radius: 8px;
+  color: var(--green);
+  display: flex;
+  font-size: 9px;
+  font-weight: 780;
+  height: 27px;
+  justify-content: center;
+  width: 27px;
+}
+
+.requirement-review-type {
+  align-items: center;
+  color: #74847c;
+  display: flex;
+  font-size: 9px;
+  gap: 5px;
+}
+
+.requirement-review-list article p {
+  color: #4f6259;
+  font-size: 11px;
+  line-height: 1.55;
+  margin: 4px 0 0;
+}
+
+.requirement-review-state {
+  align-items: center;
+  background: #f1f5f2;
+  border-radius: 999px;
+  color: #6f7f77;
+  display: flex;
+  font-size: 9px;
+  font-weight: 680;
+  gap: 5px;
+  padding: 5px 7px;
+  white-space: nowrap;
+}
+
+.requirement-review-note {
+  align-items: flex-start;
+  background: #f7f9f8;
+  border-radius: 11px;
+  color: #6f7f77;
+  display: flex;
+  gap: 9px;
+  margin-top: 25px;
+  padding: 12px 13px;
+}
+
+.requirement-review-note svg {
+  flex: 0 0 auto;
+}
+
+.requirement-review-note p {
+  font-size: 9px;
+  line-height: 1.55;
+  margin: 0;
 }
 
 .job-detail-aside {
@@ -5058,6 +5322,32 @@ a {
 
   .job-requirement-preview-list small {
     grid-column: 2;
+  }
+
+  .job-requirement-preview-actions,
+  .requirement-review-header,
+  .requirement-review-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .requirement-review-counts {
+    justify-content: flex-start;
+  }
+
+  .requirement-review-overview > div:first-child {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .requirement-review-list article {
+    align-items: start;
+    grid-template-columns: auto 1fr;
+  }
+
+  .requirement-review-state {
+    grid-column: 2;
+    justify-self: start;
   }
 
   .job-detail-meta {

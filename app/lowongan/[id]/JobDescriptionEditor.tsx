@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   Check,
   FileSearch,
@@ -13,6 +14,7 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "rea
 
 type JobDescriptionEditorProps = {
   initialDescription: string;
+  reviewHref: string;
 };
 
 const mockRequirements = [
@@ -78,6 +80,7 @@ function renderDescription(description: string) {
 
 export function JobDescriptionEditor({
   initialDescription,
+  reviewHref,
 }: JobDescriptionEditorProps) {
   const [description, setDescription] = useState(initialDescription);
   const [draftDescription, setDraftDescription] = useState(initialDescription);
@@ -242,9 +245,12 @@ export function JobDescriptionEditor({
                 {mockRequirements.length} requirement ditemukan
               </h3>
             </div>
-            <div aria-label="Ringkasan prioritas requirement">
-              <span><strong>4</strong> wajib</span>
-              <span><strong>2</strong> diutamakan</span>
+            <div className="job-requirement-preview-actions">
+              <div aria-label="Ringkasan prioritas requirement">
+                <span><strong>4</strong> wajib</span>
+                <span><strong>2</strong> diutamakan</span>
+              </div>
+              <Link href={reviewHref}>Tinjau hasil <span aria-hidden="true">→</span></Link>
             </div>
           </div>
 

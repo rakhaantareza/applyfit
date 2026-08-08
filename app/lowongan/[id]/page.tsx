@@ -78,7 +78,10 @@ Peran ini cocok untuk seseorang yang nyaman bekerja secara kolaboratif, terbiasa
           <JobInfoEditor initialJob={job} />
 
           <section className="job-detail-content" aria-label="Isi lowongan">
-            <JobDescriptionEditor initialDescription={initialDescription} />
+            <JobDescriptionEditor
+              initialDescription={initialDescription}
+              reviewHref={`/lowongan/${job.id}/tinjau-syarat`}
+            />
 
             <aside className="job-detail-aside" aria-label="Status lowongan">
               <div>
