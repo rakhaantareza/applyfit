@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { AppSidebar } from "../components/AppSidebar";
 import {
   ExampleRequirementList,
@@ -47,9 +48,9 @@ export default function CalculationExamplePage() {
       <AppSidebar />
       <main className="main-content calculation-main">
         <div className="page-container calculation-page">
-          <a className="back-link" href="/">
+          <Link className="back-link" href="/">
             <span aria-hidden="true">←</span> Kembali ke skor kecocokan
-          </a>
+          </Link>
 
           <section className="calculation-hero">
             <div>
