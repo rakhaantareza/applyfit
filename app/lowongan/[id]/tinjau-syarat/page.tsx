@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BookOpenCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpenCheck, Waypoints } from "lucide-react";
 import { AppSidebar } from "../../../components/AppSidebar";
 import { jobs } from "../../mockJobs";
 import { RequirementReviewEditor } from "./RequirementReviewEditor";
@@ -73,6 +73,20 @@ export default async function RequirementReviewPage({
           </section>
 
           <RequirementReviewEditor />
+
+          <section className="requirement-review-next-step" aria-label="Langkah berikutnya">
+            <span aria-hidden="true">
+              <Waypoints size={19} strokeWidth={1.8} />
+            </span>
+            <div>
+              <strong>Lanjutkan ke pemetaan bukti</strong>
+              <p>Hubungkan requirement yang sudah direview dengan skill dan bukti profilmu.</p>
+            </div>
+            <Link href={`/lowongan/${job.id}/pemetaan-bukti`}>
+              Buka pemetaan
+              <ArrowRight aria-hidden="true" size={15} strokeWidth={1.9} />
+            </Link>
+          </section>
 
           <p className="demo-note">Seluruh requirement pada halaman ini menggunakan data tiruan.</p>
         </div>
