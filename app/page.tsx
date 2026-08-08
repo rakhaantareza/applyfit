@@ -82,26 +82,18 @@ const statusSummary = [
   { label: "Di luar skor", value: 1, className: "informational" },
 ];
 
-const readinessDetails = [
+const attentionAreas = [
   {
-    label: "2 Proven",
-    detail: "React & Next.js serta TypeScript sudah didukung bukti.",
-    className: "proven",
-  },
-  {
-    label: "1 Partial",
-    detail: "Git & GitHub tercatat, tetapi bukti belum ditautkan.",
+    status: "Partial",
+    title: "Git & GitHub",
+    detail: "Skill sudah aktif, tetapi belum ada bukti yang ditautkan.",
     className: "partial",
   },
   {
-    label: "1 Learning",
-    detail: "Tailwind CSS masih dalam proses dipelajari.",
+    status: "Learning",
+    title: "Tailwind CSS",
+    detail: "Skill masih tercatat dalam tahap belajar.",
     className: "learning",
-  },
-  {
-    label: "1 di luar skor",
-    detail: "Pengalaman kerja 2 tahun tetap tampil sebagai konteks.",
-    className: "informational",
   },
 ];
 
@@ -125,76 +117,67 @@ export default function Home() {
               <JobSwitcher />
             </header>
 
-            <section className="score-overview" aria-labelledby="score-title">
+            <section className="fit-story" aria-labelledby="score-title">
               <article className="score-card">
-                <div
-                  className="score-ring"
-                  role="img"
-                  aria-label={`Skor kecocokan ${fitScore.value} persen`}
-                  style={
-                    { "--score-angle": `${fitScore.value * 3.6}deg` } as CSSProperties
-                  }
-                >
-                  <div>
-                    <strong>{fitScore.value}</strong>
-                    <span>%</span>
-                  </div>
-                </div>
-                <div className="score-copy">
-                  <AnalyzedJobContext />
-                  <span className="fit-label">Kesiapan berbasis bukti</span>
-                  <h2 id="score-title">Gambaran kesiapanmu untuk role ini</h2>
-                  <p className="readiness-intro">
-                    Skor merangkum seberapa jauh requirement lowongan sudah didukung
-                    skill dan bukti di profilmu saat ini.
-                  </p>
+                <AnalyzedJobContext />
 
-                  <div className="readiness-grid" aria-label="Ringkasan kesiapan">
-                    {readinessDetails.map((item) => (
-                      <div className="readiness-item" key={item.label}>
-                        <span
-                          className={`status-dot ${item.className}`}
-                          aria-hidden="true"
-                        />
-                        <div>
-                          <strong>{item.label}</strong>
-                          <span>{item.detail}</span>
-                        </div>
+                <div className="score-main">
+                  <div className="score-visual">
+                    <div
+                      className="score-ring"
+                      role="img"
+                      aria-label={`Skor kecocokan ${fitScore.value} persen`}
+                      style={
+                        {
+                          "--score-angle": `${fitScore.value * 3.6}deg`,
+                        } as CSSProperties
+                      }
+                    >
+                      <div>
+                        <strong>{fitScore.value}</strong>
+                        <span>%</span>
                       </div>
-                    ))}
+                    </div>
+                    <span className="score-visual-label">Fit Score saat ini</span>
                   </div>
 
-                  <div className="score-meta">
-                    <span>
-                      <small>Requirement dihitung</small>
-                      <strong>4 Skill &amp; Tool</strong>
-                    </span>
-                    <span>
-                      <small>Bukti terhubung</small>
-                      <strong>3 bukti</strong>
-                    </span>
-                    <span>
-                      <small>Diperbarui</small>
-                      <strong>Hari ini, 08.45</strong>
-                    </span>
+                  <div className="score-copy">
+                    <span className="fit-label">Kesiapan berbasis bukti</span>
+                    <h2 id="score-title">Fondasi utamamu sudah terbukti</h2>
+                    <p className="readiness-intro">
+                      Dari 4 requirement yang masuk skor, 2 sudah berstatus Proven.
+                      Git &amp; GitHub masih Partial karena bukti belum terhubung,
+                      sementara Tailwind CSS masih Learning.
+                    </p>
+
+                    <div className="score-meta">
+                      <span>
+                        <small>Requirement dihitung</small>
+                        <strong>4 Skill &amp; Tool</strong>
+                      </span>
+                      <span>
+                        <small>Bukti terhubung</small>
+                        <strong>3 bukti</strong>
+                      </span>
+                      <span>
+                        <small>Diperbarui</small>
+                        <strong>Hari ini, 08.45</strong>
+                      </span>
+                    </div>
                   </div>
-                  <p className="score-footnote">
-                    {fitScore.excludedRequirements} requirement non-skill tetap tampil,
-                    tetapi tidak masuk perhitungan {fitScore.consideredRequirements}
-                    requirement Skill &amp; Tool. Skor ini bukan keputusan untuk melamar.
-                  </p>
                 </div>
               </article>
 
-              <aside className="status-card" aria-label="Peta kesiapan requirement">
-                <div className="section-heading compact">
+              <div className="status-summary" aria-label="Ringkasan status requirement">
+                <div className="status-summary-heading">
                   <div>
-                    <p className="eyebrow">5 requirement lowongan</p>
-                    <h2>Peta kesiapan</h2>
+                    <p className="eyebrow">Ringkasan status</p>
+                    <h2>5 requirement lowongan</h2>
                   </div>
-                  <span className="info-button" aria-label="Informasi status">
-                    i
-                  </span>
+                  <p>
+                    {fitScore.excludedRequirements} requirement pengalaman tetap
+                    terlihat sebagai konteks dan tidak masuk skor MVP.
+                  </p>
                 </div>
                 <div className="status-list">
                   {statusSummary.map((item) => (
@@ -211,35 +194,70 @@ export default function Home() {
                   <span className="learning" />
                   <span className="informational" />
                 </div>
-                <p className="scope-note">
-                  Requirement pengalaman tetap ditampilkan sebagai konteks, tetapi tidak
-                  memengaruhi skor MVP.
-                </p>
-              </aside>
+              </div>
             </section>
 
-            <section className="content-grid">
-              <div className="requirements-panel">
-                <div className="section-heading">
-                  <div>
-                    <p className="eyebrow">Breakdown transparan</p>
-                    <h2>Requirement lowongan ini</h2>
-                  </div>
+            <section className="attention-section" aria-labelledby="attention-title">
+              <div className="attention-heading">
+                <div>
+                  <p className="eyebrow">Perlu perhatian</p>
+                  <h2 id="attention-title">Dua area yang belum sepenuhnya terbukti</h2>
                 </div>
-
-                <RequirementList requirements={requirements} />
+                <p>
+                  Status ini menjelaskan celah bukti dan tahap skill saat ini, bukan
+                  rekomendasi untuk melamar atau tidak.
+                </p>
               </div>
 
-              <aside className="explanation-panel">
-                <div className="explanation-icon" aria-hidden="true">
-                  ↗
+              <div className="attention-list">
+                {attentionAreas.map((item) => (
+                  <article className="attention-item" key={item.title}>
+                    <span className={`status-dot ${item.className}`} aria-hidden="true" />
+                    <div>
+                      <span className={`status-badge ${item.className}`}>
+                        {item.status}
+                      </span>
+                      <h3>{item.title}</h3>
+                      <p>{item.detail}</p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+
+            <section className="requirements-panel" aria-labelledby="requirements-title">
+              <div className="section-heading requirements-heading">
+                <div>
+                  <p className="eyebrow">Detail requirement</p>
+                  <h2 id="requirements-title">Lihat dasar perhitungan satu per satu</h2>
                 </div>
-                <p className="eyebrow">Cara hitung</p>
-                <h2>Skor dihitung dengan aturan tetap</h2>
                 <p>
-                  Setiap poin berasal dari bobot prioritas dan multiplier status
-                  requirement.
+                  Setiap status berasal dari skill dan bukti yang sudah terhubung ke
+                  profilmu.
                 </p>
+              </div>
+
+              <RequirementList requirements={requirements} />
+            </section>
+
+            <details className="scoring-disclosure">
+              <summary>
+                <span>
+                  <span className="eyebrow">Transparansi skor</span>
+                  <strong>Bagaimana Fit Score dihitung?</strong>
+                  <small>Lihat formula, bobot, dan contoh perhitungan.</small>
+                </span>
+                <span className="disclosure-icon" aria-hidden="true">+</span>
+              </summary>
+
+              <div className="scoring-content">
+                <div>
+                  <h2>Aturannya tetap dan dapat ditelusuri</h2>
+                  <p>
+                    Setiap poin berasal dari bobot prioritas dan multiplier status
+                    requirement.
+                  </p>
+                </div>
 
                 <div className="formula-card">
                   <div>
@@ -279,8 +297,8 @@ export default function Home() {
                 >
                   Lihat contoh perhitungan <span aria-hidden="true">→</span>
                 </Link>
-              </aside>
-            </section>
+              </div>
+            </details>
 
             <p className="demo-note">Data contoh untuk validasi tampilan frontend.</p>
           </div>
