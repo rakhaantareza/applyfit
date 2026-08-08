@@ -10,8 +10,11 @@ import {
   Globe2,
   LibraryBig,
   Link2,
+  ListFilter,
   Pencil,
   Plus,
+  Search,
+  SearchX,
   Trash2,
   X,
 } from "lucide-react";
@@ -66,6 +69,9 @@ export function EvidenceLibrary({
   const [draftSource, setDraftSource] = useState("");
   const [draftSkills, setDraftSkills] = useState<string[]>([]);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"Semua" | EvidenceType>("Semua");
+  const [skillFilter, setSkillFilter] = useState("Semua");
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
   const titleId = useId();
@@ -86,6 +92,26 @@ export function EvidenceLibrary({
       ...availableSkills,
       ...evidences.flatMap((evidence) => evidence.skills),
     ]),
+  );
+  const normalizedSearchQuery = searchQuery.trim().toLocaleLowerCase("id-ID");
+  const filteredEvidences = evidences.filter((evidence) => {
+    const matchesSearch = !normalizedSearchQuery || [
+      evidence.title,
+      evidence.description,
+      evidence.source ?? "",
+      evidence.type,
+      ...evidence.skills,
+    ].some((value) =>
+      value.toLocaleLowerCase("id-ID").includes(normalizedSearchQuery),
+    );
+    const matchesType = typeFilter === "Semua" || evidence.type === typeFilter;
+    const matchesSkill =
+      skillFilter === "Semua" || evidence.skills.includes(skillFilter);
+
+    return matchesSearch && matchesType && matchesSkill;
+  });
+  const hasActiveFilters = Boolean(
+    normalizedSearchQuery || typeFilter !== "Semua" || skillFilter !== "Semua",
   );
 
   useEffect(() => {
@@ -130,6 +156,12 @@ export function EvidenceLibrary({
         ? current.filter((item) => item !== skill)
         : [...current, skill],
     );
+  }
+
+  function clearFilters() {
+    setSearchQuery("");
+    setTypeFilter("Semua");
+    setSkillFilter("Semua");
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -330,8 +362,56 @@ export function EvidenceLibrary({
           </form>
         ) : null}
 
+        <div className="evidence-filter-panel" aria-label="Cari dan filter bukti">
+          <label className="evidence-search-field">
+            <span className="sr-only">Cari bukti</span>
+            <Search aria-hidden="true" size={16} strokeWidth={1.8} />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Cari judul, skill, atau sumber"
+            />
+          </label>
+
+          <label className="evidence-filter-field">
+            <ListFilter aria-hidden="true" size={15} strokeWidth={1.8} />
+            <span>Jenis</span>
+            <select
+              value={typeFilter}
+              onChange={(event) =>
+                setTypeFilter(event.target.value as "Semua" | EvidenceType)
+              }
+            >
+              <option>Semua</option>
+              {evidenceTypes.map((type) => <option key={type}>{type}</option>)}
+            </select>
+          </label>
+
+          <label className="evidence-filter-field">
+            <Link2 aria-hidden="true" size={15} strokeWidth={1.8} />
+            <span>Skill</span>
+            <select
+              value={skillFilter}
+              onChange={(event) => setSkillFilter(event.target.value)}
+            >
+              <option>Semua</option>
+              {skillOptions.map((skill) => <option key={skill}>{skill}</option>)}
+            </select>
+          </label>
+
+          <div className="evidence-filter-meta" aria-live="polite">
+            <span>
+              Menampilkan <strong>{filteredEvidences.length}</strong> dari {evidences.length} bukti
+            </span>
+            {hasActiveFilters ? (
+              <button type="button" onClick={clearFilters}>Reset filter</button>
+            ) : null}
+          </div>
+        </div>
+
         <div className="evidence-list">
-          {evidences.map((evidence) => {
+          {filteredEvidences.map((evidence) => {
             const TypeIcon = evidenceTypeIcons[evidence.type];
             const isPendingDelete = pendingDeleteId === evidence.id;
 
@@ -415,6 +495,29 @@ export function EvidenceLibrary({
               </article>
             );
           })}
+          {!filteredEvidences.length ? (
+            <div className="evidence-empty-state">
+              <SearchX aria-hidden="true" size={22} strokeWidth={1.7} />
+              <div>
+                <strong>
+                  {hasActiveFilters
+                    ? "Tidak ada bukti yang cocok"
+                    : "Pustaka bukti masih kosong"}
+                </strong>
+                <p>
+                  {hasActiveFilters
+                    ? "Coba ubah kata pencarian atau longgarkan filter yang dipilih."
+                    : "Tambahkan hasil kerja atau pengalaman yang mendukung skill profilmu."}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={hasActiveFilters ? clearFilters : openForm}
+              >
+                {hasActiveFilters ? "Tampilkan semua bukti" : "Tambah bukti"}
+              </button>
+            </div>
+          ) : null}
         </div>
       </section>
 
