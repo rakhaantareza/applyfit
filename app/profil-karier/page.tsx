@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import {
   BadgeCheck,
   BookOpen,
-  BriefcaseBusiness,
   Layers3,
   Link2,
 } from "lucide-react";
 import { AppSidebar } from "../components/AppSidebar";
+import { CareerDirectionEditor } from "./CareerDirectionEditor";
 
 export const metadata: Metadata = {
   title: "Profil Karier",
@@ -104,21 +104,10 @@ export default function CareerProfilePage() {
               </div>
             </div>
 
-            <div className="career-direction" aria-label="Target karier">
-              <div className="career-direction-heading">
-                <span className="career-direction-icon" aria-hidden="true">
-                  <BriefcaseBusiness size={20} strokeWidth={1.8} />
-                </span>
-                <div>
-                  <span>Arah yang dituju</span>
-                  <strong>{profile.targetRole}</strong>
-                </div>
-              </div>
-              <div className="career-direction-field">
-                <span>Bidang karier</span>
-                <strong>{profile.careerField}</strong>
-              </div>
-            </div>
+            <CareerDirectionEditor
+              initialCareerField={profile.careerField}
+              initialTargetRole={profile.targetRole}
+            />
 
             <div className="profile-foundation" aria-label="Ringkasan profil">
               <div>
