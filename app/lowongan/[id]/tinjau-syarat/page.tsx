@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { StableLink as Link } from "../../../components/StableLink";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, BookOpenCheck, Waypoints } from "lucide-react";
 import { AppSidebar } from "../../../components/AppSidebar";

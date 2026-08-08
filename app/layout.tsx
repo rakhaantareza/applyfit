@@ -1,16 +1,7 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-jakarta-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+/* eslint-disable @next/next/no-page-custom-font -- The App Router root layout loads these fonts globally; explicit links avoid Vinext's missing next/font styles in dev. */
 
 export const metadata: Metadata = {
   title: {
@@ -32,9 +23,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body className={`${plusJakartaSans.variable} ${geistMono.variable}`}>
-        {children}
-      </body>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans&display=swap"
+        />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Geist+Mono&display=swap"
+        />
+      </head>
+      <body>{children}</body>
     </html>
   );
 }

@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 :root {
+  --font-jakarta-sans: "Plus Jakarta Sans";
+  --font-geist-mono: "Geist Mono";
   --ink: #14251f;
   --muted: #5f7068;
   --line: #dde7e1;
