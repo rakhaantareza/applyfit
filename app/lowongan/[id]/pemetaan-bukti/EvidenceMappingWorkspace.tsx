@@ -3,14 +3,21 @@
 import {
   Check,
   CheckCircle2,
+  ChevronDown,
   CircleDashed,
   CircleOff,
+  ClipboardCheck,
+  Info,
   Link2,
   SearchCheck,
   Waypoints,
   X,
 } from "lucide-react";
 import { useState } from "react";
+import {
+  deriveRequirementStatus,
+  type RequirementStatus,
+} from "../../../../server/services/fit-score";
 import {
   ManualEvidenceMappingForm,
   type MappingRequirement,
@@ -27,6 +34,28 @@ type EvidenceMappingWorkspaceProps = {
   skills: MappingSkill[];
 };
 
+const reviewStatusMeta: Record<
+  RequirementStatus,
+  { label: "Proven" | "Partial" | "Learning" | "Missing"; description: string }
+> = {
+  proven: {
+    label: "Proven",
+    description: "Ada skill aktif dengan bukti yang terhubung.",
+  },
+  partial: {
+    label: "Partial",
+    description: "Skill aktif sudah terhubung, tetapi bukti masih kosong.",
+  },
+  learning: {
+    label: "Learning",
+    description: "Skill yang terhubung masih berstatus dipelajari.",
+  },
+  missing: {
+    label: "Missing",
+    description: "Belum ada skill dan bukti yang dapat mendukung requirement.",
+  },
+};
+
 export function EvidenceMappingWorkspace({
   requirements,
   skills,
@@ -34,6 +63,7 @@ export function EvidenceMappingWorkspace({
   const [manualMappings, setManualMappings] = useState<SavedManualMapping[]>([]);
   const [noEvidenceRequirementIds, setNoEvidenceRequirementIds] = useState<string[]>([]);
   const [pendingNoEvidenceId, setPendingNoEvidenceId] = useState<string | null>(null);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
 
   function getManualSkillIds(requirementId: string) {
@@ -103,6 +133,33 @@ export function EvidenceMappingWorkspace({
   const autoMatchedRequirementCount = requirements.filter(
     (requirement) => requirement.autoMatchReason !== null,
   ).length;
+  const reviewItems = requirements.map((requirement) => {
+    const mappedSkills = getMappedSkills(requirement);
+    const status = deriveRequirementStatus(
+      mappedSkills.map((skill) => ({
+        skill: {
+          id: skill.id,
+          status: skill.status === "Aktif" ? "active" : "learning",
+        },
+        linkedEvidenceIds: skill.evidence.map((evidence) => evidence.id),
+      })),
+    );
+    const evidence = Array.from(
+      new Map(
+        mappedSkills
+          .flatMap((skill) => skill.evidence)
+          .map((item) => [item.id, item]),
+      ).values(),
+    );
+
+    return { requirement, mappedSkills, evidence, status };
+  });
+  const reviewStatusOrder: RequirementStatus[] = [
+    "proven",
+    "partial",
+    "learning",
+    "missing",
+  ];
 
   return (
     <>
@@ -276,6 +333,97 @@ export function EvidenceMappingWorkspace({
             );
           })}
         </div>
+      </section>
+
+      <section className={`mapping-review${isReviewOpen ? " open" : ""}`} aria-labelledby="mapping-review-title">
+        <div className="mapping-review-heading">
+          <span aria-hidden="true">
+            <ClipboardCheck size={20} strokeWidth={1.8} />
+          </span>
+          <div>
+            <p className="eyebrow">Review hasil pemetaan</p>
+            <h2 id="mapping-review-title">Lihat status yang diturunkan dari hubungan saat ini</h2>
+            <p>
+              Ringkasan ini membantu memeriksa dasar analisis sebelum Fit Score dihitung.
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-expanded={isReviewOpen}
+            aria-controls="mapping-review-content"
+            onClick={() => setIsReviewOpen((current) => !current)}
+          >
+            {isReviewOpen ? "Tutup review" : "Tinjau hasil"}
+            <ChevronDown aria-hidden="true" size={15} strokeWidth={1.9} />
+          </button>
+        </div>
+
+        {isReviewOpen ? (
+          <div className="mapping-review-content" id="mapping-review-content">
+            <div className="mapping-review-summary" aria-label="Ringkasan status hasil pemetaan">
+              {reviewStatusOrder.map((status) => (
+                <span className={status} key={status}>
+                  <i aria-hidden="true" />
+                  {reviewStatusMeta[status].label}
+                  <strong>{reviewItems.filter((item) => item.status === status).length}</strong>
+                </span>
+              ))}
+            </div>
+
+            <div className="mapping-review-list">
+              {reviewItems.map(({ requirement, mappedSkills, evidence, status }) => {
+                const isConfirmedWithoutEvidence =
+                  noEvidenceRequirementIds.includes(requirement.id);
+
+                return (
+                  <article key={requirement.id}>
+                    <span className={`status-badge ${status}`}>
+                      {reviewStatusMeta[status].label}
+                    </span>
+                    <div className="mapping-review-requirement">
+                      <span>{requirement.priority}</span>
+                      <h3>{requirement.text}</h3>
+                      <p>{reviewStatusMeta[status].description}</p>
+                    </div>
+                    <div className="mapping-review-support">
+                      {mappedSkills.length ? (
+                        <>
+                          <strong>{mappedSkills.map((skill) => skill.name).join(", ")}</strong>
+                          <p>
+                            {evidence.length
+                              ? evidence.map((item) => item.title).join(" · ")
+                              : "Belum ada bukti pada skill yang terhubung."}
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <strong>
+                            {isConfirmedWithoutEvidence
+                              ? "Dikonfirmasi tanpa bukti"
+                              : "Belum selesai dipetakan"}
+                          </strong>
+                          <p>
+                            {isConfirmedWithoutEvidence
+                              ? "Pengguna sudah meninjau dan menandai kondisi ini."
+                              : "Hubungkan skill atau konfirmasi bahwa bukti belum tersedia."}
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            <div className="mapping-review-note">
+              <Info aria-hidden="true" size={15} strokeWidth={1.8} />
+              <p>
+                Status di atas dihitung saat halaman ditampilkan dari mapping, status skill,
+                dan bukti yang terhubung. Label tersebut tidak disimpan pada requirement lowongan.
+              </p>
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <span className="sr-only" aria-live="polite">{announcement}</span>
