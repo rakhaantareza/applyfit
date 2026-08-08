@@ -493,7 +493,7 @@ export function JobSwitcher() {
 
           <Link
             className="job-popover-footer"
-            href="/#lowongan"
+            href="/lowongan"
             onClick={() => {
               setIsOpen(false);
               setQuery("");

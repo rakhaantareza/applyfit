@@ -27,7 +27,7 @@ const navigation = [
   { label: "Ringkasan", icon: House, href: "/#ringkasan" },
   { label: "Profil Karier", icon: UserRound, href: "/profil-karier" },
   { label: "Pustaka Bukti", icon: LibraryBig, href: "/pustaka-bukti" },
-  { label: "Lowongan", icon: BriefcaseBusiness, href: "/#lowongan" },
+  { label: "Lowongan", icon: BriefcaseBusiness, href: "/lowongan" },
   { label: "Skor Kecocokan", icon: Gauge, href: "/" },
 ] satisfies NavigationItem[];
 
