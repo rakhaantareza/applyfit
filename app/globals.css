@@ -2739,6 +2739,109 @@ a {
   grid-column: 3;
 }
 
+.evidence-skill-picker {
+  border: 0;
+  border-top: 1px solid #dce7e0;
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  min-width: 0;
+  padding: 16px 0 0;
+}
+
+.evidence-skill-picker legend {
+  color: #5c6f65;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 0;
+}
+
+.evidence-skill-picker-heading {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-top: 5px;
+}
+
+.evidence-skill-picker-heading span,
+.evidence-skill-picker > small {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.evidence-skill-picker-heading strong {
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.evidence-skill-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.evidence-skill-options label {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid #cfddd5;
+  border-radius: 9px;
+  color: #52685d;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 680;
+  gap: 7px;
+  padding: 7px 9px;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.evidence-skill-options label:hover {
+  border-color: #9dbdab;
+}
+
+.evidence-skill-options label.selected {
+  background: #e4f2e8;
+  border-color: #9dc8ae;
+  color: #155e48;
+}
+
+.evidence-skill-options input {
+  height: 1px;
+  opacity: 0;
+  position: absolute;
+  width: 1px;
+}
+
+.evidence-skill-options label > span {
+  align-items: center;
+  border: 1px solid #b9c9c0;
+  border-radius: 5px;
+  display: inline-flex;
+  height: 16px;
+  justify-content: center;
+  width: 16px;
+}
+
+.evidence-skill-options label.selected > span {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+
+.evidence-skill-options input:focus-visible + span {
+  outline: 2px solid #8db8a3;
+  outline-offset: 2px;
+}
+
+.evidence-skill-picker > small {
+  display: block;
+  margin-top: 10px;
+}
+
 .evidence-editor-actions {
   align-items: center;
   display: flex;

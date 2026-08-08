@@ -36,6 +36,7 @@ export type EvidenceItem = {
 
 type EvidenceLibraryProps = {
   initialEvidences: EvidenceItem[];
+  availableSkills: string[];
 };
 
 type EditorState =
@@ -53,13 +54,17 @@ const evidenceTypeIcons = {
 
 const evidenceTypes = Object.keys(evidenceTypeIcons) as EvidenceType[];
 
-export function EvidenceLibrary({ initialEvidences }: EvidenceLibraryProps) {
+export function EvidenceLibrary({
+  initialEvidences,
+  availableSkills,
+}: EvidenceLibraryProps) {
   const [evidences, setEvidences] = useState(initialEvidences);
   const [editor, setEditor] = useState<EditorState>(null);
   const [draftTitle, setDraftTitle] = useState("");
   const [draftType, setDraftType] = useState<EvidenceType>("Proyek");
   const [draftDescription, setDraftDescription] = useState("");
   const [draftSource, setDraftSource] = useState("");
+  const [draftSkills, setDraftSkills] = useState<string[]>([]);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
@@ -76,6 +81,12 @@ export function EvidenceLibrary({ initialEvidences }: EvidenceLibraryProps) {
     type,
     count: evidences.filter((evidence) => evidence.type === type).length,
   }));
+  const skillOptions = Array.from(
+    new Set([
+      ...availableSkills,
+      ...evidences.flatMap((evidence) => evidence.skills),
+    ]),
+  );
 
   useEffect(() => {
     if (!editor) return;
@@ -89,6 +100,7 @@ export function EvidenceLibrary({ initialEvidences }: EvidenceLibraryProps) {
     setDraftType("Proyek");
     setDraftDescription("");
     setDraftSource("");
+    setDraftSkills([]);
     setPendingDeleteId(null);
     setError("");
     setAnnouncement("");
@@ -100,6 +112,7 @@ export function EvidenceLibrary({ initialEvidences }: EvidenceLibraryProps) {
     setDraftType(evidence.type);
     setDraftDescription(evidence.description);
     setDraftSource(evidence.source ?? "");
+    setDraftSkills(evidence.skills);
     setPendingDeleteId(null);
     setError("");
     setAnnouncement("");
@@ -109,6 +122,14 @@ export function EvidenceLibrary({ initialEvidences }: EvidenceLibraryProps) {
   function closeForm() {
     setEditor(null);
     setError("");
+  }
+
+  function toggleDraftSkill(skill: string) {
+    setDraftSkills((current) =>
+      current.includes(skill)
+        ? current.filter((item) => item !== skill)
+        : [...current, skill],
+    );
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -133,6 +154,7 @@ export function EvidenceLibrary({ initialEvidences }: EvidenceLibraryProps) {
                 type: draftType,
                 description,
                 source: source || null,
+                skills: draftSkills,
                 updatedAt: "Baru diperbarui",
               }
             : evidence,
@@ -147,7 +169,7 @@ export function EvidenceLibrary({ initialEvidences }: EvidenceLibraryProps) {
           type: draftType,
           description,
           source: source || null,
-          skills: [],
+          skills: draftSkills,
           updatedAt: "Baru ditambahkan",
         },
         ...current,
@@ -219,8 +241,8 @@ export function EvidenceLibrary({ initialEvidences }: EvidenceLibraryProps) {
               <strong>{editor.mode === "add" ? "Tambah bukti baru" : "Edit bukti"}</strong>
               <span>
                 {editor.mode === "add"
-                  ? "Skill dapat dihubungkan setelah bukti tersimpan."
-                  : "Perbarui konteks bukti tanpa mengubah skill yang sudah terhubung."}
+                  ? "Tambahkan konteks dan hubungkan skill yang benar-benar didukung bukti ini."
+                  : "Perbarui konteks atau sesuaikan skill yang didukung bukti ini."}
               </span>
             </div>
             <label htmlFor={titleId}>
@@ -263,6 +285,35 @@ export function EvidenceLibrary({ initialEvidences }: EvidenceLibraryProps) {
                 inputMode="url"
               />
             </label>
+            <fieldset className="evidence-skill-picker">
+              <legend>Skill yang didukung</legend>
+              <div className="evidence-skill-picker-heading">
+                <span>Pilih satu atau beberapa skill dari profil kariermu.</span>
+                <strong>{draftSkills.length} dipilih</strong>
+              </div>
+              <div className="evidence-skill-options">
+                {skillOptions.map((skill) => {
+                  const isSelected = draftSkills.includes(skill);
+
+                  return (
+                    <label className={isSelected ? "selected" : undefined} key={skill}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleDraftSkill(skill)}
+                      />
+                      <span aria-hidden="true">
+                        {isSelected ? <Check size={12} strokeWidth={2.3} /> : null}
+                      </span>
+                      {skill}
+                    </label>
+                  );
+                })}
+              </div>
+              <small>
+                Bukti boleh disimpan tanpa skill dan dihubungkan kembali nanti.
+              </small>
+            </fieldset>
             <div className="evidence-editor-actions">
               {error ? <p role="alert">{error}</p> : <span />}
               <div>

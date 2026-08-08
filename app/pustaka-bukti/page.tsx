@@ -61,6 +61,15 @@ const evidences: EvidenceItem[] = [
   },
 ];
 
+const profileSkills = [
+  "React",
+  "Next.js",
+  "TypeScript",
+  "Git & GitHub",
+  "Figma",
+  "Tailwind CSS",
+];
+
 export default function EvidenceLibraryPage() {
   return (
     <div className="app-shell">
@@ -80,7 +89,10 @@ export default function EvidenceLibraryPage() {
             <span className="mock-data-badge">Data bukti contoh</span>
           </header>
 
-          <EvidenceLibrary initialEvidences={evidences} />
+          <EvidenceLibrary
+            initialEvidences={evidences}
+            availableSkills={profileSkills}
+          />
 
           <p className="demo-note">Seluruh item pada halaman ini menggunakan data tiruan.</p>
         </div>
