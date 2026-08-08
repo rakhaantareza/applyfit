@@ -12,6 +12,7 @@ import {
   LibraryBig,
   Link2,
   MapPin,
+  SearchCheck,
   Waypoints,
 } from "lucide-react";
 import { AppSidebar } from "../../../components/AppSidebar";
@@ -38,6 +39,7 @@ type SkillRequirement = {
   text: string;
   priority: "Wajib" | "Preferensi";
   skillIds: string[];
+  autoMatchReason: string | null;
 };
 
 const profileSkills: ProfileSkill[] = [
@@ -99,36 +101,42 @@ const skillRequirements: SkillRequirement[] = [
     text: "Mampu membangun fitur web menggunakan React dan TypeScript.",
     priority: "Wajib",
     skillIds: ["react", "typescript"],
+    autoMatchReason: "Nama React dan TypeScript ditemukan langsung pada requirement.",
   },
   {
     id: "html-css-javascript",
     text: "Memahami JavaScript modern, HTML, dan CSS.",
     priority: "Wajib",
     skillIds: ["javascript"],
+    autoMatchReason: "Nama JavaScript ditemukan langsung pada requirement.",
   },
   {
     id: "git-review",
     text: "Terbiasa menggunakan Git dan berpartisipasi dalam code review.",
     priority: "Wajib",
     skillIds: ["git"],
+    autoMatchReason: "Nama Git cocok dengan skill Git & GitHub di profil.",
   },
   {
     id: "communication",
     text: "Mampu berkomunikasi dan memecahkan masalah secara terstruktur.",
     priority: "Wajib",
     skillIds: [],
+    autoMatchReason: null,
   },
   {
     id: "nextjs",
     text: "Memiliki pengalaman menggunakan Next.js.",
     priority: "Preferensi",
     skillIds: ["nextjs"],
+    autoMatchReason: "Nama Next.js ditemukan langsung pada requirement.",
   },
   {
     id: "automated-testing",
     text: "Memahami automated testing untuk aplikasi web.",
     priority: "Preferensi",
-    skillIds: [],
+    skillIds: ["automated-testing"],
+    autoMatchReason: "Nama Automated Testing cocok langsung dengan skill yang sedang dipelajari.",
   },
 ];
 
@@ -186,6 +194,9 @@ export default async function EvidenceMappingPage({
   const mappingProgress = Math.round(
     (mappedRequirementCount / skillRequirements.length) * 100,
   );
+  const autoMatchedRequirementCount = skillRequirements.filter(
+    (requirement) => requirement.autoMatchReason !== null,
+  ).length;
 
   return (
     <div className="app-shell">
@@ -260,6 +271,20 @@ export default async function EvidenceMappingPage({
             </div>
           </section>
 
+          <div className="mapping-auto-summary" role="status">
+            <span aria-hidden="true">
+              <SearchCheck size={19} strokeWidth={1.9} />
+            </span>
+            <div>
+              <strong>{autoMatchedRequirementCount} kecocokan nama ditemukan otomatis</strong>
+              <p>
+                ApplyFit hanya menautkan nama skill yang cocok langsung. Requirement tanpa
+                kecocokan tetap dibiarkan terbuka untuk ditinjau pengguna.
+              </p>
+            </div>
+            <small>Exact match contoh</small>
+          </div>
+
           <section className="mapping-requirements" aria-labelledby="mapping-list-title">
             <div className="mapping-section-heading">
               <div>
@@ -296,11 +321,11 @@ export default async function EvidenceMappingPage({
                       <div className="mapping-connection-heading">
                         <span>
                           {isMapped ? (
-                            <CheckCircle2 aria-hidden="true" size={15} strokeWidth={1.9} />
+                            <SearchCheck aria-hidden="true" size={15} strokeWidth={1.9} />
                           ) : (
                             <CircleDashed aria-hidden="true" size={15} strokeWidth={1.8} />
                           )}
-                          {isMapped ? "Skill terhubung" : "Belum dipetakan"}
+                          {isMapped ? "Cocok otomatis" : "Tidak ada kecocokan langsung"}
                         </span>
                         {isMapped ? <small>{evidenceCount} bukti terkait</small> : null}
                       </div>
@@ -315,8 +340,14 @@ export default async function EvidenceMappingPage({
                           ))}
                         </div>
                       ) : (
-                        <p>Belum ada skill profil yang dihubungkan ke requirement ini.</p>
+                        <p>Nama requirement ini belum cocok langsung dengan skill profil.</p>
                       )}
+                      {requirement.autoMatchReason ? (
+                        <p className="mapping-auto-reason">
+                          <CheckCircle2 aria-hidden="true" size={12} strokeWidth={1.9} />
+                          {requirement.autoMatchReason}
+                        </p>
+                      ) : null}
                     </div>
                   </article>
                 );
