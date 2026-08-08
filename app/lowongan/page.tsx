@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import {
   BriefcaseBusiness,
   Building2,
@@ -8,93 +9,13 @@ import {
   Monitor,
 } from "lucide-react";
 import { AppSidebar } from "../components/AppSidebar";
+import { jobs } from "./mockJobs";
 
 export const metadata: Metadata = {
   title: "Lowongan",
   description:
     "Kelola lowongan tersimpan dan pantau kesiapan requirement sebelum dianalisis di ApplyFit.",
 };
-
-const jobs = [
-  {
-    id: "nusa-frontend",
-    title: "Frontend Developer",
-    company: "Nusa Digital",
-    initials: "ND",
-    source: "LinkedIn",
-    location: "Jakarta Selatan",
-    arrangement: "Hybrid",
-    status: "Sudah dianalisis",
-    statusTone: "analyzed",
-    requirementCount: 5,
-    updatedAt: "Dianalisis 2 jam lalu",
-  },
-  {
-    id: "pixel-ui",
-    title: "UI Engineer",
-    company: "PixelWorks",
-    initials: "PW",
-    source: "Glints",
-    location: "Bandung",
-    arrangement: "Remote",
-    status: "Siap direview",
-    statusTone: "review",
-    requirementCount: 8,
-    updatedAt: "Disimpan kemarin",
-  },
-  {
-    id: "karya-web",
-    title: "Web Developer",
-    company: "Karya Labs",
-    initials: "KL",
-    source: "Kalibrr",
-    location: "Jakarta Pusat",
-    arrangement: "On-site",
-    status: "Draft tersimpan",
-    statusTone: "draft",
-    requirementCount: 0,
-    updatedAt: "Diperbarui 2 hari lalu",
-  },
-  {
-    id: "gojek-frontend",
-    title: "Frontend Engineer",
-    company: "Gojek",
-    initials: "GJ",
-    source: "LinkedIn",
-    location: "Jakarta Selatan",
-    arrangement: "Hybrid",
-    status: "Siap direview",
-    statusTone: "review",
-    requirementCount: 11,
-    updatedAt: "Disimpan 3 hari lalu",
-  },
-  {
-    id: "tokopedia-frontend",
-    title: "Software Engineer, Frontend",
-    company: "Tokopedia",
-    initials: "TP",
-    source: "Career Site",
-    location: "Jakarta Selatan",
-    arrangement: "Remote",
-    status: "Draft tersimpan",
-    statusTone: "draft",
-    requirementCount: 0,
-    updatedAt: "Disimpan 5 hari lalu",
-  },
-  {
-    id: "traveloka-web",
-    title: "Web Platform Engineer",
-    company: "Traveloka",
-    initials: "TV",
-    source: "LinkedIn",
-    location: "Tangerang",
-    arrangement: "Hybrid",
-    status: "Sudah dianalisis",
-    statusTone: "analyzed",
-    requirementCount: 9,
-    updatedAt: "Dianalisis 1 minggu lalu",
-  },
-] as const;
 
 const analyzedJobCount = jobs.filter((job) => job.statusTone === "analyzed").length;
 const reviewJobCount = jobs.filter((job) => job.statusTone === "review").length;
@@ -194,6 +115,11 @@ export default function JobsPage() {
                       {job.updatedAt}
                     </small>
                   </div>
+
+                  <Link className="job-library-detail-link" href={`/lowongan/${job.id}`}>
+                    Lihat detail
+                    <span aria-hidden="true">→</span>
+                  </Link>
                 </article>
               ))}
             </div>
