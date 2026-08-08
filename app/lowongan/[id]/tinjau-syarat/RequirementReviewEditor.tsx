@@ -8,6 +8,7 @@ import {
   ListChecks,
   Pencil,
   Plus,
+  Scissors,
   Sparkles,
   Trash2,
   UserRoundCheck,
@@ -107,6 +108,9 @@ export function RequirementReviewEditor() {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedRequirementIds, setSelectedRequirementIds] = useState<string[]>([]);
   const [selectionError, setSelectionError] = useState("");
+  const [splitRequirementId, setSplitRequirementId] = useState<string | null>(null);
+  const [splitDrafts, setSplitDrafts] = useState<string[]>([]);
+  const [splitError, setSplitError] = useState("");
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
   const textId = useId();
@@ -120,6 +124,10 @@ export function RequirementReviewEditor() {
   const selectedRequirements = requirements.filter((item) =>
     selectedRequirementIds.includes(item.id),
   );
+  const splitRequirement = requirements.find(
+    (item) => item.id === splitRequirementId,
+  );
+  const splitFieldBaseId = useId();
 
   useEffect(() => {
     if (!editor) return;
@@ -138,6 +146,9 @@ export function RequirementReviewEditor() {
     setIsSelectionMode(false);
     setSelectedRequirementIds([]);
     setSelectionError("");
+    setSplitRequirementId(null);
+    setSplitDrafts([]);
+    setSplitError("");
     setEditor({ mode: "add" });
   }
 
@@ -151,6 +162,9 @@ export function RequirementReviewEditor() {
     setIsSelectionMode(false);
     setSelectedRequirementIds([]);
     setSelectionError("");
+    setSplitRequirementId(null);
+    setSplitDrafts([]);
+    setSplitError("");
     setEditor({ mode: "edit", requirementId: requirement.id });
   }
 
@@ -212,6 +226,11 @@ export function RequirementReviewEditor() {
     if (editor?.mode === "edit" && editor.requirementId === requirement.id) {
       setEditor(null);
     }
+    if (splitRequirementId === requirement.id) {
+      setSplitRequirementId(null);
+      setSplitDrafts([]);
+      setSplitError("");
+    }
     setAnnouncement("Requirement dihapus dari data contoh.");
   }
 
@@ -221,6 +240,9 @@ export function RequirementReviewEditor() {
     setSelectedRequirementIds([]);
     setSelectionError("");
     setAnnouncement("");
+    setSplitRequirementId(null);
+    setSplitDrafts([]);
+    setSplitError("");
     setIsSelectionMode(true);
   }
 
@@ -278,6 +300,73 @@ export function RequirementReviewEditor() {
     setSelectionError("");
     setIsSelectionMode(false);
     setAnnouncement(`${selectedRequirements.length} requirement berhasil digabungkan.`);
+  }
+
+  function openSplitEditor(requirement: Requirement) {
+    setEditor(null);
+    setPendingDeleteId(null);
+    setIsSelectionMode(false);
+    setSelectedRequirementIds([]);
+    setSelectionError("");
+    setSplitRequirementId(requirement.id);
+    setSplitDrafts([requirement.text, ""]);
+    setSplitError("");
+    setAnnouncement("");
+  }
+
+  function closeSplitEditor() {
+    setSplitRequirementId(null);
+    setSplitDrafts([]);
+    setSplitError("");
+  }
+
+  function updateSplitDraft(index: number, value: string) {
+    setSplitDrafts((current) =>
+      current.map((draft, draftIndex) => draftIndex === index ? value : draft),
+    );
+    setSplitError("");
+  }
+
+  function splitSelectedRequirement(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!splitRequirement) return;
+
+    const parts = splitDrafts.map((draft) => draft.trim()).filter(Boolean);
+    if (parts.length < 2) {
+      setSplitError("Tulis minimal dua requirement hasil pemisahan.");
+      return;
+    }
+
+    const uniqueParts = new Set(
+      parts.map((part) => part.toLocaleLowerCase("id-ID")),
+    );
+    if (uniqueParts.size !== parts.length) {
+      setSplitError("Setiap hasil pemisahan perlu berbeda.");
+      return;
+    }
+
+    setRequirements((current) => {
+      const sourceIndex = current.findIndex((item) => item.id === splitRequirement.id);
+      if (sourceIndex < 0) return current;
+
+      const splitItems: Requirement[] = parts.map((text, index) => ({
+        id: `${splitRequirement.id}-split-${Date.now()}-${index}`,
+        text,
+        priority: splitRequirement.priority,
+        type: splitRequirement.type,
+        reviewed: true,
+      }));
+
+      return [
+        ...current.slice(0, sourceIndex),
+        ...splitItems,
+        ...current.slice(sourceIndex + 1),
+      ];
+    });
+    setSplitRequirementId(null);
+    setSplitDrafts([]);
+    setSplitError("");
+    setAnnouncement(`${parts.length} requirement spesifik berhasil dibuat.`);
   }
 
   function updateRequirementPriority(
@@ -406,6 +495,14 @@ export function RequirementReviewEditor() {
                         <Pencil aria-hidden="true" size={14} strokeWidth={1.9} />
                       </button>
                       <button
+                        className="requirement-split-button"
+                        type="button"
+                        aria-label={`Pisahkan requirement: ${requirement.text}`}
+                        onClick={() => openSplitEditor(requirement)}
+                      >
+                        <Scissors aria-hidden="true" size={14} strokeWidth={1.9} />
+                      </button>
+                      <button
                         className="requirement-delete-button"
                         type="button"
                         aria-label={`Hapus requirement: ${requirement.text}`}
@@ -473,6 +570,73 @@ export function RequirementReviewEditor() {
             </button>
           </div>
         </div>
+      ) : null}
+
+      {splitRequirement ? (
+        <form className="requirement-split-editor" onSubmit={splitSelectedRequirement}>
+          <div className="requirement-split-heading">
+            <span aria-hidden="true"><Scissors size={17} strokeWidth={1.9} /></span>
+            <div>
+              <strong>Pisahkan menjadi requirement spesifik</strong>
+              <p>
+                Tipe <b>{splitRequirement.type}</b> dan prioritas <b>{splitRequirement.priority}</b>
+                {" "}akan dipertahankan untuk semua hasil.
+              </p>
+            </div>
+          </div>
+
+          <blockquote>{splitRequirement.text}</blockquote>
+
+          <div className="requirement-split-fields">
+            {splitDrafts.map((draft, index) => (
+              <label htmlFor={`${splitFieldBaseId}-${index}`} key={`${splitFieldBaseId}-${index}`}>
+                <span>Requirement {index + 1}</span>
+                <div>
+                  <input
+                    id={`${splitFieldBaseId}-${index}`}
+                    value={draft}
+                    onChange={(event) => updateSplitDraft(index, event.target.value)}
+                  />
+                  {splitDrafts.length > 2 ? (
+                    <button
+                      type="button"
+                      aria-label={`Hapus kolom requirement ${index + 1}`}
+                      onClick={() =>
+                        setSplitDrafts((current) =>
+                          current.filter((_, draftIndex) => draftIndex !== index),
+                        )
+                      }
+                    >
+                      <X aria-hidden="true" size={14} strokeWidth={1.9} />
+                    </button>
+                  ) : null}
+                </div>
+              </label>
+            ))}
+          </div>
+
+          <div className="requirement-split-actions">
+            <button
+              className="add-part"
+              type="button"
+              disabled={splitDrafts.length >= 4}
+              onClick={() => setSplitDrafts((current) => [...current, ""])}
+            >
+              <Plus aria-hidden="true" size={14} strokeWidth={2} />
+              Tambah bagian
+            </button>
+            {splitError ? <p role="alert">{splitError}</p> : <span />}
+            <div>
+              <button className="career-button secondary" type="button" onClick={closeSplitEditor}>
+                Batal
+              </button>
+              <button className="career-button primary" type="submit">
+                <Scissors aria-hidden="true" size={15} strokeWidth={1.9} />
+                Pisahkan requirement
+              </button>
+            </div>
+          </div>
+        </form>
       ) : null}
 
       {editor ? (
