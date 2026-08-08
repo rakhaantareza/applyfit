@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+/* eslint-disable @next/next/no-html-link-for-pages -- Native navigation is intentional: the Sites Vinext client router fails in production. */
+
 import {
   BriefcaseBusiness,
   ChartNoAxesCombined,
@@ -119,10 +120,10 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
         >
           <Menu aria-hidden="true" size={21} strokeWidth={1.9} />
         </button>
-        <Link className="mobile-brand" href="/" aria-label="ApplyFit beranda">
+        <a className="mobile-brand" href="/" aria-label="ApplyFit beranda">
           <span className="brand-mark" aria-hidden="true">A</span>
           <span>ApplyFit</span>
-        </Link>
+        </a>
         <span className="mobile-page-label">{activeItem}</span>
       </header>
 
@@ -144,7 +145,7 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
         inert={isMobileViewport && !isMobileOpen ? true : undefined}
       >
         <div className="sidebar-header">
-          <Link
+          <a
             className="brand"
             href="/"
             aria-label="ApplyFit beranda"
@@ -153,7 +154,7 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
           >
             <span className="brand-mark" aria-hidden="true">A</span>
             <span className="brand-name">ApplyFit</span>
-          </Link>
+          </a>
 
           <button
             className="sidebar-toggle"
@@ -187,7 +188,7 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
             const Icon = item.icon;
 
             return (
-              <Link
+              <a
                 className={`nav-item${isActive ? " active" : ""}`}
                 href={item.href}
                 key={item.label}
@@ -199,13 +200,13 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
                   <Icon size={19} strokeWidth={1.8} />
                 </span>
                 <span className="nav-text">{item.label}</span>
-              </Link>
+              </a>
             );
           })}
         </nav>
 
         <div className="sidebar-footer">
-          <Link
+          <a
             className="profile-readiness"
             href="/profil-karier"
             data-tooltip="Profil 80% lengkap"
@@ -224,7 +225,7 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
               </span>
               <span className="readiness-copy">4 dari 5 bagian profil sudah terisi.</span>
             </span>
-          </Link>
+          </a>
 
           <button
             className="sidebar-user"
