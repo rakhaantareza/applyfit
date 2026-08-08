@@ -4283,7 +4283,15 @@ a {
   color: #24664e;
 }
 
-.requirement-edit-button {
+.requirement-row-actions {
+  align-items: center;
+  display: flex;
+  gap: 3px;
+  justify-content: flex-end;
+}
+
+.requirement-edit-button,
+.requirement-delete-button {
   align-items: center;
   background: transparent;
   border: 0;
@@ -4297,9 +4305,52 @@ a {
   width: 30px;
 }
 
-.requirement-edit-button:hover {
+.requirement-edit-button:hover,
+.requirement-delete-button:hover {
   background: #edf5f0;
   color: var(--green);
+}
+
+.requirement-delete-confirmation {
+  align-items: center;
+  background: #fff7f5;
+  border: 1px solid #f0d7d3;
+  border-radius: 9px;
+  display: flex;
+  gap: 5px;
+  padding: 4px 5px 4px 8px;
+  white-space: nowrap;
+}
+
+.requirement-delete-confirmation > span {
+  color: #835955;
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.requirement-delete-confirmation button {
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: #66756e;
+  cursor: pointer;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 5px 6px;
+}
+
+.requirement-delete-confirmation button:hover {
+  background: #f4ebe8;
+}
+
+.requirement-delete-confirmation button.danger {
+  background: #a74e4d;
+  color: #fff;
+}
+
+.requirement-delete-confirmation button.danger:hover {
+  background: #913f3e;
 }
 
 .requirement-review-note {
@@ -5500,7 +5551,7 @@ a {
     justify-self: start;
   }
 
-  .requirement-edit-button {
+  .requirement-row-actions {
     grid-column: 2;
     justify-self: start;
   }

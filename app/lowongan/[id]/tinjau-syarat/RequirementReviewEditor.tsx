@@ -8,6 +8,7 @@ import {
   Pencil,
   Plus,
   Sparkles,
+  Trash2,
   UserRoundCheck,
   Wrench,
   X,
@@ -101,6 +102,7 @@ export function RequirementReviewEditor() {
   const [draftText, setDraftText] = useState("");
   const [draftPriority, setDraftPriority] = useState<RequirementPriority>("Wajib");
   const [draftType, setDraftType] = useState<RequirementType>("Skill");
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
   const textId = useId();
@@ -125,6 +127,7 @@ export function RequirementReviewEditor() {
     setDraftType("Skill");
     setError("");
     setAnnouncement("");
+    setPendingDeleteId(null);
     setEditor({ mode: "add" });
   }
 
@@ -134,6 +137,7 @@ export function RequirementReviewEditor() {
     setDraftType(requirement.type);
     setError("");
     setAnnouncement("");
+    setPendingDeleteId(null);
     setEditor({ mode: "edit", requirementId: requirement.id });
   }
 
@@ -184,6 +188,17 @@ export function RequirementReviewEditor() {
     setEditor(null);
   }
 
+  function deleteRequirement(requirement: Requirement) {
+    setRequirements((current) =>
+      current.filter((item) => item.id !== requirement.id),
+    );
+    setPendingDeleteId(null);
+    if (editor?.mode === "edit" && editor.requirementId === requirement.id) {
+      setEditor(null);
+    }
+    setAnnouncement("Requirement dihapus dari data contoh.");
+  }
+
   function renderRequirementGroup(
     title: RequirementPriority,
     description: string,
@@ -201,6 +216,7 @@ export function RequirementReviewEditor() {
         <div className="requirement-review-list">
           {items.map((requirement, index) => {
             const TypeIcon = requirementTypeIcons[requirement.type];
+            const isPendingDelete = pendingDeleteId === requirement.id;
 
             return (
               <article key={requirement.id}>
@@ -220,14 +236,49 @@ export function RequirementReviewEditor() {
                   )}
                   {requirement.reviewed ? "Diedit pengguna" : "Hasil AI"}
                 </span>
-                <button
-                  className="requirement-edit-button"
-                  type="button"
-                  aria-label={`Edit requirement: ${requirement.text}`}
-                  onClick={() => openEditEditor(requirement)}
-                >
-                  <Pencil aria-hidden="true" size={14} strokeWidth={1.9} />
-                </button>
+                <div className="requirement-row-actions">
+                  {isPendingDelete ? (
+                    <div
+                      className="requirement-delete-confirmation"
+                      role="group"
+                      aria-label={`Hapus requirement: ${requirement.text}`}
+                    >
+                      <span>Hapus requirement?</span>
+                      <button type="button" onClick={() => setPendingDeleteId(null)}>
+                        Batal
+                      </button>
+                      <button
+                        className="danger"
+                        type="button"
+                        onClick={() => deleteRequirement(requirement)}
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        className="requirement-edit-button"
+                        type="button"
+                        aria-label={`Edit requirement: ${requirement.text}`}
+                        onClick={() => openEditEditor(requirement)}
+                      >
+                        <Pencil aria-hidden="true" size={14} strokeWidth={1.9} />
+                      </button>
+                      <button
+                        className="requirement-delete-button"
+                        type="button"
+                        aria-label={`Hapus requirement: ${requirement.text}`}
+                        onClick={() => {
+                          setPendingDeleteId(requirement.id);
+                          setEditor(null);
+                        }}
+                      >
+                        <Trash2 aria-hidden="true" size={14} strokeWidth={1.9} />
+                      </button>
+                    </>
+                  )}
+                </div>
               </article>
             );
           })}
