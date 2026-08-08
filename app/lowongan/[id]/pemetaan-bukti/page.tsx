@@ -4,20 +4,15 @@ import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   BriefcaseBusiness,
-  CheckCircle2,
   ChevronDown,
-  CircleDashed,
   Info,
   Laptop,
   LibraryBig,
-  Link2,
   MapPin,
-  SearchCheck,
-  Waypoints,
 } from "lucide-react";
 import { AppSidebar } from "../../../components/AppSidebar";
 import { jobs } from "../../mockJobs";
-import { ManualEvidenceMappingForm } from "./ManualEvidenceMappingForm";
+import { EvidenceMappingWorkspace } from "./EvidenceMappingWorkspace";
 
 type EvidenceMappingPageProps = {
   params: Promise<{ id: string }>;
@@ -152,13 +147,6 @@ const informationalRequirements = [
   },
 ] as const;
 
-function getMappedSkills(requirement: SkillRequirement) {
-  return requirement.skillIds.flatMap((skillId) => {
-    const skill = profileSkills.find((item) => item.id === skillId);
-    return skill ? [skill] : [];
-  });
-}
-
 export function generateStaticParams() {
   return jobs.map((job) => ({ id: job.id }));
 }
@@ -181,23 +169,6 @@ export default async function EvidenceMappingPage({
   const { id } = await params;
   const job = jobs.find((item) => item.id === id);
   if (!job) notFound();
-
-  const mappedRequirementCount = skillRequirements.filter(
-    (requirement) => getMappedSkills(requirement).length > 0,
-  ).length;
-  const mappedEvidenceIds = new Set(
-    skillRequirements.flatMap((requirement) =>
-      getMappedSkills(requirement).flatMap((skill) =>
-        skill.evidence.map((evidence) => evidence.id),
-      ),
-    ),
-  );
-  const mappingProgress = Math.round(
-    (mappedRequirementCount / skillRequirements.length) * 100,
-  );
-  const autoMatchedRequirementCount = skillRequirements.filter(
-    (requirement) => requirement.autoMatchReason !== null,
-  ).length;
 
   return (
     <div className="app-shell">
@@ -244,122 +215,10 @@ export default async function EvidenceMappingPage({
             </div>
           </section>
 
-          <section className="mapping-overview" aria-labelledby="mapping-overview-title">
-            <div className="mapping-overview-copy">
-              <span className="mapping-overview-icon" aria-hidden="true">
-                <Waypoints size={22} strokeWidth={1.8} />
-              </span>
-              <div>
-                <p className="eyebrow">Kesiapan pemetaan</p>
-                <h2 id="mapping-overview-title">
-                  {mappedRequirementCount} dari {skillRequirements.length} requirement skill sudah terhubung
-                </h2>
-                <p>
-                  Hubungan di bawah ini memakai skill dan bukti dari profil contoh.
-                  Status requirement nantinya diturunkan dari data tersebut, bukan disimpan di lowongan.
-                </p>
-              </div>
-            </div>
-            <div className="mapping-progress" aria-label={`Pemetaan ${mappingProgress} persen`}>
-              <div>
-                <span>Progres hubungan</span>
-                <strong>{mappingProgress}%</strong>
-              </div>
-              <span className="mapping-progress-track" aria-hidden="true">
-                <span style={{ width: `${mappingProgress}%` }} />
-              </span>
-              <small>{mappedEvidenceIds.size} bukti unik sudah ikut mendukung pemetaan.</small>
-            </div>
-          </section>
-
-          <div className="mapping-auto-summary" role="status">
-            <span aria-hidden="true">
-              <SearchCheck size={19} strokeWidth={1.9} />
-            </span>
-            <div>
-              <strong>{autoMatchedRequirementCount} kecocokan nama ditemukan otomatis</strong>
-              <p>
-                ApplyFit hanya menautkan nama skill yang cocok langsung. Requirement tanpa
-                kecocokan tetap dibiarkan terbuka untuk ditinjau pengguna.
-              </p>
-            </div>
-            <small>Exact match contoh</small>
-          </div>
-
-          <ManualEvidenceMappingForm
+          <EvidenceMappingWorkspace
             requirements={skillRequirements}
             skills={profileSkills}
           />
-
-          <section className="mapping-requirements" aria-labelledby="mapping-list-title">
-            <div className="mapping-section-heading">
-              <div>
-                <p className="eyebrow">Requirement yang masuk skor</p>
-                <h2 id="mapping-list-title">Periksa hubungan satu per satu</h2>
-              </div>
-              <p>
-                Satu requirement dapat terhubung ke lebih dari satu skill. Bukti mengikuti
-                skill yang sudah tercatat di profil karier.
-              </p>
-            </div>
-
-            <div className="mapping-list">
-              {skillRequirements.map((requirement, index) => {
-                const mappedSkills = getMappedSkills(requirement);
-                const evidenceCount = new Set(
-                  mappedSkills.flatMap((skill) =>
-                    skill.evidence.map((evidence) => evidence.id),
-                  ),
-                ).size;
-                const isMapped = mappedSkills.length > 0;
-
-                return (
-                  <article className={`mapping-row${isMapped ? " mapped" : ""}`} key={requirement.id}>
-                    <span className="mapping-row-number">{index + 1}</span>
-                    <div className="mapping-requirement-copy">
-                      <span className={`mapping-priority ${requirement.priority === "Preferensi" ? "preferred" : ""}`}>
-                        {requirement.priority}
-                      </span>
-                      <h3>{requirement.text}</h3>
-                      <small>Requirement skill</small>
-                    </div>
-                    <div className="mapping-connection" aria-label={`Hubungan profil untuk ${requirement.text}`}>
-                      <div className="mapping-connection-heading">
-                        <span>
-                          {isMapped ? (
-                            <SearchCheck aria-hidden="true" size={15} strokeWidth={1.9} />
-                          ) : (
-                            <CircleDashed aria-hidden="true" size={15} strokeWidth={1.8} />
-                          )}
-                          {isMapped ? "Cocok otomatis" : "Tidak ada kecocokan langsung"}
-                        </span>
-                        {isMapped ? <small>{evidenceCount} bukti terkait</small> : null}
-                      </div>
-                      {isMapped ? (
-                        <div className="mapping-skill-list">
-                          {mappedSkills.map((skill) => (
-                            <span key={skill.id}>
-                              <Link2 aria-hidden="true" size={12} strokeWidth={1.9} />
-                              {skill.name}
-                              <small>{skill.status}</small>
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <p>Nama requirement ini belum cocok langsung dengan skill profil.</p>
-                      )}
-                      {requirement.autoMatchReason ? (
-                        <p className="mapping-auto-reason">
-                          <CheckCircle2 aria-hidden="true" size={12} strokeWidth={1.9} />
-                          {requirement.autoMatchReason}
-                        </p>
-                      ) : null}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </section>
 
           <details className="mapping-informational">
             <summary>

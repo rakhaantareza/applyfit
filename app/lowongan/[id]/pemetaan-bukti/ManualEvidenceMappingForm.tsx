@@ -11,26 +11,26 @@ import {
 } from "lucide-react";
 import { useId, useState, type FormEvent } from "react";
 
-type MappingEvidence = {
+export type MappingEvidence = {
   id: string;
   title: string;
 };
 
-type MappingSkill = {
+export type MappingSkill = {
   id: string;
   name: string;
   status: "Aktif" | "Dipelajari";
   evidence: MappingEvidence[];
 };
 
-type MappingRequirement = {
+export type MappingRequirement = {
   id: string;
   text: string;
   priority: "Wajib" | "Preferensi";
   skillIds: string[];
 };
 
-type SavedManualMapping = {
+export type SavedManualMapping = {
   requirementId: string;
   skillId: string;
 };
@@ -38,11 +38,15 @@ type SavedManualMapping = {
 type ManualEvidenceMappingFormProps = {
   requirements: MappingRequirement[];
   skills: MappingSkill[];
+  savedMappings: SavedManualMapping[];
+  onSave: (mapping: SavedManualMapping) => void;
 };
 
 export function ManualEvidenceMappingForm({
   requirements,
   skills,
+  savedMappings,
+  onSave,
 }: ManualEvidenceMappingFormProps) {
   const firstUnmappedRequirement =
     requirements.find((requirement) => requirement.skillIds.length === 0) ??
@@ -52,7 +56,6 @@ export function ManualEvidenceMappingForm({
     firstUnmappedRequirement?.id ?? "",
   );
   const [skillId, setSkillId] = useState(skills[0]?.id ?? "");
-  const [savedMappings, setSavedMappings] = useState<SavedManualMapping[]>([]);
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
   const requirementFieldId = useId();
@@ -137,10 +140,7 @@ export function ManualEvidenceMappingForm({
       return;
     }
 
-    setSavedMappings((current) => [
-      ...current,
-      { requirementId: selectedRequirement.id, skillId: selectedSkill.id },
-    ]);
+    onSave({ requirementId: selectedRequirement.id, skillId: selectedSkill.id });
     setAnnouncement(
       `${selectedSkill.name} berhasil dihubungkan ke requirement sebagai data contoh.`,
     );

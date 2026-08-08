@@ -5917,6 +5917,16 @@ a {
   font-weight: 600;
 }
 
+.mapping-skill-list > span.manual {
+  background: #f2f0fb;
+  border-color: #ded8f3;
+}
+
+.mapping-skill-list > span.manual svg,
+.mapping-skill-list > span.manual small {
+  color: #6757a6;
+}
+
 .mapping-connection > p {
   color: #756b5b;
   font-size: 10px;
@@ -5936,6 +5946,81 @@ a {
   color: var(--green);
   flex: 0 0 auto;
   margin-top: 2px;
+}
+
+.mapping-row.without-evidence .mapping-connection {
+  background: #fff9f1;
+  border-color: #eadcc7;
+}
+
+.mapping-row.without-evidence .mapping-connection-heading > span {
+  color: #92632b;
+}
+
+.mapping-no-evidence-action {
+  border-top: 1px solid #e3e9e5;
+  margin-top: 10px;
+  padding-top: 9px;
+}
+
+.mapping-row.without-evidence .mapping-no-evidence-action {
+  border-top-color: #eadfce;
+}
+
+.mapping-no-evidence-action > button,
+.mapping-no-evidence-action > div button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  color: #6b756f;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 9px;
+  font-weight: 700;
+  gap: 5px;
+  min-height: 28px;
+  padding: 5px 7px;
+}
+
+.mapping-no-evidence-action > button:hover,
+.mapping-no-evidence-action > button:focus-visible,
+.mapping-no-evidence-action > div button:hover,
+.mapping-no-evidence-action > div button:focus-visible {
+  background: #edf3ef;
+  color: var(--green);
+  outline: none;
+}
+
+.mapping-no-evidence-action > div {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.mapping-no-evidence-action > div > span {
+  color: #776a58;
+  font-size: 9px;
+  margin-right: auto;
+}
+
+.mapping-no-evidence-action > div button {
+  background: #ffffff;
+  border: 1px solid #deded8;
+}
+
+.mapping-no-evidence-action > div button.confirm {
+  background: #8a642f;
+  border-color: #8a642f;
+  color: #ffffff;
+}
+
+.mapping-no-evidence-action > div button.confirm:hover,
+.mapping-no-evidence-action > div button.confirm:focus-visible {
+  background: #705025;
+  border-color: #705025;
+  color: #ffffff;
 }
 
 .mapping-informational {
