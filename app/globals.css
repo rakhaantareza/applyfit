@@ -1874,6 +1874,13 @@ a {
   padding: 7px 10px;
 }
 
+.responsive-page-header > div,
+.responsive-card-heading > div,
+.responsive-card-heading-actions,
+.responsive-list-row > * {
+  min-width: 0;
+}
+
 .career-profile-hero,
 .profile-skills-section {
   background: var(--surface);
@@ -2969,7 +2976,8 @@ a {
   text-underline-offset: 3px;
 }
 
-.evidence-list {
+.evidence-library-list {
+  display: block;
   margin-top: 13px;
 }
 
@@ -6363,6 +6371,194 @@ a {
   }
 }
 
+@media (max-width: 1180px) {
+  .responsive-page-header,
+  .responsive-card-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .responsive-card-heading-actions {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 14px 20px;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .responsive-card-heading-actions > p {
+    flex: 1 1 320px;
+    max-width: 640px;
+    text-align: left;
+  }
+
+  .responsive-card-heading-copy {
+    max-width: 640px;
+    text-align: left;
+    width: 100%;
+  }
+
+  .career-direction {
+    align-items: stretch;
+    display: grid;
+    gap: 18px;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .career-direction-field {
+    border-left: 0;
+    border-top: 1px solid #d7e4dc;
+    grid-column: 1 / -1;
+    min-width: 0;
+    padding-left: 0;
+    padding-top: 17px;
+  }
+
+  .career-direction-heading {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .career-edit-button {
+    align-self: center;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .career-direction-form {
+    grid-template-columns: 1fr;
+  }
+
+  .career-form-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .career-form-actions {
+    grid-column: auto;
+    margin-top: 0;
+    width: 100%;
+  }
+
+  .profile-foundation,
+  .evidence-type-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .profile-foundation > div:nth-child(odd),
+  .evidence-type-summary > span:nth-child(odd) {
+    border-left: 0;
+  }
+
+  .profile-foundation > div:nth-child(n + 3),
+  .evidence-type-summary > span:nth-child(n + 3) {
+    border-top: 1px solid #edf1ee;
+  }
+
+  .skill-editor,
+  .evidence-editor {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .skill-editor-heading,
+  .evidence-editor-heading,
+  .evidence-skill-picker,
+  .skill-editor-actions,
+  .evidence-editor-actions {
+    grid-column: 1 / -1;
+  }
+
+  .evidence-description-field,
+  .evidence-source-field {
+    grid-column: auto;
+  }
+
+  .evidence-filter-panel {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .evidence-search-field {
+    grid-column: 1 / -1;
+  }
+
+  .evidence-row,
+  .job-library-row {
+    align-items: start;
+    gap: 13px 18px;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .profile-skill-row {
+    align-items: start;
+    gap: 13px 18px;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .profile-skill-name {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .profile-skill-state {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .profile-skill-evidence {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .skill-row-actions {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .profile-skill-evidence {
+    justify-content: flex-start;
+    padding-left: 0;
+    text-align: left;
+  }
+
+  .skill-row-actions,
+  .evidence-row-actions {
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  .evidence-type-icon,
+  .job-library-logo {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .evidence-row-copy,
+  .evidence-skill-links,
+  .evidence-source,
+  .evidence-row-actions,
+  .job-library-copy,
+  .job-library-context,
+  .job-library-progress,
+  .job-library-detail-link {
+    grid-column: 2;
+  }
+
+  .job-library-progress {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px 12px;
+  }
+
+  .job-library-detail-link {
+    justify-self: start;
+  }
+}
+
 @media (max-width: 1080px) {
   .status-summary {
     grid-template-columns: 1fr;
@@ -6570,6 +6766,7 @@ a {
 
   .career-direction {
     align-items: stretch;
+    display: flex;
     flex-direction: column;
     gap: 18px;
     padding: 22px;
@@ -6585,6 +6782,9 @@ a {
 
   .career-edit-button {
     align-self: flex-start;
+    grid-column: auto;
+    grid-row: auto;
+    justify-self: auto;
   }
 
   .career-direction-form {
@@ -6628,6 +6828,10 @@ a {
     align-items: flex-start;
     flex-direction: column;
     gap: 12px;
+  }
+
+  .responsive-card-heading-actions > p {
+    flex-basis: auto;
   }
 
   .profile-skill-heading-actions > p {
@@ -6689,7 +6893,7 @@ a {
 
   .job-library-row {
     align-items: start;
-    grid-template-columns: auto minmax(0, 1fr) minmax(190px, 0.8fr) auto;
+    grid-template-columns: auto minmax(0, 1fr);
   }
 
   .job-library-context {
@@ -6697,13 +6901,14 @@ a {
   }
 
   .job-library-progress {
-    grid-column: 3;
-    grid-row: 1 / 3;
+    grid-column: 2;
+    grid-row: auto;
   }
 
   .job-library-detail-link {
-    grid-column: 4;
-    grid-row: 1 / 3;
+    grid-column: 2;
+    grid-row: auto;
+    justify-self: start;
   }
 
   .job-detail-content {

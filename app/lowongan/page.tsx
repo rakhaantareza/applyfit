@@ -28,7 +28,7 @@ export default function JobsPage() {
 
       <main className="main-content jobs-main">
         <div className="page-container jobs-page">
-          <header className="jobs-page-header">
+          <header className="jobs-page-header responsive-page-header">
             <div>
               <p className="eyebrow">Lowongan tersimpan</p>
               <h1>Pahami setiap lowongan sebelum melamar</h1>
@@ -62,12 +62,12 @@ export default function JobsPage() {
           </section>
 
           <section className="jobs-list-section" aria-labelledby="jobs-list-title">
-            <div className="jobs-section-heading">
+            <div className="jobs-section-heading responsive-card-heading">
               <div>
                 <p className="eyebrow">Daftar lowongan</p>
                 <h2 id="jobs-list-title">Konteks pekerjaan tersimpan</h2>
               </div>
-              <p>
+              <p className="responsive-card-heading-copy">
                 Status menunjukkan tahap pengolahan data, bukan rekomendasi untuk
                 melamar atau melewatkan lowongan.
               </p>
@@ -75,7 +75,7 @@ export default function JobsPage() {
 
             <div className="jobs-list">
               {jobs.map((job) => (
-                <article className="job-library-row" key={job.id}>
+                <article className="job-library-row responsive-list-row" key={job.id}>
                   <span className="job-library-logo" aria-hidden="true">
                     {job.initials}
                   </span>

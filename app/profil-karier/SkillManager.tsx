@@ -143,12 +143,12 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
 
   return (
     <section className="profile-skills-section" aria-labelledby="profile-skills-title">
-      <div className="profile-section-heading">
+      <div className="profile-section-heading responsive-card-heading">
         <div>
           <p className="eyebrow">Fondasi keahlian</p>
           <h2 id="profile-skills-title">Skill yang membentuk profilmu</h2>
         </div>
-        <div className="profile-skill-heading-actions">
+        <div className="profile-skill-heading-actions responsive-card-heading-actions">
           <p>
             Status skill di profil berbeda dari status requirement. Bukti yang
             terhubung akan menentukan hasil pemetaan pada setiap lowongan.
@@ -234,7 +234,7 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
           const isPendingDelete = pendingDeleteId === skill.id;
 
           return (
-            <article className="profile-skill-row" key={skill.id}>
+            <article className="profile-skill-row responsive-list-row" key={skill.id}>
               <div className="profile-skill-name">
                 <span aria-hidden="true">{skill.name.slice(0, 2).toUpperCase()}</span>
                 <div>

@@ -72,7 +72,7 @@ export default function CareerProfilePage() {
 
       <main className="main-content profile-main">
         <div className="page-container career-profile-page">
-          <header className="profile-page-header">
+          <header className="profile-page-header responsive-page-header">
             <div>
               <p className="eyebrow">Profil karier</p>
               <h1>Arah karier dan keahlianmu</h1>

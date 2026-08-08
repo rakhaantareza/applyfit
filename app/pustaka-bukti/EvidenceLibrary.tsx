@@ -250,12 +250,12 @@ export function EvidenceLibrary({
       </section>
 
       <section className="evidence-list-section" aria-labelledby="evidence-list-title">
-        <div className="evidence-section-heading">
+        <div className="evidence-section-heading responsive-card-heading">
           <div>
             <p className="eyebrow">Semua bukti</p>
             <h2 id="evidence-list-title">Koleksi bukti profilmu</h2>
           </div>
-          <div className="evidence-heading-actions">
+          <div className="evidence-heading-actions responsive-card-heading-actions">
             <p>
               Setiap item menampilkan konteks, skill yang didukung, dan sumber yang
               dapat diperiksa bila tersedia.
@@ -410,13 +410,13 @@ export function EvidenceLibrary({
           </div>
         </div>
 
-        <div className="evidence-list">
+        <div className="evidence-library-list">
           {filteredEvidences.map((evidence) => {
             const TypeIcon = evidenceTypeIcons[evidence.type];
             const isPendingDelete = pendingDeleteId === evidence.id;
 
             return (
-              <article className="evidence-row" key={evidence.id}>
+              <article className="evidence-row responsive-list-row" key={evidence.id}>
                 <span className="evidence-type-icon" aria-hidden="true">
                   <TypeIcon size={19} strokeWidth={1.8} />
                 </span>

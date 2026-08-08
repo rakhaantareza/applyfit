@@ -77,7 +77,7 @@ export default function EvidenceLibraryPage() {
 
       <main className="main-content evidence-main">
         <div className="page-container evidence-library-page">
-          <header className="evidence-page-header">
+          <header className="evidence-page-header responsive-page-header">
             <div>
               <p className="eyebrow">Pustaka bukti</p>
               <h1>Bukti nyata di balik setiap skill</h1>
