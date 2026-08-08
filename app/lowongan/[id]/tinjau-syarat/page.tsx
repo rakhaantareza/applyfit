@@ -1,79 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  ArrowLeft,
-  BookOpenCheck,
-  BriefcaseBusiness,
-  CircleAlert,
-  GraduationCap,
-  ListChecks,
-  Sparkles,
-  Wrench,
-} from "lucide-react";
+import { ArrowLeft, BookOpenCheck } from "lucide-react";
 import { AppSidebar } from "../../../components/AppSidebar";
 import { jobs } from "../../mockJobs";
+import { RequirementReviewEditor } from "./RequirementReviewEditor";
 
 type RequirementReviewPageProps = {
   params: Promise<{ id: string }>;
 };
-
-const requirements = [
-  {
-    id: "react-typescript",
-    priority: "Wajib",
-    type: "Skill",
-    text: "Mampu membangun fitur web menggunakan React dan TypeScript.",
-  },
-  {
-    id: "html-css-javascript",
-    priority: "Wajib",
-    type: "Skill",
-    text: "Memahami JavaScript modern, HTML, dan CSS.",
-  },
-  {
-    id: "git-review",
-    priority: "Wajib",
-    type: "Skill",
-    text: "Terbiasa menggunakan Git dan berpartisipasi dalam code review.",
-  },
-  {
-    id: "communication",
-    priority: "Wajib",
-    type: "Skill",
-    text: "Mampu berkomunikasi dan memecahkan masalah secara terstruktur.",
-  },
-  {
-    id: "frontend-experience",
-    priority: "Wajib",
-    type: "Pengalaman",
-    text: "Memiliki pengalaman profesional membangun aplikasi frontend.",
-  },
-  {
-    id: "nextjs",
-    priority: "Diutamakan",
-    type: "Skill",
-    text: "Memiliki pengalaman menggunakan Next.js.",
-  },
-  {
-    id: "automated-testing",
-    priority: "Diutamakan",
-    type: "Skill",
-    text: "Memahami automated testing untuk aplikasi web.",
-  },
-  {
-    id: "education",
-    priority: "Diutamakan",
-    type: "Pendidikan",
-    text: "Latar belakang pendidikan di bidang ilmu komputer atau bidang terkait.",
-  },
-] as const;
-
-const requirementTypeIcons = {
-  Skill: Wrench,
-  Pengalaman: BriefcaseBusiness,
-  Pendidikan: GraduationCap,
-} as const;
 
 export async function generateMetadata({
   params,
@@ -93,10 +28,6 @@ export default async function RequirementReviewPage({
   const { id } = await params;
   const job = jobs.find((item) => item.id === id);
   if (!job) notFound();
-
-  const requiredRequirements = requirements.filter((item) => item.priority === "Wajib");
-  const preferredRequirements = requirements.filter((item) => item.priority === "Diutamakan");
-  const excludedRequirementCount = requirements.filter((item) => item.type !== "Skill").length;
 
   return (
     <div className="app-shell">
@@ -127,7 +58,7 @@ export default async function RequirementReviewPage({
               </span>
               <div>
                 <p className="eyebrow">Konteks review</p>
-                <h2 id="review-overview-title">{requirements.length} requirement menunggu konfirmasi</h2>
+                <h2 id="review-overview-title">Requirement menunggu konfirmasi</h2>
                 <p>
                   ApplyFit belum menggunakan daftar ini untuk Fit Score sampai pengguna
                   selesai meninjau hasil ekstraksi.
@@ -141,90 +72,7 @@ export default async function RequirementReviewPage({
             </dl>
           </section>
 
-          <section className="requirement-review-list-section" aria-labelledby="review-list-title">
-            <div className="requirement-review-section-heading">
-              <div>
-                <p className="eyebrow">Draft requirement</p>
-                <h2 id="review-list-title">Hasil yang perlu diperiksa</h2>
-              </div>
-              <div className="requirement-review-counts" aria-label="Ringkasan hasil ekstraksi">
-                <span><strong>{requiredRequirements.length}</strong> wajib</span>
-                <span><strong>{preferredRequirements.length}</strong> diutamakan</span>
-                <span><strong>{excludedRequirementCount}</strong> di luar skor MVP</span>
-              </div>
-            </div>
-
-            <div className="requirement-review-group">
-              <div className="requirement-review-group-heading">
-                <span aria-hidden="true"><ListChecks size={16} strokeWidth={1.8} /></span>
-                <div>
-                  <h3>Wajib</h3>
-                  <p>Requirement utama yang dinyatakan perlu dipenuhi pada lowongan.</p>
-                </div>
-              </div>
-              <div className="requirement-review-list">
-                {requiredRequirements.map((requirement, index) => {
-                  const TypeIcon = requirementTypeIcons[requirement.type];
-                  return (
-                    <article key={requirement.id}>
-                      <span className="requirement-review-number">{index + 1}</span>
-                      <div>
-                        <span className="requirement-review-type">
-                          <TypeIcon aria-hidden="true" size={13} strokeWidth={1.8} />
-                          {requirement.type}
-                        </span>
-                        <p>{requirement.text}</p>
-                      </div>
-                      <span className="requirement-review-state">
-                        <Sparkles aria-hidden="true" size={12} strokeWidth={1.8} />
-                        Hasil AI
-                      </span>
-                    </article>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="requirement-review-group preferred">
-              <div className="requirement-review-group-heading">
-                <span aria-hidden="true"><ListChecks size={16} strokeWidth={1.8} /></span>
-                <div>
-                  <h3>Diutamakan</h3>
-                  <p>Kualifikasi tambahan yang memberi konteks, dengan bobot lebih rendah.</p>
-                </div>
-              </div>
-              <div className="requirement-review-list">
-                {preferredRequirements.map((requirement, index) => {
-                  const TypeIcon = requirementTypeIcons[requirement.type];
-                  return (
-                    <article key={requirement.id}>
-                      <span className="requirement-review-number">{index + 1}</span>
-                      <div>
-                        <span className="requirement-review-type">
-                          <TypeIcon aria-hidden="true" size={13} strokeWidth={1.8} />
-                          {requirement.type}
-                        </span>
-                        <p>{requirement.text}</p>
-                      </div>
-                      <span className="requirement-review-state">
-                        <Sparkles aria-hidden="true" size={12} strokeWidth={1.8} />
-                        Hasil AI
-                      </span>
-                    </article>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="requirement-review-note">
-              <CircleAlert aria-hidden="true" size={17} strokeWidth={1.8} />
-              <p>
-                Requirement pengalaman dan pendidikan tetap disimpan sebagai konteks,
-                tetapi tidak dihitung dalam Fit Score MVP. Halaman ini belum menampilkan
-                status kesiapan profil.
-              </p>
-            </div>
-          </section>
+          <RequirementReviewEditor />
 
           <p className="demo-note">Seluruh requirement pada halaman ini menggunakan data tiruan.</p>
         </div>

@@ -4082,6 +4082,117 @@ a {
   margin-right: 3px;
 }
 
+.requirement-review-heading-actions {
+  align-items: flex-end;
+  display: flex;
+  gap: 16px;
+}
+
+.requirement-review-heading-actions > button {
+  align-items: center;
+  background: var(--green);
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  gap: 7px;
+  padding: 10px 12px;
+}
+
+.requirement-review-heading-actions > button:hover {
+  background: #0f5b43;
+}
+
+.requirement-editor {
+  background: #f1f7f3;
+  border: 1px solid #dce8e1;
+  border-radius: 13px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.28fr) minmax(150px, 0.28fr);
+  margin-top: 22px;
+  padding: 18px;
+}
+
+.requirement-editor-heading {
+  grid-column: 1 / -1;
+}
+
+.requirement-editor-heading strong,
+.requirement-editor-heading span {
+  display: block;
+}
+
+.requirement-editor-heading strong {
+  font-size: 12px;
+}
+
+.requirement-editor-heading span {
+  color: var(--muted);
+  font-size: 9px;
+  margin-top: 4px;
+}
+
+.requirement-editor label {
+  display: grid;
+  gap: 6px;
+}
+
+.requirement-editor label > span {
+  color: #5c6f65;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.requirement-editor textarea,
+.requirement-editor select {
+  background: var(--surface);
+  border: 1px solid #cfded5;
+  border-radius: 10px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 10px;
+  min-width: 0;
+  padding: 9px 10px;
+  width: 100%;
+}
+
+.requirement-editor textarea {
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.requirement-editor textarea:focus,
+.requirement-editor select:focus {
+  border-color: #91baa5;
+  box-shadow: 0 0 0 3px rgba(23, 107, 80, 0.11);
+  outline: none;
+}
+
+.requirement-editor-actions {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  grid-column: 1 / -1;
+  justify-content: space-between;
+}
+
+.requirement-editor-actions > p {
+  color: #bd5559;
+  font-size: 10px;
+  margin: 0;
+}
+
+.requirement-editor-actions > div {
+  display: flex;
+  gap: 8px;
+}
+
 .requirement-review-group {
   margin-top: 28px;
 }
@@ -4122,7 +4233,7 @@ a {
   border-top: 1px solid var(--line);
   display: grid;
   gap: 14px;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr auto auto;
   padding: 14px 2px;
 }
 
@@ -4165,6 +4276,30 @@ a {
   gap: 5px;
   padding: 5px 7px;
   white-space: nowrap;
+}
+
+.requirement-review-state.reviewed {
+  background: #e3f1e8;
+  color: #24664e;
+}
+
+.requirement-edit-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: #708078;
+  cursor: pointer;
+  display: inline-flex;
+  height: 30px;
+  justify-content: center;
+  padding: 0;
+  width: 30px;
+}
+
+.requirement-edit-button:hover {
+  background: #edf5f0;
+  color: var(--green);
 }
 
 .requirement-review-note {
@@ -5335,6 +5470,21 @@ a {
     justify-content: flex-start;
   }
 
+  .requirement-review-heading-actions,
+  .requirement-editor-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .requirement-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .requirement-editor-heading,
+  .requirement-editor-actions {
+    grid-column: auto;
+  }
+
   .requirement-review-overview > div:first-child {
     align-items: flex-start;
     flex-direction: column;
@@ -5346,6 +5496,11 @@ a {
   }
 
   .requirement-review-state {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .requirement-edit-button {
     grid-column: 2;
     justify-self: start;
   }
