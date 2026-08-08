@@ -3620,7 +3620,7 @@ a {
   align-items: flex-start;
   display: flex;
   gap: 14px;
-  margin-bottom: 24px;
+  margin-bottom: 0;
 }
 
 .job-detail-section-heading > span {
@@ -3640,30 +3640,126 @@ a {
   margin: 0;
 }
 
-.job-description-copy > p,
-.job-description-copy li {
+.job-description-heading-row {
+  align-items: flex-start;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.job-description-edit-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--green);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  gap: 7px;
+  padding: 8px 3px;
+}
+
+.job-description-edit-button:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.job-description-rendered > p,
+.job-description-rendered li {
   color: #596c62;
   font-size: 12px;
   line-height: 1.8;
 }
 
-.job-description-copy > p {
+.job-description-rendered > p {
   margin: 0 0 15px;
   max-width: 760px;
+  white-space: pre-line;
 }
 
-.job-description-copy h3 {
+.job-description-rendered h3 {
   font-size: 13px;
   margin: 28px 0 9px;
 }
 
-.job-description-copy ul {
+.job-description-rendered ul {
   margin: 0;
   padding-left: 20px;
 }
 
-.job-description-copy li + li {
+.job-description-rendered li + li {
   margin-top: 5px;
+}
+
+.job-description-editor {
+  display: grid;
+  gap: 12px;
+}
+
+.job-description-editor label > span,
+.job-description-editor label > small {
+  display: block;
+}
+
+.job-description-editor label > span {
+  color: #4f655a;
+  font-size: 11px;
+  font-weight: 730;
+}
+
+.job-description-editor label > small {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+.job-description-editor textarea {
+  background: #fbfdfc;
+  border: 1px solid #cfddd5;
+  border-radius: 12px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.7;
+  min-height: 340px;
+  padding: 14px;
+  resize: vertical;
+  width: 100%;
+}
+
+.job-description-editor textarea:focus {
+  border-color: #91baa5;
+  box-shadow: 0 0 0 3px rgba(23, 107, 80, 0.11);
+  outline: none;
+}
+
+.job-description-editor-meta {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.job-description-editor-meta > span,
+.job-description-editor-meta > p {
+  color: var(--muted);
+  font-size: 10px;
+  margin: 0;
+}
+
+.job-description-editor-meta > p {
+  color: #bd5559;
+}
+
+.job-description-editor-meta > div {
+  display: flex;
+  gap: 8px;
 }
 
 .job-detail-aside {
@@ -4776,6 +4872,12 @@ a {
   }
 
   .job-info-editor-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .job-description-heading-row,
+  .job-description-editor-meta {
     align-items: flex-start;
     flex-direction: column;
   }

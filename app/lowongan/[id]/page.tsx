@@ -4,11 +4,11 @@ import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   Clock3,
-  FileText,
 } from "lucide-react";
 import { AppSidebar } from "../../components/AppSidebar";
 import { jobs } from "../mockJobs";
 import { JobInfoEditor } from "./JobInfoEditor";
+import { JobDescriptionEditor } from "./JobDescriptionEditor";
 
 type JobDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -43,6 +43,23 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
     review: "Hasil ekstraksi tersimpan dan masih menunggu review pengguna.",
     draft: "Deskripsi lowongan tersimpan dan belum diproses menjadi requirement.",
   }[job.statusTone];
+  const initialDescription = `Tim produk mencari engineer untuk membantu membangun pengalaman web yang cepat, konsisten, dan mudah digunakan. Peran ini bekerja dekat dengan product designer, engineer, serta product manager untuk mengubah kebutuhan pengguna menjadi antarmuka yang dapat dipelihara.
+
+Peran ini cocok untuk seseorang yang nyaman bekerja secara kolaboratif, terbiasa memberi konteks pada keputusan teknis, dan peduli pada detail implementasi dari tahap eksplorasi sampai rilis.
+
+## Tanggung jawab utama
+
+- Membangun dan memelihara fitur web menggunakan React dan TypeScript.
+- Berkolaborasi dengan design untuk menjaga kualitas serta aksesibilitas UI.
+- Menulis kode yang dapat diuji dan berpartisipasi dalam proses code review.
+- Mengidentifikasi masalah performa dan memperbaiki pengalaman pengguna.
+
+## Kualifikasi yang dicantumkan
+
+- Memahami JavaScript modern, React, HTML, dan CSS.
+- Terbiasa menggunakan Git dalam alur kerja tim.
+- Mampu berkomunikasi dan memecahkan masalah secara terstruktur.
+- Pengalaman dengan Next.js dan automated testing menjadi nilai tambah.`;
 
   return (
     <div className="app-shell">
@@ -61,43 +78,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
           <JobInfoEditor initialJob={job} />
 
           <section className="job-detail-content" aria-label="Isi lowongan">
-            <article className="job-description-copy">
-              <div className="job-detail-section-heading">
-                <span aria-hidden="true"><FileText size={18} strokeWidth={1.8} /></span>
-                <div>
-                  <p className="eyebrow">Deskripsi asli</p>
-                  <h2>Tentang peran ini</h2>
-                </div>
-              </div>
-
-              <p>
-                Tim produk mencari engineer untuk membantu membangun pengalaman web yang
-                cepat, konsisten, dan mudah digunakan. Peran ini bekerja dekat dengan
-                product designer, engineer, serta product manager untuk mengubah kebutuhan
-                pengguna menjadi antarmuka yang dapat dipelihara.
-              </p>
-              <p>
-                Peran ini cocok untuk seseorang yang nyaman bekerja secara kolaboratif,
-                terbiasa memberi konteks pada keputusan teknis, dan peduli pada detail
-                implementasi dari tahap eksplorasi sampai rilis.
-              </p>
-
-              <h3>Tanggung jawab utama</h3>
-              <ul>
-                <li>Membangun dan memelihara fitur web menggunakan React dan TypeScript.</li>
-                <li>Berkolaborasi dengan design untuk menjaga kualitas serta aksesibilitas UI.</li>
-                <li>Menulis kode yang dapat diuji dan berpartisipasi dalam proses code review.</li>
-                <li>Mengidentifikasi masalah performa dan memperbaiki pengalaman pengguna.</li>
-              </ul>
-
-              <h3>Kualifikasi yang dicantumkan</h3>
-              <ul>
-                <li>Memahami JavaScript modern, React, HTML, dan CSS.</li>
-                <li>Terbiasa menggunakan Git dalam alur kerja tim.</li>
-                <li>Mampu berkomunikasi dan memecahkan masalah secara terstruktur.</li>
-                <li>Pengalaman dengan Next.js dan automated testing menjadi nilai tambah.</li>
-              </ul>
-            </article>
+            <JobDescriptionEditor initialDescription={initialDescription} />
 
             <aside className="job-detail-aside" aria-label="Status lowongan">
               <div>
