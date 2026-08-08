@@ -3,16 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
-  BriefcaseBusiness,
-  Building2,
   Clock3,
-  ExternalLink,
   FileText,
-  MapPin,
-  Monitor,
 } from "lucide-react";
 import { AppSidebar } from "../../components/AppSidebar";
 import { jobs } from "../mockJobs";
+import { JobInfoEditor } from "./JobInfoEditor";
 
 type JobDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -62,42 +58,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
             <span className="mock-data-badge">Data lowongan contoh</span>
           </header>
 
-          <section className="job-detail-hero" aria-labelledby="job-detail-title">
-            <div className="job-detail-identity">
-              <span className="job-detail-logo" aria-hidden="true">{job.initials}</span>
-              <div>
-                <p className="eyebrow">Lowongan tersimpan</p>
-                <h1 id="job-detail-title">{job.title}</h1>
-                <span className="job-detail-company">
-                  <Building2 aria-hidden="true" size={15} strokeWidth={1.8} />
-                  {job.company}
-                </span>
-              </div>
-            </div>
-
-            <div className="job-detail-meta" aria-label="Konteks lowongan">
-              <span>
-                <ExternalLink aria-hidden="true" size={14} strokeWidth={1.8} />
-                <small>Sumber</small>
-                <strong>{job.source}</strong>
-              </span>
-              <span>
-                <MapPin aria-hidden="true" size={14} strokeWidth={1.8} />
-                <small>Lokasi</small>
-                <strong>{job.location}</strong>
-              </span>
-              <span>
-                <Monitor aria-hidden="true" size={14} strokeWidth={1.8} />
-                <small>Cara kerja</small>
-                <strong>{job.arrangement}</strong>
-              </span>
-              <span>
-                <BriefcaseBusiness aria-hidden="true" size={14} strokeWidth={1.8} />
-                <small>Tipe</small>
-                <strong>{job.employmentType}</strong>
-              </span>
-            </div>
-          </section>
+          <JobInfoEditor initialJob={job} />
 
           <section className="job-detail-content" aria-label="Isi lowongan">
             <article className="job-description-copy">
@@ -110,10 +71,10 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
               </div>
 
               <p>
-                {job.company} mencari {job.title} untuk membantu membangun pengalaman
-                web yang cepat, konsisten, dan mudah digunakan. Kamu akan bekerja dekat
-                dengan product designer, engineer, serta product manager untuk mengubah
-                kebutuhan pengguna menjadi antarmuka yang dapat dipelihara.
+                Tim produk mencari engineer untuk membantu membangun pengalaman web yang
+                cepat, konsisten, dan mudah digunakan. Peran ini bekerja dekat dengan
+                product designer, engineer, serta product manager untuk mengubah kebutuhan
+                pengguna menjadi antarmuka yang dapat dipelihara.
               </p>
               <p>
                 Peran ini cocok untuk seseorang yang nyaman bekerja secara kolaboratif,
