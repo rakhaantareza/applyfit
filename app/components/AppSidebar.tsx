@@ -17,23 +17,23 @@ import {
 } from "lucide-react";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
-type AppSidebarProps = {
-  activeItem?: "Skor Kecocokan";
-};
-
 type NavigationItem = {
   label: string;
   icon: LucideIcon;
   href: string;
 };
 
-const navigation: NavigationItem[] = [
+const navigation = [
   { label: "Ringkasan", icon: House, href: "/#ringkasan" },
-  { label: "Profil Karier", icon: UserRound, href: "/#profil-karier" },
+  { label: "Profil Karier", icon: UserRound, href: "/profil-karier" },
   { label: "Pustaka Bukti", icon: LibraryBig, href: "/#pustaka-bukti" },
   { label: "Lowongan", icon: BriefcaseBusiness, href: "/#lowongan" },
   { label: "Skor Kecocokan", icon: Gauge, href: "/" },
-];
+] satisfies NavigationItem[];
+
+type AppSidebarProps = {
+  activeItem?: (typeof navigation)[number]["label"];
+};
 
 const sidebarPreferenceKey = "applyfit-sidebar-collapsed";
 const sidebarPreferenceEvent = "applyfit-sidebar-preference";
@@ -207,7 +207,7 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
         <div className="sidebar-footer">
           <Link
             className="profile-readiness"
-            href="/#profil-karier"
+            href="/profil-karier"
             data-tooltip="Profil 80% lengkap"
             onClick={closeMobileNavigation}
           >
