@@ -6,9 +6,11 @@ import {
   Combine,
   GraduationCap,
   ListChecks,
+  LoaderCircle,
   Pencil,
   Plus,
   Scissors,
+  Save,
   Sparkles,
   Trash2,
   UserRoundCheck,
@@ -111,12 +113,16 @@ export function RequirementReviewEditor() {
   const [splitRequirementId, setSplitRequirementId] = useState<string | null>(null);
   const [splitDrafts, setSplitDrafts] = useState<string[]>([]);
   const [splitError, setSplitError] = useState("");
+  const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasSaved, setHasSaved] = useState(false);
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
   const textId = useId();
   const priorityId = useId();
   const typeId = useId();
   const textRef = useRef<HTMLTextAreaElement>(null);
+  const saveTimeoutRef = useRef<number | null>(null);
 
   const requiredRequirements = requirements.filter((item) => item.priority === "Wajib");
   const preferredRequirements = requirements.filter((item) => item.priority === "Preferensi");
@@ -135,6 +141,19 @@ export function RequirementReviewEditor() {
     const focusFrame = window.requestAnimationFrame(() => textRef.current?.focus());
     return () => window.cancelAnimationFrame(focusFrame);
   }, [editor]);
+
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current !== null) {
+        window.clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  function markUnsaved() {
+    setIsDirty(true);
+    setHasSaved(false);
+  }
 
   function openAddEditor() {
     setDraftText("");
@@ -211,6 +230,7 @@ export function RequirementReviewEditor() {
       setAnnouncement("Requirement baru berhasil ditambahkan pada data contoh.");
     }
 
+    markUnsaved();
     setError("");
     setEditor(null);
   }
@@ -231,6 +251,7 @@ export function RequirementReviewEditor() {
       setSplitDrafts([]);
       setSplitError("");
     }
+    markUnsaved();
     setAnnouncement("Requirement dihapus dari data contoh.");
   }
 
@@ -296,6 +317,7 @@ export function RequirementReviewEditor() {
         reviewed: true,
       },
     ]);
+    markUnsaved();
     setSelectedRequirementIds([]);
     setSelectionError("");
     setIsSelectionMode(false);
@@ -363,6 +385,7 @@ export function RequirementReviewEditor() {
         ...current.slice(sourceIndex + 1),
       ];
     });
+    markUnsaved();
     setSplitRequirementId(null);
     setSplitDrafts([]);
     setSplitError("");
@@ -380,13 +403,30 @@ export function RequirementReviewEditor() {
         item.id === requirement.id
           ? { ...item, priority, reviewed: true }
           : item,
-      ),
+        ),
     );
+    markUnsaved();
     setPendingDeleteId(null);
     if (editor?.mode === "edit" && editor.requirementId === requirement.id) {
       setEditor(null);
     }
     setAnnouncement(`Prioritas diubah menjadi ${priority}.`);
+  }
+
+  function saveReview() {
+    if (saveTimeoutRef.current !== null) {
+      window.clearTimeout(saveTimeoutRef.current);
+    }
+
+    setIsSaving(true);
+    setAnnouncement("Review requirement sedang disimpan sebagai data contoh.");
+    saveTimeoutRef.current = window.setTimeout(() => {
+      setIsSaving(false);
+      setIsDirty(false);
+      setHasSaved(true);
+      setAnnouncement("Review requirement contoh berhasil disimpan.");
+      saveTimeoutRef.current = null;
+    }, 650);
   }
 
   function renderRequirementGroup(
@@ -712,6 +752,42 @@ export function RequirementReviewEditor() {
           tetapi tidak dihitung dalam Fit Score MVP. Halaman ini belum menampilkan
           status kesiapan profil.
         </p>
+      </div>
+
+      <div className={`requirement-review-savebar${hasSaved ? " saved" : ""}`}>
+        <div>
+          <span aria-hidden="true">
+            {hasSaved ? (
+              <Check size={17} strokeWidth={2.1} />
+            ) : (
+              <Save size={17} strokeWidth={1.9} />
+            )}
+          </span>
+          <div>
+            <strong>{hasSaved ? "Review tersimpan" : "Simpan hasil review"}</strong>
+            <p>
+              {hasSaved
+                ? "Versi data contoh terbaru sudah tersimpan."
+                : isDirty
+                  ? "Ada perubahan pada requirement yang belum disimpan."
+                  : "Simpan daftar ini setelah kamu selesai memeriksa hasil ekstraksi."}
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          disabled={isSaving || hasSaved}
+          onClick={saveReview}
+        >
+          {isSaving ? (
+            <LoaderCircle className="spin" aria-hidden="true" size={15} strokeWidth={1.9} />
+          ) : hasSaved ? (
+            <Check aria-hidden="true" size={15} strokeWidth={2} />
+          ) : (
+            <Save aria-hidden="true" size={15} strokeWidth={1.9} />
+          )}
+          {isSaving ? "Menyimpan..." : hasSaved ? "Tersimpan" : "Simpan review"}
+        </button>
       </div>
 
       <span className="sr-only" aria-live="polite">{announcement}</span>

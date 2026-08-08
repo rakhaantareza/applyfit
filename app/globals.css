@@ -4661,6 +4661,82 @@ a {
   margin: 0;
 }
 
+.requirement-review-savebar {
+  align-items: center;
+  border-top: 1px solid #dfe7e2;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  margin-top: 25px;
+  padding-top: 20px;
+}
+
+.requirement-review-savebar > div {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.requirement-review-savebar > div > span {
+  align-items: center;
+  background: #edf4f0;
+  border-radius: 9px;
+  color: var(--green);
+  display: flex;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.requirement-review-savebar strong {
+  display: block;
+  font-size: 11px;
+}
+
+.requirement-review-savebar p {
+  color: var(--muted);
+  font-size: 9px;
+  margin: 3px 0 0;
+}
+
+.requirement-review-savebar > button {
+  align-items: center;
+  background: var(--green);
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  gap: 7px;
+  padding: 10px 12px;
+}
+
+.requirement-review-savebar > button:hover:not(:disabled) {
+  background: #0f5b43;
+}
+
+.requirement-review-savebar > button:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.requirement-review-savebar.saved > div > span {
+  background: #dff0e6;
+}
+
+.requirement-review-savebar.saved > button {
+  background: #dfece4;
+  color: #3e6b56;
+}
+
+.requirement-review-savebar .spin {
+  animation: job-extraction-spin 800ms linear infinite;
+}
+
 .job-detail-aside {
   background: #f7faf8;
   border-left: 1px solid #e2e9e5;
@@ -5811,7 +5887,8 @@ a {
   .requirement-review-heading-actions,
   .requirement-editor-actions,
   .requirement-selection-toolbar,
-  .requirement-split-actions {
+  .requirement-split-actions,
+  .requirement-review-savebar {
     align-items: flex-start;
     flex-direction: column;
   }
