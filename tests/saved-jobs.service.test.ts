@@ -13,6 +13,8 @@ test("normalizeSavedJobs maps database columns to the API contract", () => {
       company: "Nusa Digital",
       source: "LinkedIn",
       source_url: "https://example.com/jobs/frontend",
+      location: "Jakarta Selatan",
+      work_arrangement: "Hybrid",
       created_at: "2026-08-08T01:45:00.000Z",
       updated_at: "2026-08-08T02:00:00.000Z",
     },
@@ -25,6 +27,8 @@ test("normalizeSavedJobs maps database columns to the API contract", () => {
       company: "Nusa Digital",
       source: "LinkedIn",
       sourceUrl: "https://example.com/jobs/frontend",
+      location: "Jakarta Selatan",
+      workArrangement: "Hybrid",
       createdAt: "2026-08-08T01:45:00.000Z",
       updatedAt: "2026-08-08T02:00:00.000Z",
     },
@@ -39,6 +43,8 @@ test("normalizeSavedJobs normalizes optional empty strings", () => {
       company: "PixelWorks",
       source: "",
       source_url: null,
+      location: "",
+      work_arrangement: null,
       created_at: "2026-08-07T01:45:00.000Z",
       updated_at: "2026-08-07T01:45:00.000Z",
     },
@@ -46,6 +52,8 @@ test("normalizeSavedJobs normalizes optional empty strings", () => {
 
   assert.equal(job.source, null);
   assert.equal(job.sourceUrl, null);
+  assert.equal(job.location, null);
+  assert.equal(job.workArrangement, null);
 });
 
 test("normalizeSavedJobs rejects malformed database results", () => {

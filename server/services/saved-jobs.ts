@@ -1,7 +1,7 @@
 import type { InsForgeClient } from "@insforge/sdk";
 
 const SAVED_JOB_COLUMNS =
-  "id,title,company,source,source_url,created_at,updated_at";
+  "id,title,company,source,source_url,location,work_arrangement,created_at,updated_at";
 
 export type SavedJob = {
   id: string;
@@ -9,6 +9,8 @@ export type SavedJob = {
   company: string;
   source: string | null;
   sourceUrl: string | null;
+  location: string | null;
+  workArrangement: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -36,7 +38,17 @@ export function normalizeSavedJobs(value: unknown): SavedJob[] {
   return value.map((row) => {
     if (!isRecord(row)) throw new SavedJobsQueryError();
 
-    const { id, title, company, source, source_url, created_at, updated_at } = row;
+    const {
+      id,
+      title,
+      company,
+      source,
+      source_url,
+      location,
+      work_arrangement,
+      created_at,
+      updated_at,
+    } = row;
     if (
       typeof id !== "string" ||
       typeof title !== "string" ||
@@ -53,6 +65,8 @@ export function normalizeSavedJobs(value: unknown): SavedJob[] {
       company,
       source: nullableString(source),
       sourceUrl: nullableString(source_url),
+      location: nullableString(location),
+      workArrangement: nullableString(work_arrangement),
       createdAt: created_at,
       updatedAt: updated_at,
     };

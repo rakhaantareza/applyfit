@@ -1,9 +1,12 @@
 import {
   calculateFitScore,
   type FitRequirementInput,
+  type RequirementMappingState,
   type RequirementPriority,
   type RequirementStatus,
   type RequirementType,
+  type SkillStatus,
+  withDerivedRequirementStatus,
 } from "../../../../server/services/fit-score.ts";
 
 const REQUIREMENT_TYPES = new Set<RequirementType>([
@@ -16,12 +19,7 @@ const REQUIREMENT_PRIORITIES = new Set<RequirementPriority>([
   "required",
   "preferred",
 ]);
-const REQUIREMENT_STATUSES = new Set<RequirementStatus>([
-  "proven",
-  "partial",
-  "learning",
-  "missing",
-]);
+const SKILL_STATUSES = new Set<SkillStatus>(["active", "learning"]);
 
 type FitScoreSummaryRequest = {
   jobId: string;
@@ -40,6 +38,54 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function parseMapping(
+  value: unknown,
+  requirementIndex: number,
+  mappingIndex: number,
+): RequirementMappingState | string {
+  const path = `requirements[${requirementIndex}].mappings[${mappingIndex}]`;
+  if (!isRecord(value)) return `${path} harus berupa objek.`;
+
+  const { skill, linkedEvidenceIds } = value;
+  if (!Array.isArray(linkedEvidenceIds)) {
+    return `${path}.linkedEvidenceIds harus berupa array.`;
+  }
+
+  const normalizedEvidenceIds: string[] = [];
+  for (const [evidenceIndex, evidenceId] of linkedEvidenceIds.entries()) {
+    if (typeof evidenceId !== "string" || evidenceId.trim() === "") {
+      return `${path}.linkedEvidenceIds[${evidenceIndex}] wajib berupa string.`;
+    }
+    normalizedEvidenceIds.push(evidenceId.trim());
+  }
+
+  if (skill === null) {
+    if (normalizedEvidenceIds.length > 0) {
+      return `${path} tanpa skill tidak boleh memiliki evidence.`;
+    }
+    return { skill: null, linkedEvidenceIds: [] };
+  }
+
+  if (!isRecord(skill)) return `${path}.skill harus berupa objek atau null.`;
+  if (typeof skill.id !== "string" || skill.id.trim() === "") {
+    return `${path}.skill.id wajib diisi.`;
+  }
+  if (
+    typeof skill.status !== "string" ||
+    !SKILL_STATUSES.has(skill.status as SkillStatus)
+  ) {
+    return `${path}.skill.status tidak valid.`;
+  }
+
+  return {
+    skill: {
+      id: skill.id.trim(),
+      status: skill.status as SkillStatus,
+    },
+    linkedEvidenceIds: [...new Set(normalizedEvidenceIds)],
+  };
+}
+
 function parseRequirement(
   value: unknown,
   index: number,
@@ -48,7 +94,7 @@ function parseRequirement(
     return { ok: false, message: `requirements[${index}] harus berupa objek.` };
   }
 
-  const { id, type, priority, status } = value;
+  const { id, type, priority, mappings } = value;
   if (typeof id !== "string" || id.trim() === "") {
     return { ok: false, message: `requirements[${index}].id wajib diisi.` };
   }
@@ -61,21 +107,27 @@ function parseRequirement(
   ) {
     return { ok: false, message: `requirements[${index}].priority tidak valid.` };
   }
-  if (
-    typeof status !== "string" ||
-    !REQUIREMENT_STATUSES.has(status as RequirementStatus)
-  ) {
-    return { ok: false, message: `requirements[${index}].status tidak valid.` };
+  if (!Array.isArray(mappings)) {
+    return { ok: false, message: `requirements[${index}].mappings harus berupa array.` };
+  }
+
+  const parsedMappings: RequirementMappingState[] = [];
+  for (const [mappingIndex, mapping] of mappings.entries()) {
+    const parsedMapping = parseMapping(mapping, index, mappingIndex);
+    if (typeof parsedMapping === "string") {
+      return { ok: false, message: parsedMapping };
+    }
+    parsedMappings.push(parsedMapping);
   }
 
   return {
     ok: true,
-    value: {
+    value: withDerivedRequirementStatus({
       id: id.trim(),
       type: type as RequirementType,
       priority: priority as RequirementPriority,
-      status: status as RequirementStatus,
-    },
+      mappings: parsedMappings,
+    }),
   };
 }
 

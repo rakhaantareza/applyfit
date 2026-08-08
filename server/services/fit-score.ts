@@ -13,6 +13,15 @@ export const STATUS_MULTIPLIERS = {
 export type RequirementType = "skill" | "tool" | "education" | "experience";
 export type RequirementPriority = keyof typeof PRIORITY_WEIGHTS;
 export type RequirementStatus = keyof typeof STATUS_MULTIPLIERS;
+export type SkillStatus = "active" | "learning";
+
+export type RequirementMappingState = {
+  skill: {
+    id: string;
+    status: SkillStatus;
+  } | null;
+  linkedEvidenceIds: readonly string[];
+};
 
 export type FitRequirementInput = {
   id: string;
@@ -50,6 +59,49 @@ export type FitScoreResult = {
   excludedRequirementCount: number;
   breakdown: RequirementScoreBreakdown[];
 };
+
+export function deriveRequirementStatus(
+  mappings: readonly RequirementMappingState[],
+): RequirementStatus {
+  const mappedSkills = mappings.filter(
+    (mapping): mapping is RequirementMappingState & {
+      skill: NonNullable<RequirementMappingState["skill"]>;
+    } => mapping.skill !== null,
+  );
+
+  if (
+    mappedSkills.some(
+      (mapping) =>
+        mapping.skill.status === "active" &&
+        mapping.linkedEvidenceIds.length > 0,
+    )
+  ) {
+    return "proven";
+  }
+
+  if (mappedSkills.some((mapping) => mapping.skill.status === "active")) {
+    return "partial";
+  }
+
+  if (mappedSkills.some((mapping) => mapping.skill.status === "learning")) {
+    return "learning";
+  }
+
+  return "missing";
+}
+
+export function withDerivedRequirementStatus(
+  requirement: Omit<FitRequirementInput, "status"> & {
+    mappings: readonly RequirementMappingState[];
+  },
+): FitRequirementInput {
+  return {
+    id: requirement.id,
+    type: requirement.type,
+    priority: requirement.priority,
+    status: deriveRequirementStatus(requirement.mappings),
+  };
+}
 
 function roundToSingleDecimal(value: number) {
   return Math.round((value + Number.EPSILON) * 10) / 10;

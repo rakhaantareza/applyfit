@@ -9,6 +9,8 @@ const savedJob = {
   company: "Nusa Digital",
   source: "LinkedIn",
   sourceUrl: "https://example.com/jobs/frontend",
+  location: "Jakarta Selatan",
+  workArrangement: "Hybrid",
   createdAt: "2026-08-08T01:45:00.000Z",
   updatedAt: "2026-08-08T02:00:00.000Z",
 };

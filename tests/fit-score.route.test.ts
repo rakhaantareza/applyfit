@@ -14,13 +14,25 @@ test("POST exposes the baseline score through the canonical endpoint", async () 
             id: "typescript",
             type: "skill",
             priority: "required",
-            status: "proven",
+            status: "missing",
+            mappings: [
+              {
+                skill: { id: "typescript-skill", status: "active" },
+                linkedEvidenceIds: ["typescript-project"],
+              },
+            ],
           },
           {
             id: "figma",
             type: "tool",
             priority: "preferred",
-            status: "partial",
+            status: "proven",
+            mappings: [
+              {
+                skill: { id: "figma-skill", status: "active" },
+                linkedEvidenceIds: [],
+              },
+            ],
           },
         ],
       }),

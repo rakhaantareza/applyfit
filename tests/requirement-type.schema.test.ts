@@ -1,35 +1,35 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
-import {
-  jobRequirements,
-  requirementPriorityEnum,
-  requirementStatusEnum,
-  requirementTypeEnum,
-} from "../db/schema.ts";
 
-test("requirement type enum covers the complete MVP scoring scope", () => {
-  assert.deepEqual(requirementTypeEnum.enumValues, [
-    "skill",
-    "tool",
-    "education",
-    "experience",
-  ]);
+const migrationUrl = new URL(
+  "../migrations/20260808003719_derive-requirement-status.sql",
+  import.meta.url,
+);
+
+test("migration removes persisted requirement status", async () => {
+  const sql = await readFile(migrationUrl, "utf8");
+
+  assert.match(sql, /ALTER TABLE public\.job_requirements\s+DROP COLUMN status/);
+  assert.match(sql, /DROP TYPE public\.requirement_status/);
+  assert.doesNotMatch(
+    sql,
+    /GRANT (?:INSERT|UPDATE) \([^)]*status[^)]*\)\s+ON public\.job_requirements/,
+  );
 });
 
-test("job requirements store a required requirement type", () => {
-  assert.equal(jobRequirements.type.notNull, true);
-  assert.equal(jobRequirements.type.enumValues, requirementTypeEnum.enumValues);
+test("migration adds the runtime status source relationships", async () => {
+  const sql = await readFile(migrationUrl, "utf8");
+
+  assert.match(sql, /CREATE TABLE public\.profiles/);
+  assert.match(sql, /CREATE TABLE public\.skills/);
+  assert.match(sql, /CREATE TABLE public\.skill_evidences/);
+  assert.match(sql, /CREATE TABLE public\.requirement_mappings/);
 });
 
-test("job requirements persist priority and status for the score formula", () => {
-  assert.deepEqual(requirementPriorityEnum.enumValues, ["required", "preferred"]);
-  assert.deepEqual(requirementStatusEnum.enumValues, [
-    "proven",
-    "partial",
-    "learning",
-    "missing",
-  ]);
-  assert.equal(jobRequirements.priority.notNull, true);
-  assert.equal(jobRequirements.status.notNull, true);
-  assert.equal(jobRequirements.status.default, "missing");
+test("migration persists job location and work arrangement", async () => {
+  const sql = await readFile(migrationUrl, "utf8");
+
+  assert.match(sql, /ADD COLUMN location TEXT/);
+  assert.match(sql, /ADD COLUMN work_arrangement TEXT/);
 });

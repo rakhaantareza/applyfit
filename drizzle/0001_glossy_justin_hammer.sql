@@ -1,2 +1,0 @@
-CREATE TYPE "public"."requirement_status" AS ENUM('proven', 'partial', 'learning', 'missing');--> statement-breakpoint
-ALTER TABLE "job_requirements" ADD COLUMN "status" "requirement_status" DEFAULT 'missing' NOT NULL;

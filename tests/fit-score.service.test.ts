@@ -2,10 +2,62 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   calculateFitScore,
+  deriveRequirementStatus,
   PRIORITY_WEIGHTS,
   STATUS_MULTIPLIERS,
   type FitRequirementInput,
 } from "../server/services/fit-score.ts";
+
+test("derives requirement status from mappings, skill state, and evidence", () => {
+  assert.equal(deriveRequirementStatus([]), "missing");
+  assert.equal(
+    deriveRequirementStatus([{ skill: null, linkedEvidenceIds: [] }]),
+    "missing",
+  );
+  assert.equal(
+    deriveRequirementStatus([
+      {
+        skill: { id: "typescript", status: "learning" },
+        linkedEvidenceIds: [],
+      },
+    ]),
+    "learning",
+  );
+  assert.equal(
+    deriveRequirementStatus([
+      {
+        skill: { id: "typescript", status: "active" },
+        linkedEvidenceIds: [],
+      },
+    ]),
+    "partial",
+  );
+  assert.equal(
+    deriveRequirementStatus([
+      {
+        skill: { id: "typescript", status: "active" },
+        linkedEvidenceIds: ["dashboard-project"],
+      },
+    ]),
+    "proven",
+  );
+});
+
+test("uses the strongest derived status when a requirement has multiple mappings", () => {
+  assert.equal(
+    deriveRequirementStatus([
+      {
+        skill: { id: "react", status: "learning" },
+        linkedEvidenceIds: [],
+      },
+      {
+        skill: { id: "nextjs", status: "active" },
+        linkedEvidenceIds: ["inventory-project"],
+      },
+    ]),
+    "proven",
+  );
+});
 
 test("calculates the PRD example as 87.5 percent", () => {
   const result = calculateFitScore([

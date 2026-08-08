@@ -20,13 +20,18 @@ test("returns requirements with supporting evidence and point contribution", asy
           name: "React & Next.js",
           type: "skill",
           priority: "required",
-          status: "proven",
-          evidences: [
+          status: "missing",
+          mappings: [
             {
-              id: "portfolio-dashboard",
-              title: "Dasbor Analitik",
-              type: "portfolio",
-              url: "https://portfolio.example/dashboard",
+              skill: { id: "react-skill", status: "active" },
+              evidences: [
+                {
+                  id: "portfolio-dashboard",
+                  title: "Dasbor Analitik",
+                  type: "portfolio",
+                  url: "https://portfolio.example/dashboard",
+                },
+              ],
             },
           ],
         },
@@ -67,8 +72,7 @@ test("keeps non-skill requirements visible with no point contribution", async ()
           name: "Pengalaman kerja 2 tahun",
           type: "experience",
           priority: "required",
-          status: "missing",
-          evidences: [],
+          mappings: [],
         },
       ],
     }),
@@ -94,8 +98,12 @@ test("rejects invalid evidence data", async () => {
           name: "React",
           type: "skill",
           priority: "required",
-          status: "proven",
-          evidences: [{ id: "evidence", title: "", type: "project" }],
+          mappings: [
+            {
+              skill: { id: "react-skill", status: "active" },
+              evidences: [{ id: "evidence", title: "", type: "project" }],
+            },
+          ],
         },
       ],
     }),
@@ -115,8 +123,7 @@ test("rejects duplicate requirement identifiers", async () => {
     name: "React",
     type: "skill",
     priority: "required",
-    status: "proven",
-    evidences: [],
+    mappings: [],
   };
   const response = await POST(
     createRequest({

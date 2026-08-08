@@ -1,9 +1,11 @@
 import {
   calculateFitScore,
   type FitRequirementInput,
+  type RequirementMappingState,
   type RequirementPriority,
-  type RequirementStatus,
   type RequirementType,
+  type SkillStatus,
+  withDerivedRequirementStatus,
 } from "../../../../server/services/fit-score.ts";
 
 const REQUIREMENT_TYPES = new Set<RequirementType>([
@@ -16,12 +18,7 @@ const REQUIREMENT_PRIORITIES = new Set<RequirementPriority>([
   "required",
   "preferred",
 ]);
-const REQUIREMENT_STATUSES = new Set<RequirementStatus>([
-  "proven",
-  "partial",
-  "learning",
-  "missing",
-]);
+const SKILL_STATUSES = new Set<SkillStatus>(["active", "learning"]);
 const EVIDENCE_TYPES = new Set([
   "project",
   "cert",
@@ -106,7 +103,7 @@ function parsePayload(payload: unknown): ValidationResult {
     const path = `requirements[${index}]`;
     if (!isRecord(value)) return { ok: false, message: `${path} harus berupa objek.` };
 
-    const { id, name, type, priority, status, evidences } = value;
+    const { id, name, type, priority, mappings } = value;
     if (typeof id !== "string" || id.trim() === "") {
       return { ok: false, message: `${path}.id wajib diisi.` };
     }
@@ -126,33 +123,84 @@ function parsePayload(payload: unknown): ValidationResult {
     ) {
       return { ok: false, message: `${path}.priority tidak valid.` };
     }
-    if (
-      typeof status !== "string" ||
-      !REQUIREMENT_STATUSES.has(status as RequirementStatus)
-    ) {
-      return { ok: false, message: `${path}.status tidak valid.` };
-    }
-    if (!Array.isArray(evidences)) {
-      return { ok: false, message: `${path}.evidences harus berupa array.` };
+    if (!Array.isArray(mappings)) {
+      return { ok: false, message: `${path}.mappings harus berupa array.` };
     }
 
-    const parsedEvidences: EvidenceInput[] = [];
-    for (const [evidenceIndex, evidence] of evidences.entries()) {
-      const parsedEvidence = parseEvidence(evidence, index, evidenceIndex);
-      if (typeof parsedEvidence === "string") {
-        return { ok: false, message: parsedEvidence };
+    const parsedMappings: RequirementMappingState[] = [];
+    const evidenceById = new Map<string, EvidenceInput>();
+    for (const [mappingIndex, mapping] of mappings.entries()) {
+      const mappingPath = `${path}.mappings[${mappingIndex}]`;
+      if (!isRecord(mapping)) {
+        return { ok: false, message: `${mappingPath} harus berupa objek.` };
       }
-      parsedEvidences.push(parsedEvidence);
+
+      const { skill, evidences } = mapping;
+      if (!Array.isArray(evidences)) {
+        return { ok: false, message: `${mappingPath}.evidences harus berupa array.` };
+      }
+
+      const parsedEvidences: EvidenceInput[] = [];
+      for (const [evidenceIndex, evidence] of evidences.entries()) {
+        const parsedEvidence = parseEvidence(evidence, index, evidenceIndex);
+        if (typeof parsedEvidence === "string") {
+          return { ok: false, message: parsedEvidence };
+        }
+        parsedEvidences.push(parsedEvidence);
+        evidenceById.set(parsedEvidence.id, parsedEvidence);
+      }
+
+      if (skill === null) {
+        if (parsedEvidences.length > 0) {
+          return {
+            ok: false,
+            message: `${mappingPath} tanpa skill tidak boleh memiliki evidence.`,
+          };
+        }
+        parsedMappings.push({ skill: null, linkedEvidenceIds: [] });
+        continue;
+      }
+
+      if (!isRecord(skill)) {
+        return {
+          ok: false,
+          message: `${mappingPath}.skill harus berupa objek atau null.`,
+        };
+      }
+      if (typeof skill.id !== "string" || skill.id.trim() === "") {
+        return { ok: false, message: `${mappingPath}.skill.id wajib diisi.` };
+      }
+      if (
+        typeof skill.status !== "string" ||
+        !SKILL_STATUSES.has(skill.status as SkillStatus)
+      ) {
+        return {
+          ok: false,
+          message: `${mappingPath}.skill.status tidak valid.`,
+        };
+      }
+
+      parsedMappings.push({
+        skill: {
+          id: skill.id.trim(),
+          status: skill.status as SkillStatus,
+        },
+        linkedEvidenceIds: parsedEvidences.map((evidence) => evidence.id),
+      });
     }
+
+    const derivedRequirement = withDerivedRequirementStatus({
+      id: normalizedId,
+      type: type as RequirementType,
+      priority: priority as RequirementPriority,
+      mappings: parsedMappings,
+    });
 
     requirementIds.add(normalizedId);
     parsedRequirements.push({
-      id: normalizedId,
+      ...derivedRequirement,
       name: name.trim(),
-      type: type as RequirementType,
-      priority: priority as RequirementPriority,
-      status: status as RequirementStatus,
-      evidences: parsedEvidences,
+      evidences: [...evidenceById.values()],
     });
   }
 

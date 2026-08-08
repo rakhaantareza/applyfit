@@ -19,13 +19,25 @@ test("returns a fit score summary for a job", async () => {
           id: "react",
           type: "skill",
           priority: "required",
-          status: "proven",
+          status: "missing",
+          mappings: [
+            {
+              skill: { id: "react-skill", status: "active" },
+              linkedEvidenceIds: ["react-project"],
+            },
+          ],
         },
         {
           id: "figma",
           type: "tool",
           priority: "preferred",
-          status: "partial",
+          status: "proven",
+          mappings: [
+            {
+              skill: { id: "figma-skill", status: "active" },
+              linkedEvidenceIds: [],
+            },
+          ],
         },
       ],
     }),
@@ -54,13 +66,18 @@ test("reports excluded non-skill requirements without scoring them", async () =>
           id: "react",
           type: "skill",
           priority: "required",
-          status: "proven",
+          mappings: [
+            {
+              skill: { id: "react-skill", status: "active" },
+              linkedEvidenceIds: ["react-project"],
+            },
+          ],
         },
         {
           id: "experience",
           type: "experience",
           priority: "required",
-          status: "missing",
+          mappings: [],
         },
       ],
     }),
@@ -84,7 +101,7 @@ test("rejects an invalid requirement payload", async () => {
           id: "react",
           type: "skill",
           priority: "urgent",
-          status: "proven",
+          mappings: [],
         },
       ],
     }),
