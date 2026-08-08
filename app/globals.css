@@ -2767,7 +2767,7 @@ a {
   border-top: 1px solid var(--line);
   display: grid;
   gap: 20px;
-  grid-template-columns: auto minmax(250px, 1.25fr) minmax(190px, 0.8fr) minmax(170px, 0.7fr);
+  grid-template-columns: auto minmax(250px, 1.25fr) minmax(190px, 0.8fr) minmax(170px, 0.7fr) auto;
   padding: 21px 2px;
 }
 
@@ -2861,6 +2861,82 @@ a {
   display: block;
   font-size: 9px;
   margin-top: 8px;
+}
+
+.evidence-row-actions {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  min-width: 70px;
+}
+
+.evidence-row-actions > button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+  color: #6f8078;
+  cursor: pointer;
+  display: inline-flex;
+  height: 32px;
+  justify-content: center;
+  padding: 0;
+  transition: background 160ms ease, color 160ms ease;
+  width: 32px;
+}
+
+.evidence-row-actions > button:hover {
+  background: #edf5f0;
+  color: var(--green);
+}
+
+.evidence-row-actions > button:focus-visible,
+.evidence-delete-confirmation button:focus-visible {
+  outline: 2px solid #8db8a3;
+  outline-offset: 2px;
+}
+
+.evidence-delete-confirmation {
+  align-items: center;
+  background: #fff7f5;
+  border: 1px solid #f0d7d3;
+  border-radius: 10px;
+  display: flex;
+  gap: 6px;
+  padding: 5px 6px 5px 9px;
+  white-space: nowrap;
+}
+
+.evidence-delete-confirmation span {
+  color: #835955;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.evidence-delete-confirmation button {
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  color: #66756e;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 6px 7px;
+}
+
+.evidence-delete-confirmation button:hover {
+  background: #f4ebe8;
+}
+
+.evidence-delete-confirmation button.danger {
+  background: #a74e4d;
+  color: #fff;
+}
+
+.evidence-delete-confirmation button.danger:hover {
+  background: #913f3e;
 }
 
 .calculation-main {
@@ -3581,8 +3657,14 @@ a {
   }
 
   .evidence-skill-links,
-  .evidence-source {
+  .evidence-source,
+  .evidence-row-actions {
     grid-column: 2;
+  }
+
+  .evidence-row-actions {
+    justify-content: flex-start;
+    min-width: 0;
   }
 
   .evidence-editor-actions {
@@ -3814,7 +3896,8 @@ a {
   }
 
   .evidence-skill-links,
-  .evidence-source {
+  .evidence-source,
+  .evidence-row-actions {
     grid-column: 1 / -1;
     padding-left: 56px;
   }

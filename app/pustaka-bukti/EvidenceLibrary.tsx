@@ -10,7 +10,9 @@ import {
   Globe2,
   LibraryBig,
   Link2,
+  Pencil,
   Plus,
+  Trash2,
   X,
 } from "lucide-react";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
@@ -36,6 +38,11 @@ type EvidenceLibraryProps = {
   initialEvidences: EvidenceItem[];
 };
 
+type EditorState =
+  | { mode: "add" }
+  | { mode: "edit"; evidenceId: string }
+  | null;
+
 const evidenceTypeIcons = {
   Proyek: FolderKanban,
   Pengalaman: BriefcaseBusiness,
@@ -48,11 +55,12 @@ const evidenceTypes = Object.keys(evidenceTypeIcons) as EvidenceType[];
 
 export function EvidenceLibrary({ initialEvidences }: EvidenceLibraryProps) {
   const [evidences, setEvidences] = useState(initialEvidences);
-  const [isAdding, setIsAdding] = useState(false);
+  const [editor, setEditor] = useState<EditorState>(null);
   const [draftTitle, setDraftTitle] = useState("");
   const [draftType, setDraftType] = useState<EvidenceType>("Proyek");
   const [draftDescription, setDraftDescription] = useState("");
   const [draftSource, setDraftSource] = useState("");
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
   const titleId = useId();
@@ -70,24 +78,36 @@ export function EvidenceLibrary({ initialEvidences }: EvidenceLibraryProps) {
   }));
 
   useEffect(() => {
-    if (!isAdding) return;
+    if (!editor) return;
 
     const focusFrame = window.requestAnimationFrame(() => titleRef.current?.focus());
     return () => window.cancelAnimationFrame(focusFrame);
-  }, [isAdding]);
+  }, [editor]);
 
   function openForm() {
     setDraftTitle("");
     setDraftType("Proyek");
     setDraftDescription("");
     setDraftSource("");
+    setPendingDeleteId(null);
     setError("");
     setAnnouncement("");
-    setIsAdding(true);
+    setEditor({ mode: "add" });
+  }
+
+  function openEditForm(evidence: EvidenceItem) {
+    setDraftTitle(evidence.title);
+    setDraftType(evidence.type);
+    setDraftDescription(evidence.description);
+    setDraftSource(evidence.source ?? "");
+    setPendingDeleteId(null);
+    setError("");
+    setAnnouncement("");
+    setEditor({ mode: "edit", evidenceId: evidence.id });
   }
 
   function closeForm() {
-    setIsAdding(false);
+    setEditor(null);
     setError("");
   }
 
@@ -103,21 +123,47 @@ export function EvidenceLibrary({ initialEvidences }: EvidenceLibraryProps) {
       return;
     }
 
-    setEvidences((current) => [
-      {
-        id: `evidence-${Date.now()}`,
-        title,
-        type: draftType,
-        description,
-        source: source || null,
-        skills: [],
-        updatedAt: "Baru ditambahkan",
-      },
-      ...current,
-    ]);
-    setAnnouncement(`${title} berhasil ditambahkan ke data contoh.`);
+    if (editor?.mode === "edit") {
+      setEvidences((current) =>
+        current.map((evidence) =>
+          evidence.id === editor.evidenceId
+            ? {
+                ...evidence,
+                title,
+                type: draftType,
+                description,
+                source: source || null,
+                updatedAt: "Baru diperbarui",
+              }
+            : evidence,
+        ),
+      );
+      setAnnouncement(`${title} berhasil diperbarui.`);
+    } else {
+      setEvidences((current) => [
+        {
+          id: `evidence-${Date.now()}`,
+          title,
+          type: draftType,
+          description,
+          source: source || null,
+          skills: [],
+          updatedAt: "Baru ditambahkan",
+        },
+        ...current,
+      ]);
+      setAnnouncement(`${title} berhasil ditambahkan ke data contoh.`);
+    }
+
     setError("");
-    setIsAdding(false);
+    setEditor(null);
+  }
+
+  function deleteEvidence(evidence: EvidenceItem) {
+    setEvidences((current) => current.filter((item) => item.id !== evidence.id));
+    setPendingDeleteId(null);
+    if (editor?.mode === "edit" && editor.evidenceId === evidence.id) setEditor(null);
+    setAnnouncement(`${evidence.title} dihapus dari data contoh.`);
   }
 
   return (
@@ -167,11 +213,15 @@ export function EvidenceLibrary({ initialEvidences }: EvidenceLibraryProps) {
           </div>
         </div>
 
-        {isAdding ? (
+        {editor ? (
           <form className="evidence-editor" onSubmit={handleSubmit}>
             <div className="evidence-editor-heading">
-              <strong>Tambah bukti baru</strong>
-              <span>Skill dapat dihubungkan setelah bukti tersimpan.</span>
+              <strong>{editor.mode === "add" ? "Tambah bukti baru" : "Edit bukti"}</strong>
+              <span>
+                {editor.mode === "add"
+                  ? "Skill dapat dihubungkan setelah bukti tersimpan."
+                  : "Perbarui konteks bukti tanpa mengubah skill yang sudah terhubung."}
+              </span>
             </div>
             <label htmlFor={titleId}>
               <span>Judul bukti</span>
@@ -232,6 +282,7 @@ export function EvidenceLibrary({ initialEvidences }: EvidenceLibraryProps) {
         <div className="evidence-list">
           {evidences.map((evidence) => {
             const TypeIcon = evidenceTypeIcons[evidence.type];
+            const isPendingDelete = pendingDeleteId === evidence.id;
 
             return (
               <article className="evidence-row" key={evidence.id}>
@@ -267,6 +318,48 @@ export function EvidenceLibrary({ initialEvidences }: EvidenceLibraryProps) {
                     <span>Catatan internal</span>
                   )}
                   <small>{evidence.updatedAt}</small>
+                </div>
+
+                <div className="evidence-row-actions">
+                  {isPendingDelete ? (
+                    <div
+                      className="evidence-delete-confirmation"
+                      role="group"
+                      aria-label={`Hapus ${evidence.title}`}
+                    >
+                      <span>Hapus bukti?</span>
+                      <button type="button" onClick={() => setPendingDeleteId(null)}>
+                        Batal
+                      </button>
+                      <button
+                        className="danger"
+                        type="button"
+                        onClick={() => deleteEvidence(evidence)}
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        aria-label={`Edit ${evidence.title}`}
+                        onClick={() => openEditForm(evidence)}
+                      >
+                        <Pencil aria-hidden="true" size={15} strokeWidth={1.9} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Hapus ${evidence.title}`}
+                        onClick={() => {
+                          setPendingDeleteId(evidence.id);
+                          setEditor(null);
+                        }}
+                      >
+                        <Trash2 aria-hidden="true" size={15} strokeWidth={1.9} />
+                      </button>
+                    </>
+                  )}
                 </div>
               </article>
             );
