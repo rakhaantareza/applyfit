@@ -1,3 +1,14 @@
+# ApplyFit Git, versioning, and release conventions
+
+- All work through and including commit `30940d6` belongs to **ApplyFit Phase 1 — Core MVP**, regardless of product-phase terminology used in older implementation commit messages.
+- Do not rewrite, rename, rebase, or force-push historical commits merely to align their messages with the current product-phase naming.
+- Use concise conventional-style prefixes for normal commits from this point forward, such as `feat:`, `fix:`, `refactor:`, `chore:`, `docs:`, and `test:`. Do not include product phase numbers in normal commit messages.
+- Product phase names and numbers belong only in PRDs, roadmap or milestone documentation, and release notes.
+- A product milestone such as **Product Phase 2** does not automatically imply a `v2.0.0` release.
+- Follow semantic versioning: patch releases contain fixes, minor releases contain backward-compatible enhancements, and major releases are reserved for meaningful breaking changes.
+- The retired NgodingPakeAI task plan must not be used to choose or drive future ApplyFit development. Future work requires current product direction or a new explicitly adopted plan.
+- Never rewrite Git history or force-push any branch unless the user gives explicit approval for that specific operation.
+
 <!-- ngodingpakeai:skill:start -->
 # NgodingPakeAI — Codebase Sync
 
