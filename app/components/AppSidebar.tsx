@@ -38,6 +38,8 @@ type AppSidebarProps = {
 
 const sidebarPreferenceKey = "applyfit-sidebar-collapsed";
 const sidebarPreferenceEvent = "applyfit-sidebar-preference";
+const tabletSidebarPreferenceKey = "applyfit-tablet-sidebar-expanded";
+const tabletSidebarPreferenceEvent = "applyfit-tablet-sidebar-preference";
 
 function subscribeToSidebarPreference(callback: () => void) {
   window.addEventListener("storage", callback);
@@ -57,27 +59,52 @@ function getServerSidebarPreference() {
   return false;
 }
 
+function subscribeToTabletSidebarPreference(callback: () => void) {
+  window.addEventListener(tabletSidebarPreferenceEvent, callback);
+
+  return () => window.removeEventListener(tabletSidebarPreferenceEvent, callback);
+}
+
+function getTabletSidebarPreference() {
+  return window.sessionStorage.getItem(tabletSidebarPreferenceKey) === "true";
+}
+
 export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
-  const isCollapsed = useSyncExternalStore(
+  const isDesktopCollapsed = useSyncExternalStore(
     subscribeToSidebarPreference,
     getSidebarPreference,
     getServerSidebarPreference,
   );
+  const isTabletExpanded = useSyncExternalStore(
+    subscribeToTabletSidebarPreference,
+    getTabletSidebarPreference,
+    getServerSidebarPreference,
+  );
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [isTabletViewport, setIsTabletViewport] = useState(false);
+  const isSidebarCollapsed = isTabletViewport
+    ? !isTabletExpanded
+    : isDesktopCollapsed;
 
   useEffect(() => {
     const mobileQuery = window.matchMedia("(max-width: 767px)");
+    const tabletQuery = window.matchMedia("(min-width: 768px) and (max-width: 1023px)");
 
-    function syncViewport(event: MediaQueryListEvent | MediaQueryList) {
-      setIsMobileViewport(event.matches);
-      if (!event.matches) setIsMobileOpen(false);
+    function syncViewport() {
+      setIsMobileViewport(mobileQuery.matches);
+      setIsTabletViewport(tabletQuery.matches);
+      if (!mobileQuery.matches) setIsMobileOpen(false);
     }
 
-    syncViewport(mobileQuery);
+    syncViewport();
     mobileQuery.addEventListener("change", syncViewport);
+    tabletQuery.addEventListener("change", syncViewport);
 
-    return () => mobileQuery.removeEventListener("change", syncViewport);
+    return () => {
+      mobileQuery.removeEventListener("change", syncViewport);
+      tabletQuery.removeEventListener("change", syncViewport);
+    };
   }, []);
 
   useEffect(() => {
@@ -99,7 +126,16 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
   }, [isMobileOpen]);
 
   function toggleDesktopSidebar() {
-    window.localStorage.setItem(sidebarPreferenceKey, String(!isCollapsed));
+    if (isTabletViewport) {
+      window.sessionStorage.setItem(
+        tabletSidebarPreferenceKey,
+        String(!isTabletExpanded),
+      );
+      window.dispatchEvent(new Event(tabletSidebarPreferenceEvent));
+      return;
+    }
+
+    window.localStorage.setItem(sidebarPreferenceKey, String(!isDesktopCollapsed));
     window.dispatchEvent(new Event(sidebarPreferenceEvent));
   }
 
@@ -136,7 +172,9 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
       />
 
       <aside
-        className={`sidebar${isCollapsed ? " sidebar-collapsed" : ""}${
+        className={`sidebar${isSidebarCollapsed ? " sidebar-collapsed" : ""}${
+          isTabletViewport && isTabletExpanded ? " sidebar-tablet-expanded" : ""
+        }${
           isMobileOpen ? " sidebar-mobile-open" : ""
         }`}
         id="app-navigation"
@@ -159,12 +197,12 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
           <button
             className="sidebar-toggle"
             type="button"
-            aria-label={isCollapsed ? "Perluas sidebar" : "Ringkas sidebar"}
-            aria-pressed={isCollapsed}
-            data-tooltip={isCollapsed ? "Perluas sidebar" : "Ringkas sidebar"}
+            aria-label={isSidebarCollapsed ? "Perluas sidebar" : "Ringkas sidebar"}
+            aria-pressed={isSidebarCollapsed}
+            data-tooltip={isSidebarCollapsed ? "Perluas sidebar" : "Ringkas sidebar"}
             onClick={toggleDesktopSidebar}
           >
-            {isCollapsed ? (
+            {isSidebarCollapsed ? (
               <PanelLeftOpen aria-hidden="true" size={18} strokeWidth={1.8} />
             ) : (
               <PanelLeftClose aria-hidden="true" size={18} strokeWidth={1.8} />

@@ -6371,62 +6371,67 @@ a {
   }
 }
 
-/* Shared shell modes: desktop >= 1400px, compact rail 768–1399px, drawer <= 767px. */
-@media (min-width: 768px) and (max-width: 1399px) {
-  .sidebar {
+/* Shared shell modes: desktop >= 1024px, interactive tablet rail 768–1023px, drawer <= 767px. */
+@media (min-width: 1024px) and (max-width: 1399px) {
+  .main-content {
+    padding: 42px clamp(28px, 4vw, 56px) 64px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .sidebar:not(.sidebar-tablet-expanded) {
     padding-left: 12px;
     padding-right: 12px;
     width: var(--sidebar-collapsed-width);
   }
 
-  .sidebar-header {
+  .sidebar:not(.sidebar-tablet-expanded) .sidebar-header {
     flex-direction: column;
     gap: 12px;
   }
 
-  .sidebar .brand {
+  .sidebar:not(.sidebar-tablet-expanded) .brand {
     gap: 0;
   }
 
-  .sidebar .brand-name,
-  .sidebar .nav-label,
-  .sidebar .nav-text,
-  .sidebar .readiness-expanded,
-  .sidebar .sidebar-user-copy,
-  .sidebar .sidebar-user-more,
-  .sidebar .sidebar-toggle {
+  .sidebar:not(.sidebar-tablet-expanded) .brand-name,
+  .sidebar:not(.sidebar-tablet-expanded) .nav-label,
+  .sidebar:not(.sidebar-tablet-expanded) .nav-text,
+  .sidebar:not(.sidebar-tablet-expanded) .readiness-expanded,
+  .sidebar:not(.sidebar-tablet-expanded) .sidebar-user-copy,
+  .sidebar:not(.sidebar-tablet-expanded) .sidebar-user-more {
     display: none;
   }
 
-  .sidebar .main-nav {
+  .sidebar:not(.sidebar-tablet-expanded) .main-nav {
     margin-top: 22px;
   }
 
-  .sidebar .nav-item,
-  .sidebar .profile-readiness,
-  .sidebar .sidebar-user {
+  .sidebar:not(.sidebar-tablet-expanded) .nav-item,
+  .sidebar:not(.sidebar-tablet-expanded) .profile-readiness,
+  .sidebar:not(.sidebar-tablet-expanded) .sidebar-user {
     justify-content: center;
     padding-left: 0;
     padding-right: 0;
   }
 
-  .sidebar .sidebar-user {
+  .sidebar:not(.sidebar-tablet-expanded) .sidebar-user {
     grid-template-columns: auto;
   }
 
-  .sidebar .nav-item.active::before {
+  .sidebar:not(.sidebar-tablet-expanded) .nav-item.active::before {
     left: -8px;
   }
 
-  .sidebar .readiness-rail {
+  .sidebar:not(.sidebar-tablet-expanded) .readiness-rail {
     display: flex;
   }
 
-  .sidebar [data-tooltip] {
+  .sidebar:not(.sidebar-tablet-expanded) [data-tooltip] {
     position: relative;
   }
 
-  .sidebar [data-tooltip]::after {
+  .sidebar:not(.sidebar-tablet-expanded) [data-tooltip]::after {
     background: #0a1d18;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 8px;
@@ -6448,8 +6453,8 @@ a {
     z-index: 80;
   }
 
-  .sidebar [data-tooltip]:hover::after,
-  .sidebar [data-tooltip]:focus-visible::after {
+  .sidebar:not(.sidebar-tablet-expanded) [data-tooltip]:hover::after,
+  .sidebar:not(.sidebar-tablet-expanded) [data-tooltip]:focus-visible::after {
     opacity: 1;
     transform: translate(0, -50%);
     visibility: visible;
@@ -6461,9 +6466,12 @@ a {
     padding: 36px clamp(24px, 4vw, 48px) 56px;
   }
 
+  .app-shell:has(.sidebar-tablet-expanded) .main-content {
+    margin-left: var(--sidebar-width);
+  }
+
   .page-container {
     gap: 28px;
-    max-width: 1000px;
   }
 }
 
