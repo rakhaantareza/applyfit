@@ -7180,28 +7180,170 @@ a {
     display: none;
   }
 
+  .responsive-list-row {
+    padding-bottom: 16px;
+    padding-top: 16px;
+  }
+
   .profile-identity {
-    flex-direction: column;
+    align-items: flex-start;
+    flex-direction: row;
+    gap: 14px;
+    padding: 20px 18px;
+  }
+
+  .profile-identity > div {
+    min-width: 0;
+  }
+
+  .profile-avatar {
+    border-width: 4px;
+    border-radius: 17px;
+    font-size: 17px;
+    height: 60px;
+    width: 60px;
+  }
+
+  .profile-identity h2 {
+    margin: 5px 0 6px;
+  }
+
+  .profile-identity p {
+    line-height: 1.55;
+  }
+
+  .career-direction:not(.career-direction-form) {
+    align-items: center;
+    display: grid;
+    gap: 12px 14px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 18px;
+  }
+
+  .career-direction:not(.career-direction-form) .career-direction-heading {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .career-direction:not(.career-direction-form) .career-direction-field {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    padding-top: 12px;
+  }
+
+  .career-direction:not(.career-direction-form) .career-edit-button {
+    align-self: center;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .career-direction-form {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .career-direction-icon {
+    height: 36px;
+    width: 36px;
+  }
+
+  .profile-skills-section {
+    padding: 20px 16px;
+  }
+
+  .profile-section-heading {
+    gap: 8px;
+  }
+
+  .profile-skill-heading-actions {
+    gap: 10px;
+  }
+
+  .profile-skill-heading-actions > p {
+    line-height: 1.55;
+  }
+
+  .skill-add-button {
+    min-height: 36px;
+    padding: 8px 11px;
+  }
+
+  .skill-manager-summary {
+    flex-wrap: nowrap;
+    gap: 8px;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding: 10px 0;
+  }
+
+  .profile-skill-list {
+    margin-top: 6px;
   }
 
   .profile-skill-row {
-    grid-template-columns: 1fr;
+    align-items: center;
+    gap: 9px 12px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 14px 0;
   }
 
-  .profile-skill-state,
-  .profile-skill-evidence,
-  .skill-row-actions {
-    padding-left: 48px;
+  .profile-skill-name {
+    gap: 10px;
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .profile-skill-name > span {
+    height: 34px;
+    width: 34px;
+  }
+
+  .profile-skill-name h3 {
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .profile-skill-state {
+    flex-wrap: wrap;
+    gap: 6px;
+    grid-column: 1;
+    grid-row: 2;
+    padding-left: 44px;
   }
 
   .profile-skill-evidence {
-    grid-column: auto;
+    gap: 5px;
+    grid-column: 2;
+    grid-row: 2;
+    justify-content: flex-end;
+    padding-left: 0;
+    text-align: right;
+    white-space: nowrap;
   }
 
   .skill-row-actions {
-    grid-column: auto;
-    grid-row: auto;
-    justify-content: flex-start;
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-end;
+    justify-self: end;
+    min-width: 0;
+    padding-left: 0;
+    width: auto;
+  }
+
+  .skill-row-actions > button {
+    height: 32px;
+    width: 32px;
+  }
+
+  .skill-row-actions:has(.skill-delete-confirmation) {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: start;
   }
 
   .skill-editor-actions {
@@ -7468,6 +7610,25 @@ a {
 
   .example-equation > span {
     min-width: 42px;
+  }
+}
+
+@media (max-width: 350px) {
+  .profile-skill-state {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .profile-skill-evidence {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-content: flex-start;
+    padding-left: 44px;
+    text-align: left;
+  }
+
+  .skill-row-actions:has(.skill-delete-confirmation) {
+    grid-row: 4;
   }
 }
 
