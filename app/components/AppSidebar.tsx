@@ -67,7 +67,7 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
   const [isMobileViewport, setIsMobileViewport] = useState(false);
 
   useEffect(() => {
-    const mobileQuery = window.matchMedia("(max-width: 760px)");
+    const mobileQuery = window.matchMedia("(max-width: 767px)");
 
     function syncViewport(event: MediaQueryListEvent | MediaQueryList) {
       setIsMobileViewport(event.matches);

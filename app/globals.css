@@ -6353,7 +6353,7 @@ a {
   text-underline-offset: 3px;
 }
 
-@media (min-width: 761px) {
+@media (min-width: 768px) {
   .calculation-hero {
     position: relative;
   }
@@ -6368,6 +6368,102 @@ a {
     right: 0;
     top: 6px;
     width: var(--aside-width);
+  }
+}
+
+/* Shared shell modes: desktop >= 1400px, compact rail 768–1399px, drawer <= 767px. */
+@media (min-width: 768px) and (max-width: 1399px) {
+  .sidebar {
+    padding-left: 12px;
+    padding-right: 12px;
+    width: var(--sidebar-collapsed-width);
+  }
+
+  .sidebar-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .sidebar .brand {
+    gap: 0;
+  }
+
+  .sidebar .brand-name,
+  .sidebar .nav-label,
+  .sidebar .nav-text,
+  .sidebar .readiness-expanded,
+  .sidebar .sidebar-user-copy,
+  .sidebar .sidebar-user-more,
+  .sidebar .sidebar-toggle {
+    display: none;
+  }
+
+  .sidebar .main-nav {
+    margin-top: 22px;
+  }
+
+  .sidebar .nav-item,
+  .sidebar .profile-readiness,
+  .sidebar .sidebar-user {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .sidebar .sidebar-user {
+    grid-template-columns: auto;
+  }
+
+  .sidebar .nav-item.active::before {
+    left: -8px;
+  }
+
+  .sidebar .readiness-rail {
+    display: flex;
+  }
+
+  .sidebar [data-tooltip] {
+    position: relative;
+  }
+
+  .sidebar [data-tooltip]::after {
+    background: #0a1d18;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(3, 13, 10, 0.24);
+    color: #f5faf7;
+    content: attr(data-tooltip);
+    font-size: 11px;
+    font-weight: 620;
+    left: calc(100% + 13px);
+    opacity: 0;
+    padding: 7px 9px;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    transform: translate(4px, -50%);
+    transition: opacity 140ms ease, transform 140ms ease;
+    visibility: hidden;
+    white-space: nowrap;
+    z-index: 80;
+  }
+
+  .sidebar [data-tooltip]:hover::after,
+  .sidebar [data-tooltip]:focus-visible::after {
+    opacity: 1;
+    transform: translate(0, -50%);
+    visibility: visible;
+  }
+
+  .main-content,
+  .app-shell:has(.sidebar-collapsed) .main-content {
+    margin-left: var(--sidebar-collapsed-width);
+    padding: 36px clamp(24px, 4vw, 48px) 56px;
+  }
+
+  .page-container {
+    gap: 28px;
+    max-width: 1000px;
   }
 }
 
@@ -7298,11 +7394,6 @@ a {
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {
-  .profile-main {
-    padding-left: clamp(22px, 3vw, 32px);
-    padding-right: clamp(22px, 3vw, 32px);
-  }
-
   .career-profile-page {
     gap: 26px;
   }
@@ -7903,7 +7994,7 @@ a {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 767px) {
   .evidence-mapping-header {
     flex-direction: column;
     gap: 18px;
