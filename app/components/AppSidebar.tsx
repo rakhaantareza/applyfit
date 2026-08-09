@@ -8,6 +8,7 @@ import {
   Gauge,
   House,
   LibraryBig,
+  LogOut,
   Menu,
   MoreHorizontal,
   PanelLeftClose,
@@ -16,7 +17,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 type NavigationItem = {
   label: string;
@@ -25,7 +26,7 @@ type NavigationItem = {
 };
 
 const navigation = [
-  { label: "Ringkasan", icon: House, href: "/#ringkasan" },
+  { label: "Ringkasan", icon: House, href: "/beranda" },
   { label: "Profil Karier", icon: UserRound, href: "/profil-karier" },
   { label: "Pustaka Bukti", icon: LibraryBig, href: "/pustaka-bukti" },
   { label: "Lowongan", icon: BriefcaseBusiness, href: "/lowongan" },
@@ -81,8 +82,11 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
     getServerSidebarPreference,
   );
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [isTabletViewport, setIsTabletViewport] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
   const isSidebarCollapsed = isTabletViewport
     ? !isTabletExpanded
     : isDesktopCollapsed;
@@ -125,6 +129,27 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
     };
   }, [isMobileOpen]);
 
+  useEffect(() => {
+    if (!isAccountMenuOpen) return;
+
+    function closeAccountMenu(event: PointerEvent) {
+      if (!accountMenuRef.current?.contains(event.target as Node)) {
+        setIsAccountMenuOpen(false);
+      }
+    }
+
+    function handleAccountMenuKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setIsAccountMenuOpen(false);
+    }
+
+    document.addEventListener("pointerdown", closeAccountMenu);
+    window.addEventListener("keydown", handleAccountMenuKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", closeAccountMenu);
+      window.removeEventListener("keydown", handleAccountMenuKeyDown);
+    };
+  }, [isAccountMenuOpen]);
+
   function toggleDesktopSidebar() {
     if (isTabletViewport) {
       window.sessionStorage.setItem(
@@ -141,6 +166,16 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
 
   function closeMobileNavigation() {
     setIsMobileOpen(false);
+    setIsAccountMenuOpen(false);
+  }
+
+  function logOutDemoSession() {
+    setIsLoggingOut(true);
+    window.setTimeout(() => {
+      window.localStorage.removeItem("applyfit-demo-session");
+      window.sessionStorage.removeItem("applyfit-demo-session");
+      window.location.assign("/login");
+    }, 450);
   }
 
   return (
@@ -243,7 +278,7 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
           })}
         </nav>
 
-        <div className="sidebar-footer">
+        <div className="sidebar-footer" ref={accountMenuRef}>
           <a
             className="profile-readiness"
             href="/profil-karier"
@@ -265,11 +300,39 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
             </span>
           </a>
 
+          {isAccountMenuOpen ? (
+            <div className="sidebar-account-menu" id="sidebar-account-menu" role="menu">
+              <div className="sidebar-account-heading">
+                <span className="avatar" aria-hidden="true">AW</span>
+                <span>
+                  <strong>Aruna Wijaya</strong>
+                  <small>Akun demo frontend</small>
+                </span>
+              </div>
+              <a href="/profil-karier" role="menuitem" onClick={closeMobileNavigation}>
+                <UserRound aria-hidden="true" size={16} strokeWidth={1.8} />
+                Lihat profil karier
+              </a>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={logOutDemoSession}
+                disabled={isLoggingOut}
+              >
+                <LogOut aria-hidden="true" size={16} strokeWidth={1.8} />
+                {isLoggingOut ? "Mengakhiri sesi…" : "Keluar dari sesi demo"}
+              </button>
+            </div>
+          ) : null}
+
           <button
             className="sidebar-user"
             type="button"
-            aria-label="Buka menu akun Aruna Wijaya"
+            aria-label={isAccountMenuOpen ? "Tutup menu akun Aruna Wijaya" : "Buka menu akun Aruna Wijaya"}
+            aria-expanded={isAccountMenuOpen}
+            aria-controls="sidebar-account-menu"
             data-tooltip="Akun Aruna Wijaya"
+            onClick={() => setIsAccountMenuOpen((current) => !current)}
           >
             <span className="avatar">AW</span>
             <span className="sidebar-user-copy">
