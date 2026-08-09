@@ -1,13 +1,19 @@
 import type { Metadata } from "next";
 import { AuthBrandPanel } from "../components/AuthBrandPanel";
-import { MockPasswordResetForm } from "./MockPasswordResetForm";
+import { PasswordResetForm } from "./PasswordResetForm";
 
 export const metadata: Metadata = {
   title: "Reset Kata Sandi",
   description: "Atur kata sandi baru untuk akun ApplyFit.",
 };
 
-export default function PasswordResetPage() {
+export default async function PasswordResetPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ email?: string | string[] }>;
+}) {
+  const params = await searchParams;
+  const initialEmail = typeof params.email === "string" ? params.email : "";
   return (
     <main className="auth-page">
       <AuthBrandPanel
@@ -19,7 +25,7 @@ export default function PasswordResetPage() {
       <section className="auth-form-panel" aria-labelledby="reset-title">
         <div className="login-card">
           <div className="login-heading">
-            <p className="eyebrow">Tautan pemulihan demo aktif</p>
+            <p className="eyebrow">Pulihkan akses akun</p>
             <h2 id="reset-title">Buat kata sandi baru</h2>
             <p>
               Pilih kata sandi yang mudah kamu ingat dan memenuhi ketentuan dasar
@@ -27,7 +33,7 @@ export default function PasswordResetPage() {
             </p>
           </div>
 
-          <MockPasswordResetForm />
+          <PasswordResetForm initialEmail={initialEmail} />
         </div>
       </section>
     </main>

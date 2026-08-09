@@ -30,6 +30,7 @@ type WorkspaceRequirement = MappingRequirement & {
 };
 
 type EvidenceMappingWorkspaceProps = {
+  jobId: string;
   requirements: WorkspaceRequirement[];
   skills: MappingSkill[];
 };
@@ -57,6 +58,7 @@ const reviewStatusMeta: Record<
 };
 
 export function EvidenceMappingWorkspace({
+  jobId,
   requirements,
   skills,
 }: EvidenceMappingWorkspaceProps) {
@@ -65,6 +67,7 @@ export function EvidenceMappingWorkspace({
   const [pendingNoEvidenceId, setPendingNoEvidenceId] = useState<string | null>(null);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
+  const [requestError, setRequestError] = useState("");
 
   function getManualSkillIds(requirementId: string) {
     return manualMappings
@@ -81,30 +84,52 @@ export function EvidenceMappingWorkspace({
     return skills.filter((skill) => skillIds.has(skill.id));
   }
 
-  function saveManualMapping(mapping: SavedManualMapping) {
+  async function saveManualMapping(mapping: SavedManualMapping) {
     const requirement = requirements.find(
       (item) => item.id === mapping.requirementId,
     );
     const skill = skills.find((item) => item.id === mapping.skillId);
     if (!requirement || !skill) return;
 
+    setRequestError("");
+    const response = await fetch(
+      `/api/jobs/${encodeURIComponent(jobId)}/requirements/${encodeURIComponent(mapping.requirementId)}/mappings`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ skillId: mapping.skillId }),
+      },
+    );
+    const result = await readMutationResponse(response);
+    if (!response.ok) {
+      const message = result.error?.message ?? "Skill belum dapat dihubungkan ke requirement.";
+      setRequestError(message);
+      throw new Error(message);
+    }
+
     setManualMappings((current) => [...current, mapping]);
-    setNoEvidenceRequirementIds((current) =>
-      current.filter((id) => id !== mapping.requirementId),
-    );
+    setNoEvidenceRequirementIds((current) => current.filter((id) => id !== mapping.requirementId));
     setPendingNoEvidenceId(null);
-    setAnnouncement(
-      `${skill.name} dihubungkan manual ke requirement sebagai data contoh.`,
-    );
+    setAnnouncement(`${skill.name} berhasil dihubungkan ke requirement.`);
   }
 
-  function markWithoutEvidence(requirement: WorkspaceRequirement) {
+  async function markWithoutEvidence(requirement: WorkspaceRequirement) {
+    setRequestError("");
+    const response = await fetch(
+      `/api/jobs/${encodeURIComponent(jobId)}/requirements/${encodeURIComponent(requirement.id)}/without-evidence`,
+      { method: "POST" },
+    );
+    const result = await readMutationResponse(response);
+    if (!response.ok) {
+      setRequestError(result.error?.message ?? "Requirement belum dapat ditandai tanpa bukti.");
+      return;
+    }
     setNoEvidenceRequirementIds((current) => [
       ...new Set([...current, requirement.id]),
     ]);
     setPendingNoEvidenceId(null);
     setAnnouncement(
-      `Requirement ditandai belum memiliki skill atau bukti yang relevan pada data contoh.`,
+      `Requirement ditandai belum memiliki skill atau bukti yang relevan.`,
     );
   }
 
@@ -127,9 +152,9 @@ export function EvidenceMappingWorkspace({
       ),
     ),
   );
-  const mappingProgress = Math.round(
-    (resolvedRequirementCount / requirements.length) * 100,
-  );
+  const mappingProgress = requirements.length
+    ? Math.round((resolvedRequirementCount / requirements.length) * 100)
+    : 0;
   const autoMatchedRequirementCount = requirements.filter(
     (requirement) => requirement.autoMatchReason !== null,
   ).length;
@@ -174,7 +199,7 @@ export function EvidenceMappingWorkspace({
               {resolvedRequirementCount} dari {requirements.length} requirement skill sudah ditinjau
             </h2>
             <p>
-              Hubungan di bawah ini memakai skill dan bukti dari profil contoh.
+              Hubungan di bawah ini memakai skill dan bukti dari profil kariermu.
               Status requirement nantinya diturunkan dari data tersebut, bukan disimpan di lowongan.
             </p>
           </div>
@@ -202,7 +227,7 @@ export function EvidenceMappingWorkspace({
             kecocokan tetap dibiarkan terbuka untuk ditinjau pengguna.
           </p>
         </div>
-        <small>Exact match contoh</small>
+        <small>Exact match</small>
       </div>
 
       <ManualEvidenceMappingForm
@@ -211,6 +236,8 @@ export function EvidenceMappingWorkspace({
         savedMappings={manualMappings}
         onSave={saveManualMapping}
       />
+
+      {requestError ? <p className="job-extraction-error" role="alert">{requestError}</p> : null}
 
       <section className="mapping-requirements" aria-labelledby="mapping-list-title">
         <div className="mapping-section-heading">
@@ -429,4 +456,10 @@ export function EvidenceMappingWorkspace({
       <span className="sr-only" aria-live="polite">{announcement}</span>
     </>
   );
+}
+
+type MutationResponse = { error?: { message?: string } };
+
+async function readMutationResponse(response: Response): Promise<MutationResponse> {
+  try { return await response.json() as MutationResponse; } catch { return {}; }
 }

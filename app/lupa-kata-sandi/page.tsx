@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { AuthBrandPanel } from "../components/AuthBrandPanel";
-import { MockPasswordRecoveryForm } from "./MockPasswordRecoveryForm";
+import { PasswordRecoveryForm } from "./PasswordRecoveryForm";
 
 export const metadata: Metadata = {
   title: "Lupa Kata Sandi",
@@ -22,12 +22,11 @@ export default function PasswordRecoveryPage() {
             <p className="eyebrow">Pulihkan akses</p>
             <h2 id="recovery-title">Lupa kata sandi?</h2>
             <p>
-              Masukkan email akunmu. Kami akan menyimulasikan langkah pemulihan
-              tanpa mengirim data ke server.
+              Masukkan email akunmu untuk menerima kode reset yang aman.
             </p>
           </div>
 
-          <MockPasswordRecoveryForm />
+          <PasswordRecoveryForm />
         </div>
       </section>
     </main>

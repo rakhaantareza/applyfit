@@ -3,6 +3,7 @@
 import {
   BriefcaseBusiness,
   Check,
+  LoaderCircle,
   Pencil,
   X,
 } from "lucide-react";
@@ -21,7 +22,10 @@ export function CareerDirectionEditor({
   const [careerField, setCareerField] = useState(initialCareerField);
   const [draftTargetRole, setDraftTargetRole] = useState(initialTargetRole);
   const [draftCareerField, setDraftCareerField] = useState(initialCareerField);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(
+    !initialTargetRole || !initialCareerField,
+  );
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
   const targetRoleId = useId();
@@ -53,7 +57,7 @@ export function CareerDirectionEditor({
     setIsEditing(false);
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const nextTargetRole = draftTargetRole.trim();
@@ -64,11 +68,37 @@ export function CareerDirectionEditor({
       return;
     }
 
-    setTargetRole(nextTargetRole);
-    setCareerField(nextCareerField);
+    setIsSaving(true);
     setError("");
-    setAnnouncement("Target karier berhasil diperbarui pada data contoh.");
-    setIsEditing(false);
+    try {
+      const response = await fetch("/api/career-profile", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          targetRole: nextTargetRole,
+          careerField: nextCareerField,
+        }),
+      });
+      const result = await readCareerProfileResponse(response);
+      if (!response.ok || !result.data?.profile) {
+        throw new Error(result.error?.message ?? "Target karier belum dapat disimpan.");
+      }
+
+      setTargetRole(result.data.profile.targetRole);
+      setCareerField(result.data.profile.careerField);
+      setDraftTargetRole(result.data.profile.targetRole);
+      setDraftCareerField(result.data.profile.careerField);
+      setAnnouncement("Target karier berhasil diperbarui.");
+      setIsEditing(false);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Target karier belum dapat disimpan.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   if (isEditing) {
@@ -80,7 +110,7 @@ export function CareerDirectionEditor({
           </span>
           <div>
             <strong>Ubah arah karier</strong>
-            <span>Perubahan ini hanya disimpan pada sesi data contoh.</span>
+            <span>Perubahan tersimpan pada profil karier akunmu.</span>
           </div>
         </div>
 
@@ -109,13 +139,13 @@ export function CareerDirectionEditor({
         <div className="career-form-actions">
           {error ? <p role="alert">{error}</p> : <span />}
           <div>
-            <button className="career-button secondary" type="button" onClick={closeEditor}>
+            <button className="career-button secondary" type="button" onClick={closeEditor} disabled={isSaving || (!targetRole && !careerField)}>
               <X aria-hidden="true" size={16} strokeWidth={1.9} />
               Batal
             </button>
-            <button className="career-button primary" type="submit">
-              <Check aria-hidden="true" size={16} strokeWidth={2} />
-              Simpan
+            <button className="career-button primary" type="submit" disabled={isSaving}>
+              {isSaving ? <LoaderCircle className="spin" aria-hidden="true" size={16} /> : <Check aria-hidden="true" size={16} strokeWidth={2} />}
+              {isSaving ? "Menyimpan…" : "Simpan"}
             </button>
           </div>
         </div>
@@ -147,4 +177,22 @@ export function CareerDirectionEditor({
       </span>
     </div>
   );
+}
+
+type CareerProfileResponse = {
+  data?: {
+    profile?: {
+      targetRole: string;
+      careerField: string;
+    };
+  };
+  error?: { message?: string };
+};
+
+async function readCareerProfileResponse(response: Response): Promise<CareerProfileResponse> {
+  try {
+    return await response.json() as CareerProfileResponse;
+  } catch {
+    return {};
+  }
 }

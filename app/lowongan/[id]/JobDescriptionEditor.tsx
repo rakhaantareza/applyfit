@@ -14,47 +14,18 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "rea
 
 type JobDescriptionEditorProps = {
   initialDescription: string;
-  reviewHref: string;
+  reviewHref?: string;
+  jobId: string;
+  allowEditing?: boolean;
+  onUpdated?: (description: string) => void;
 };
 
-const mockRequirements = [
-  {
-    id: "react-typescript",
-    priority: "Wajib",
-    category: "Skill",
-    text: "Mampu membangun fitur web menggunakan React dan TypeScript.",
-  },
-  {
-    id: "html-css",
-    priority: "Wajib",
-    category: "Skill",
-    text: "Memahami JavaScript modern, HTML, dan CSS.",
-  },
-  {
-    id: "git-collaboration",
-    priority: "Wajib",
-    category: "Skill",
-    text: "Terbiasa menggunakan Git dan berpartisipasi dalam code review.",
-  },
-  {
-    id: "communication",
-    priority: "Wajib",
-    category: "Skill",
-    text: "Mampu berkomunikasi dan memecahkan masalah secara terstruktur.",
-  },
-  {
-    id: "nextjs",
-    priority: "Preferensi",
-    category: "Skill",
-    text: "Memiliki pengalaman menggunakan Next.js.",
-  },
-  {
-    id: "automated-testing",
-    priority: "Preferensi",
-    category: "Skill",
-    text: "Memahami automated testing untuk aplikasi web.",
-  },
-] as const;
+type PreviewRequirement = {
+  id: string;
+  priority: "Wajib" | "Preferensi";
+  category: "Skill" | "Tool" | "Pendidikan" | "Pengalaman";
+  text: string;
+};
 
 function renderDescription(description: string) {
   return description.split(/\n\s*\n/).map((block, index) => {
@@ -81,16 +52,21 @@ function renderDescription(description: string) {
 export function JobDescriptionEditor({
   initialDescription,
   reviewHref,
+  jobId,
+  allowEditing = true,
+  onUpdated,
 }: JobDescriptionEditorProps) {
   const [description, setDescription] = useState(initialDescription);
   const [draftDescription, setDraftDescription] = useState(initialDescription);
   const [isEditing, setIsEditing] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const [hasExtracted, setHasExtracted] = useState(false);
+  const [extractedRequirements, setExtractedRequirements] = useState<PreviewRequirement[]>([]);
+  const [extractionError, setExtractionError] = useState("");
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const extractionTimeoutRef = useRef<number | null>(null);
   const wordCount = draftDescription.trim()
     ? draftDescription.trim().split(/\s+/).length
     : 0;
@@ -101,14 +77,6 @@ export function JobDescriptionEditor({
     const focusFrame = window.requestAnimationFrame(() => textareaRef.current?.focus());
     return () => window.cancelAnimationFrame(focusFrame);
   }, [isEditing]);
-
-  useEffect(() => {
-    return () => {
-      if (extractionTimeoutRef.current !== null) {
-        window.clearTimeout(extractionTimeoutRef.current);
-      }
-    };
-  }, []);
 
   function openEditor() {
     setDraftDescription(description);
@@ -123,7 +91,7 @@ export function JobDescriptionEditor({
     setIsEditing(false);
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const normalizedDescription = draftDescription.trim();
@@ -132,27 +100,58 @@ export function JobDescriptionEditor({
       return;
     }
 
-    setDescription(normalizedDescription);
-    setDraftDescription(normalizedDescription);
-    setError("");
-    setIsEditing(false);
-    setHasExtracted(false);
-    setAnnouncement("Deskripsi lowongan contoh berhasil diperbarui.");
+    setIsSaving(true);
+    try {
+      if (jobId) {
+        const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rawDescription: normalizedDescription }),
+        });
+        const result = await readJobUpdateResponse(response);
+        if (!response.ok || !result.data?.job) {
+          throw new Error(result.error?.message ?? "Deskripsi lowongan belum dapat disimpan.");
+        }
+      }
+
+      setDescription(normalizedDescription);
+      setDraftDescription(normalizedDescription);
+      setError("");
+      setIsEditing(false);
+      setHasExtracted(false);
+      setAnnouncement("Deskripsi lowongan berhasil diperbarui.");
+      onUpdated?.(normalizedDescription);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Deskripsi lowongan belum dapat disimpan.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-  function extractRequirements() {
-    if (extractionTimeoutRef.current !== null) {
-      window.clearTimeout(extractionTimeoutRef.current);
-    }
-
+  async function extractRequirements() {
     setIsExtracting(true);
-    setAnnouncement("Deskripsi sedang diproses menggunakan data contoh.");
-    extractionTimeoutRef.current = window.setTimeout(() => {
-      setIsExtracting(false);
+    setExtractionError("");
+    setAnnouncement("Deskripsi sedang diproses menjadi draft requirement.");
+    try {
+      const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}/extract-requirements`, { method: "POST" });
+      const result = await readExtractionResponse(response);
+      if (!response.ok || !result.data?.requirements) throw new Error(result.error?.message ?? "Requirement belum dapat diekstrak. Coba lagi.");
+      const requirements = result.data.requirements.map((requirement, index) => ({
+        id: `${requirement.type}-${requirement.priority}-${index}`,
+        priority: requirement.priority === "required" ? "Wajib" as const : "Preferensi" as const,
+        category: requirementCategoryLabels[requirement.type],
+        text: requirement.name,
+      }));
+      setExtractedRequirements(requirements);
+      window.sessionStorage.setItem(`applyfit:extracted-requirements:${jobId}`, JSON.stringify(result.data.requirements));
       setHasExtracted(true);
-      setAnnouncement(`${mockRequirements.length} requirement contoh berhasil diekstrak.`);
-      extractionTimeoutRef.current = null;
-    }, 650);
+      setAnnouncement(`${requirements.length} requirement berhasil diekstrak.`);
+    } catch (requestError) {
+      setHasExtracted(false);
+      setExtractionError(requestError instanceof Error ? requestError.message : "Requirement belum dapat diekstrak. Coba lagi.");
+    } finally {
+      setIsExtracting(false);
+    }
   }
 
   return (
@@ -166,7 +165,7 @@ export function JobDescriptionEditor({
           </div>
         </div>
 
-        {!isEditing ? (
+        {!isEditing && allowEditing ? (
           <button className="job-description-edit-button" type="button" onClick={openEditor}>
             <Pencil aria-hidden="true" size={15} strokeWidth={1.9} />
             Edit deskripsi
@@ -192,13 +191,13 @@ export function JobDescriptionEditor({
           <div className="job-description-editor-meta">
             {error ? <p role="alert">{error}</p> : <span>{wordCount} kata</span>}
             <div>
-              <button className="career-button secondary" type="button" onClick={closeEditor}>
+              <button className="career-button secondary" type="button" onClick={closeEditor} disabled={isSaving}>
                 <X aria-hidden="true" size={16} strokeWidth={1.9} />
                 Batal
               </button>
-              <button className="career-button primary" type="submit">
+              <button className="career-button primary" type="submit" disabled={isSaving}>
                 <Check aria-hidden="true" size={16} strokeWidth={2} />
-                Simpan deskripsi
+                {isSaving ? "Menyimpan…" : "Simpan deskripsi"}
               </button>
             </div>
           </div>
@@ -216,8 +215,7 @@ export function JobDescriptionEditor({
             <div>
               <strong>Ubah deskripsi menjadi requirement terstruktur</strong>
               <p>
-                Ekstraksi memakai respons tiruan. Hasilnya tetap perlu diperiksa dan
-                diperbaiki pengguna sebelum dipakai dalam analisis.
+                Ekstraksi membuat draft requirement yang tetap perlu kamu periksa sebelum dipakai dalam analisis.
               </p>
             </div>
           </div>
@@ -236,26 +234,40 @@ export function JobDescriptionEditor({
         </div>
       ) : null}
 
+      {extractionError && !isEditing ? (
+        <p className="job-extraction-error" role="alert">{extractionError}</p>
+      ) : null}
+
       {hasExtracted && !isEditing ? (
         <section className="job-requirement-preview" aria-labelledby="requirement-preview-title">
           <div className="job-requirement-preview-heading">
             <div>
-              <p className="eyebrow">Hasil ekstraksi contoh</p>
+              <p className="eyebrow">
+                Hasil ekstraksi
+              </p>
               <h3 id="requirement-preview-title">
-                {mockRequirements.length} requirement ditemukan
+                {extractedRequirements.length} requirement ditemukan
               </h3>
             </div>
             <div className="job-requirement-preview-actions">
               <div aria-label="Ringkasan prioritas requirement">
-                <span><strong>4</strong> wajib</span>
-                <span><strong>2</strong> preferensi</span>
+                <span>
+                  <strong>{extractedRequirements.filter((item) => item.priority === "Wajib").length}</strong>
+                  wajib
+                </span>
+                <span>
+                  <strong>{extractedRequirements.filter((item) => item.priority === "Preferensi").length}</strong>
+                  preferensi
+                </span>
               </div>
-              <Link href={reviewHref}>Tinjau hasil <span aria-hidden="true">→</span></Link>
+              {reviewHref ? (
+                <Link href={reviewHref}>Tinjau hasil <span aria-hidden="true">→</span></Link>
+              ) : null}
             </div>
           </div>
 
           <div className="job-requirement-preview-list">
-            {mockRequirements.map((requirement) => (
+            {extractedRequirements.map((requirement) => (
               <article key={requirement.id}>
                 <span className={`requirement-priority ${
                   requirement.priority === "Wajib" ? "required" : "preferred"
@@ -278,4 +290,39 @@ export function JobDescriptionEditor({
       <span className="sr-only" aria-live="polite">{announcement}</span>
     </article>
   );
+}
+
+type ExtractionResponse = {
+  data?: {
+    requirements?: Array<{
+      name: string;
+      type: keyof typeof requirementCategoryLabels;
+      priority: "required" | "preferred";
+    }>;
+  };
+  error?: { message?: string };
+};
+
+const requirementCategoryLabels = {
+  skill: "Skill",
+  tool: "Tool",
+  education: "Pendidikan",
+  experience: "Pengalaman",
+} as const;
+
+async function readExtractionResponse(response: Response): Promise<ExtractionResponse> {
+  try {
+    return await response.json() as ExtractionResponse;
+  } catch {
+    return {};
+  }
+}
+
+type JobUpdateResponse = {
+  data?: { job?: { id: string } };
+  error?: { message?: string };
+};
+
+async function readJobUpdateResponse(response: Response): Promise<JobUpdateResponse> {
+  try { return await response.json() as JobUpdateResponse; } catch { return {}; }
 }

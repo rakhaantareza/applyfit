@@ -19,11 +19,12 @@ import {
 } from "lucide-react";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 
-type RequirementPriority = "Wajib" | "Preferensi";
-type RequirementType = "Skill" | "Pengalaman" | "Pendidikan";
+export type RequirementPriority = "Wajib" | "Preferensi";
+export type RequirementType = "Skill" | "Tool" | "Pengalaman" | "Pendidikan";
 
-type Requirement = {
+export type Requirement = {
   id: string;
+  persistedId?: string;
   priority: RequirementPriority;
   type: RequirementType;
   text: string;
@@ -35,72 +36,20 @@ type EditorState =
   | { mode: "edit"; requirementId: string }
   | null;
 
-const initialRequirements: Requirement[] = [
-  {
-    id: "react-typescript",
-    priority: "Wajib",
-    type: "Skill",
-    text: "Mampu membangun fitur web menggunakan React dan TypeScript.",
-    reviewed: false,
-  },
-  {
-    id: "html-css-javascript",
-    priority: "Wajib",
-    type: "Skill",
-    text: "Memahami JavaScript modern, HTML, dan CSS.",
-    reviewed: false,
-  },
-  {
-    id: "git-review",
-    priority: "Wajib",
-    type: "Skill",
-    text: "Terbiasa menggunakan Git dan berpartisipasi dalam code review.",
-    reviewed: false,
-  },
-  {
-    id: "communication",
-    priority: "Wajib",
-    type: "Skill",
-    text: "Mampu berkomunikasi dan memecahkan masalah secara terstruktur.",
-    reviewed: false,
-  },
-  {
-    id: "frontend-experience",
-    priority: "Wajib",
-    type: "Pengalaman",
-    text: "Memiliki pengalaman profesional membangun aplikasi frontend.",
-    reviewed: false,
-  },
-  {
-    id: "nextjs",
-    priority: "Preferensi",
-    type: "Skill",
-    text: "Memiliki pengalaman menggunakan Next.js.",
-    reviewed: false,
-  },
-  {
-    id: "automated-testing",
-    priority: "Preferensi",
-    type: "Skill",
-    text: "Memahami automated testing untuk aplikasi web.",
-    reviewed: false,
-  },
-  {
-    id: "education",
-    priority: "Preferensi",
-    type: "Pendidikan",
-    text: "Latar belakang pendidikan di bidang ilmu komputer atau bidang terkait.",
-    reviewed: false,
-  },
-];
-
 const requirementTypeIcons = {
   Skill: Wrench,
+  Tool: Wrench,
   Pengalaman: UserRoundCheck,
   Pendidikan: GraduationCap,
 } as const;
 
-export function RequirementReviewEditor() {
+export function RequirementReviewEditor({
+  jobId,
+  initialRequirements,
+}: {
+  jobId: string;
+  initialRequirements: Requirement[];
+}) {
   const [requirements, setRequirements] = useState(initialRequirements);
   const [editor, setEditor] = useState<EditorState>(null);
   const [draftText, setDraftText] = useState("");
@@ -122,11 +71,12 @@ export function RequirementReviewEditor() {
   const priorityId = useId();
   const typeId = useId();
   const textRef = useRef<HTMLTextAreaElement>(null);
-  const saveTimeoutRef = useRef<number | null>(null);
 
   const requiredRequirements = requirements.filter((item) => item.priority === "Wajib");
   const preferredRequirements = requirements.filter((item) => item.priority === "Preferensi");
-  const excludedRequirementCount = requirements.filter((item) => item.type !== "Skill").length;
+  const excludedRequirementCount = requirements.filter(
+    (item) => item.type === "Pengalaman" || item.type === "Pendidikan",
+  ).length;
   const selectedRequirements = requirements.filter((item) =>
     selectedRequirementIds.includes(item.id),
   );
@@ -141,14 +91,6 @@ export function RequirementReviewEditor() {
     const focusFrame = window.requestAnimationFrame(() => textRef.current?.focus());
     return () => window.cancelAnimationFrame(focusFrame);
   }, [editor]);
-
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current !== null) {
-        window.clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, []);
 
   function markUnsaved() {
     setIsDirty(true);
@@ -215,7 +157,7 @@ export function RequirementReviewEditor() {
             : requirement,
         ),
       );
-      setAnnouncement("Requirement berhasil diperbarui pada data contoh.");
+      setAnnouncement("Requirement berhasil diperbarui.");
     } else {
       setRequirements((current) => [
         ...current,
@@ -227,7 +169,7 @@ export function RequirementReviewEditor() {
           reviewed: true,
         },
       ]);
-      setAnnouncement("Requirement baru berhasil ditambahkan pada data contoh.");
+      setAnnouncement("Requirement baru berhasil ditambahkan.");
     }
 
     markUnsaved();
@@ -252,7 +194,7 @@ export function RequirementReviewEditor() {
       setSplitError("");
     }
     markUnsaved();
-    setAnnouncement("Requirement dihapus dari data contoh.");
+    setAnnouncement("Requirement dihapus dari daftar review.");
   }
 
   function openSelectionMode() {
@@ -413,20 +355,41 @@ export function RequirementReviewEditor() {
     setAnnouncement(`Prioritas diubah menjadi ${priority}.`);
   }
 
-  function saveReview() {
-    if (saveTimeoutRef.current !== null) {
-      window.clearTimeout(saveTimeoutRef.current);
-    }
-
+  async function saveReview() {
     setIsSaving(true);
-    setAnnouncement("Review requirement sedang disimpan sebagai data contoh.");
-    saveTimeoutRef.current = window.setTimeout(() => {
+    setError("");
+    setAnnouncement("Review requirement sedang disimpan.");
+    try {
+      const response = await fetch(
+        `/api/jobs/${encodeURIComponent(jobId)}/requirements/review`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            requirements: requirements.map((requirement) => ({
+              ...(requirement.persistedId ? { id: requirement.persistedId } : {}),
+              name: requirement.text,
+              type: toApiType(requirement.type),
+              priority: requirement.priority === "Wajib" ? "required" : "preferred",
+            })),
+          }),
+        },
+      );
+      const result = await readReviewResponse(response);
+      if (!response.ok || !result.data?.requirements) {
+        throw new Error(result.error?.message ?? "Review requirement belum dapat disimpan.");
+      }
+
+      setRequirements(result.data.requirements.map(fromApiRequirement));
       setIsSaving(false);
       setIsDirty(false);
       setHasSaved(true);
-      setAnnouncement("Review requirement contoh berhasil disimpan.");
-      saveTimeoutRef.current = null;
-    }, 650);
+      window.sessionStorage.removeItem(`applyfit:extracted-requirements:${jobId}`);
+      setAnnouncement("Review requirement berhasil disimpan.");
+    } catch (requestError) {
+      setIsSaving(false);
+      setError(requestError instanceof Error ? requestError.message : "Review requirement belum dapat disimpan.");
+    }
   }
 
   function renderRequirementGroup(
@@ -714,6 +677,7 @@ export function RequirementReviewEditor() {
               onChange={(event) => setDraftType(event.target.value as RequirementType)}
             >
               <option>Skill</option>
+              <option>Tool</option>
               <option>Pengalaman</option>
               <option>Pendidikan</option>
             </select>
@@ -754,6 +718,8 @@ export function RequirementReviewEditor() {
         </p>
       </div>
 
+      {!editor && error ? <p className="job-extraction-error" role="alert">{error}</p> : null}
+
       <div className={`requirement-review-savebar${hasSaved ? " saved" : ""}`}>
         <div>
           <span aria-hidden="true">
@@ -767,7 +733,7 @@ export function RequirementReviewEditor() {
             <strong>{hasSaved ? "Review tersimpan" : "Simpan hasil review"}</strong>
             <p>
               {hasSaved
-                ? "Versi data contoh terbaru sudah tersimpan."
+                ? "Requirement yang sudah ditinjau tersimpan untuk lowongan ini."
                 : isDirty
                   ? "Ada perubahan pada requirement yang belum disimpan."
                   : "Simpan daftar ini setelah kamu selesai memeriksa hasil ekstraksi."}
@@ -793,4 +759,35 @@ export function RequirementReviewEditor() {
       <span className="sr-only" aria-live="polite">{announcement}</span>
     </section>
   );
+}
+
+type ApiRequirement = {
+  id: string;
+  name: string;
+  type: "skill" | "tool" | "education" | "experience";
+  priority: "required" | "preferred";
+};
+
+type ReviewResponse = {
+  data?: { requirements?: ApiRequirement[] };
+  error?: { message?: string };
+};
+
+function toApiType(type: RequirementType): ApiRequirement["type"] {
+  return { Skill: "skill", Tool: "tool", Pendidikan: "education", Pengalaman: "experience" }[type] as ApiRequirement["type"];
+}
+
+function fromApiRequirement(requirement: ApiRequirement): Requirement {
+  return {
+    id: requirement.id,
+    persistedId: requirement.id,
+    text: requirement.name,
+    type: { skill: "Skill", tool: "Tool", education: "Pendidikan", experience: "Pengalaman" }[requirement.type] as RequirementType,
+    priority: requirement.priority === "required" ? "Wajib" : "Preferensi",
+    reviewed: true,
+  };
+}
+
+async function readReviewResponse(response: Response): Promise<ReviewResponse> {
+  try { return await response.json() as ReviewResponse; } catch { return {}; }
 }

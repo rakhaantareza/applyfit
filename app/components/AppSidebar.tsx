@@ -1,6 +1,7 @@
 "use client";
 
 /* eslint-disable @next/next/no-html-link-for-pages -- Native navigation is intentional: the Sites Vinext client router fails in production. */
+/* eslint-disable @next/next/no-img-element -- Account avatars can use user-provided HTTPS hosts. */
 
 import {
   BriefcaseBusiness,
@@ -13,11 +14,17 @@ import {
   MoreHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
+  Settings,
   UserRound,
   X,
   type LucideIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  getAccountInitials,
+  getAuthDisplayName,
+  useAuthSession,
+} from "./AuthSessionProvider";
 
 type NavigationItem = {
   label: string;
@@ -34,7 +41,7 @@ const navigation = [
 ] satisfies NavigationItem[];
 
 type AppSidebarProps = {
-  activeItem?: (typeof navigation)[number]["label"];
+  activeItem?: (typeof navigation)[number]["label"] | null;
 };
 
 const sidebarPreferenceKey = "applyfit-sidebar-collapsed";
@@ -81,15 +88,57 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
     getTabletSidebarPreference,
     getServerSidebarPreference,
   );
+  const { user, loading: isAccountLoading } = useAuthSession();
+  const activeAccountName = isAccountLoading ? "Memuat akun…" : getAuthDisplayName(user);
+  const activeAccountEmail = user?.email ?? "Sesi belum tersedia";
+  const accountInitials = getAccountInitials(activeAccountName);
+  const accountAvatarUrl = user?.profile?.avatar_url?.trim() || null;
+  const accountDescription = user?.emailVerified
+    ? "Email terverifikasi"
+    : "Akun ApplyFit";
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [accountError, setAccountError] = useState("");
+  const [profileReadiness, setProfileReadiness] = useState<{ percent: number; complete: number; total: number } | null>(null);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [isTabletViewport, setIsTabletViewport] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const isSidebarCollapsed = isTabletViewport
     ? !isTabletExpanded
     : isDesktopCollapsed;
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    async function loadReadiness() {
+      try {
+        const [profileResponse, skillsResponse, evidencesResponse] = await Promise.all([
+          fetch("/api/career-profile", { cache: "no-store" }),
+          fetch("/api/career-profile/skills", { cache: "no-store" }),
+          fetch("/api/evidences", { cache: "no-store" }),
+        ]);
+        if (!profileResponse.ok || !skillsResponse.ok || !evidencesResponse.ok) return;
+        const [profileResult, skillsResult, evidencesResult] = await Promise.all([
+          readSidebarJson(profileResponse),
+          readSidebarJson(skillsResponse),
+          readSidebarJson(evidencesResponse),
+        ]);
+        const profile = profileResult.data?.profile;
+        const complete = [
+          Boolean(profile?.targetRole?.trim()),
+          Boolean(profile?.careerField?.trim()),
+          (skillsResult.data?.skills?.length ?? 0) > 0,
+          (evidencesResult.data?.evidences?.length ?? 0) > 0,
+        ].filter(Boolean).length;
+        if (active) setProfileReadiness({ percent: Math.round((complete / 4) * 100), complete, total: 4 });
+      } catch {
+        // The full page owns actionable API errors; the shell keeps its neutral fallback.
+      }
+    }
+    void loadReadiness();
+    return () => { active = false; };
+  }, [user]);
 
   useEffect(() => {
     const mobileQuery = window.matchMedia("(max-width: 767px)");
@@ -169,13 +218,23 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
     setIsAccountMenuOpen(false);
   }
 
-  function logOutDemoSession() {
+  async function logOutSession() {
+    setAccountError("");
     setIsLoggingOut(true);
-    window.setTimeout(() => {
-      window.localStorage.removeItem("applyfit-demo-session");
-      window.sessionStorage.removeItem("applyfit-demo-session");
+    try {
+      const response = await fetch("/api/auth/sign-out", { method: "POST" });
+      if (!response.ok && response.status !== 204) {
+        throw new Error("Sesi belum dapat diakhiri.");
+      }
       window.location.assign("/login");
-    }, 450);
+    } catch (requestError) {
+      setAccountError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Sesi belum dapat diakhiri.",
+      );
+      setIsLoggingOut(false);
+    }
   }
 
   return (
@@ -282,7 +341,7 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
           <a
             className="profile-readiness"
             href="/profil-karier"
-            data-tooltip="Profil 80% lengkap"
+            data-tooltip={profileReadiness ? `Profil ${profileReadiness.percent}% lengkap` : "Lihat kelengkapan profil"}
             onClick={closeMobileNavigation}
           >
             <span className="readiness-rail" aria-hidden="true">
@@ -291,36 +350,41 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
             <span className="readiness-expanded">
               <span className="readiness-heading">
                 <span>Kelengkapan profil</span>
-                <strong>80%</strong>
+                <strong>{profileReadiness ? `${profileReadiness.percent}%` : "—"}</strong>
               </span>
-              <span className="readiness-track" aria-label="Kelengkapan profil 80 persen">
-                <span />
+              <span className="readiness-track" aria-label={profileReadiness ? `Kelengkapan profil ${profileReadiness.percent} persen` : "Kelengkapan profil sedang dimuat"}>
+                <span style={{ width: `${profileReadiness?.percent ?? 0}%` }} />
               </span>
-              <span className="readiness-copy">4 dari 5 bagian profil sudah terisi.</span>
+              <span className="readiness-copy">{profileReadiness ? `${profileReadiness.complete} dari ${profileReadiness.total} dasar profil sudah tersedia.` : "Memuat dasar profil…"}</span>
             </span>
           </a>
 
           {isAccountMenuOpen ? (
             <div className="sidebar-account-menu" id="sidebar-account-menu" role="menu">
               <div className="sidebar-account-heading">
-                <span className="avatar" aria-hidden="true">AW</span>
+                <AccountAvatar
+                  avatarUrl={accountAvatarUrl}
+                  initials={accountInitials}
+                  name={activeAccountName}
+                />
                 <span>
-                  <strong>Aruna Wijaya</strong>
-                  <small>Akun demo frontend</small>
+                  <strong>{activeAccountName}</strong>
+                  <small>{accountDescription}</small>
                 </span>
               </div>
-              <a href="/profil-karier" role="menuitem" onClick={closeMobileNavigation}>
-                <UserRound aria-hidden="true" size={16} strokeWidth={1.8} />
-                Lihat profil karier
+              <a href="/pengaturan" role="menuitem" onClick={closeMobileNavigation}>
+                <Settings aria-hidden="true" size={16} strokeWidth={1.8} />
+                Pengaturan akun
               </a>
+              {accountError ? <p className="sidebar-account-error" role="alert">{accountError}</p> : null}
               <button
                 type="button"
                 role="menuitem"
-                onClick={logOutDemoSession}
+                onClick={logOutSession}
                 disabled={isLoggingOut}
               >
                 <LogOut aria-hidden="true" size={16} strokeWidth={1.8} />
-                {isLoggingOut ? "Mengakhiri sesi…" : "Keluar dari sesi demo"}
+                {isLoggingOut ? "Mengakhiri sesi…" : "Keluar dari akun"}
               </button>
             </div>
           ) : null}
@@ -328,16 +392,20 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
           <button
             className="sidebar-user"
             type="button"
-            aria-label={isAccountMenuOpen ? "Tutup menu akun Aruna Wijaya" : "Buka menu akun Aruna Wijaya"}
+            aria-label={`${isAccountMenuOpen ? "Tutup" : "Buka"} menu akun ${activeAccountName}`}
             aria-expanded={isAccountMenuOpen}
             aria-controls="sidebar-account-menu"
-            data-tooltip="Akun Aruna Wijaya"
+            data-tooltip={`Akun ${activeAccountName}`}
             onClick={() => setIsAccountMenuOpen((current) => !current)}
           >
-            <span className="avatar">AW</span>
+            <AccountAvatar
+              avatarUrl={accountAvatarUrl}
+              initials={accountInitials}
+              name={activeAccountName}
+            />
             <span className="sidebar-user-copy">
-              <strong>Aruna Wijaya</strong>
-              <small>aruna@example.com</small>
+              <strong>{activeAccountName}</strong>
+              <small>{activeAccountEmail}</small>
             </span>
             <MoreHorizontal
               className="sidebar-user-more"
@@ -349,5 +417,37 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
         </div>
       </aside>
     </>
+  );
+}
+
+type SidebarApiResponse = {
+  data?: {
+    profile?: { targetRole?: string; careerField?: string } | null;
+    skills?: unknown[];
+    evidences?: unknown[];
+  };
+};
+
+async function readSidebarJson(response: Response): Promise<SidebarApiResponse> {
+  try { return await response.json() as SidebarApiResponse; } catch { return {}; }
+}
+
+function AccountAvatar({
+  avatarUrl,
+  initials,
+  name,
+}: {
+  avatarUrl: string | null;
+  initials: string;
+  name: string;
+}) {
+  return (
+    <span
+      className={`avatar${avatarUrl ? " has-image" : ""}`}
+      aria-label={avatarUrl ? `Foto profil ${name}` : undefined}
+      aria-hidden={avatarUrl ? undefined : true}
+    >
+      {avatarUrl ? <img src={avatarUrl} alt="" /> : initials}
+    </span>
   );
 }

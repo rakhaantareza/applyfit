@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AuthBrandPanel } from "../components/AuthBrandPanel";
 import { StableLink as Link } from "../components/StableLink";
-import { MockRegistrationForm } from "./MockRegistrationForm";
+import { RegistrationForm } from "./RegistrationForm";
 
 export const metadata: Metadata = {
   title: "Buat Akun",
@@ -23,11 +23,11 @@ export default function RegistrationPage() {
             <p className="eyebrow">Mulai dengan profilmu</p>
             <h2 id="registration-title">Buat akun ApplyFit</h2>
             <p>
-              Isi data dasar untuk mencoba alur pendaftaran pada versi frontend ini.
+              Isi data dasar, lalu verifikasi email untuk mengamankan akunmu.
             </p>
           </div>
 
-          <MockRegistrationForm />
+          <RegistrationForm />
 
           <p className="login-switch">
             Sudah punya akun? <Link href="/login">Masuk</Link>

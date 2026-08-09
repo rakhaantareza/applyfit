@@ -3,6 +3,7 @@
 import {
   Check,
   Link2,
+  LoaderCircle,
   Pencil,
   Plus,
   Trash2,
@@ -36,6 +37,8 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [deletingSkillId, setDeletingSkillId] = useState<string | null>(null);
   const skillNameId = useId();
   const skillStatusId = useId();
   const skillLevelId = useId();
@@ -81,7 +84,7 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
     setError("");
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const normalizedName = draftName.trim();
 
@@ -102,43 +105,77 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
       return;
     }
 
-    if (editor?.mode === "edit") {
-      setSkills((current) =>
-        current.map((skill) =>
-          skill.id === editor.skillId
-            ? {
-                ...skill,
-                name: normalizedName,
-                status: draftStatus,
-                level: draftLevel,
-              }
-            : skill,
-        ),
-      );
-      setAnnouncement(`${normalizedName} berhasil diperbarui.`);
-    } else {
-      setSkills((current) => [
-        ...current,
-        {
-          id: `skill-${Date.now()}`,
-          name: normalizedName,
-          level: draftLevel,
-          status: draftStatus,
-          evidenceCount: 0,
-        },
-      ]);
-      setAnnouncement(`${normalizedName} berhasil ditambahkan.`);
-    }
-
-    setEditor(null);
+    setIsSaving(true);
     setError("");
+    try {
+      const isEditing = editor?.mode === "edit";
+      const endpoint = isEditing
+        ? `/api/career-profile/skills/${encodeURIComponent(editor.skillId)}`
+        : "/api/career-profile/skills";
+      const response = await fetch(endpoint, {
+        method: isEditing ? "PATCH" : "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: normalizedName,
+          status: draftStatus === "Dipelajari" ? "learning" : "active",
+          level: draftLevel,
+        }),
+      });
+      const result = await readSkillResponse(response);
+      if (!response.ok || !result.data?.skill) {
+        throw new Error(result.error?.message ?? "Skill belum dapat disimpan.");
+      }
+
+      const savedSkill = toCareerSkill(result.data.skill, isEditing
+        ? skills.find((skill) => skill.id === editor.skillId)?.evidenceCount ?? 0
+        : 0);
+      if (isEditing) {
+        setSkills((current) => current.map((skill) =>
+          skill.id === savedSkill.id ? savedSkill : skill));
+        setAnnouncement(`${savedSkill.name} berhasil diperbarui.`);
+      } else {
+        setSkills((current) => [...current, savedSkill]
+          .sort((first, second) => first.name.localeCompare(second.name, "id-ID")));
+        setAnnouncement(`${savedSkill.name} berhasil ditambahkan.`);
+      }
+
+      setEditor(null);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Skill belum dapat disimpan.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-  function deleteSkill(skill: CareerSkill) {
-    setSkills((current) => current.filter((item) => item.id !== skill.id));
-    setPendingDeleteId(null);
-    if (editor?.mode === "edit" && editor.skillId === skill.id) setEditor(null);
-    setAnnouncement(`${skill.name} dihapus dari data contoh.`);
+  async function deleteSkill(skill: CareerSkill) {
+    setDeletingSkillId(skill.id);
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/career-profile/skills/${encodeURIComponent(skill.id)}`,
+        { method: "DELETE" },
+      );
+      if (!response.ok && response.status !== 204) {
+        const result = await readSkillResponse(response);
+        throw new Error(result.error?.message ?? "Skill belum dapat dihapus.");
+      }
+      setSkills((current) => current.filter((item) => item.id !== skill.id));
+      setPendingDeleteId(null);
+      if (editor?.mode === "edit" && editor.skillId === skill.id) setEditor(null);
+      setAnnouncement(`${skill.name} berhasil dihapus.`);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Skill belum dapat dihapus.",
+      );
+    } finally {
+      setDeletingSkillId(null);
+    }
   }
 
   return (
@@ -166,6 +203,8 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
         <span><strong>{learningSkillCount}</strong> dipelajari</span>
         <span><strong>{linkedEvidenceCount}</strong> tautan bukti</span>
       </div>
+
+      {!editor && error ? <p className="skill-manager-error" role="alert">{error}</p> : null}
 
       {editor ? (
         <form className="skill-editor" onSubmit={handleSubmit}>
@@ -216,13 +255,13 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
           <div className="skill-editor-actions">
             {error ? <p role="alert">{error}</p> : <span />}
             <div>
-              <button className="career-button secondary" type="button" onClick={closeEditor}>
+              <button className="career-button secondary" type="button" onClick={closeEditor} disabled={isSaving}>
                 <X aria-hidden="true" size={16} strokeWidth={1.9} />
                 Batal
               </button>
-              <button className="career-button primary" type="submit">
-                <Check aria-hidden="true" size={16} strokeWidth={2} />
-                Simpan skill
+              <button className="career-button primary" type="submit" disabled={isSaving}>
+                {isSaving ? <LoaderCircle className="spin" aria-hidden="true" size={16} /> : <Check aria-hidden="true" size={16} strokeWidth={2} />}
+                {isSaving ? "Menyimpan…" : "Simpan skill"}
               </button>
             </div>
           </div>
@@ -272,7 +311,9 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
                   <div className="skill-delete-confirmation" role="group" aria-label={`Hapus ${skill.name}`}>
                     <span>Hapus skill?</span>
                     <button type="button" onClick={() => setPendingDeleteId(null)}>Batal</button>
-                    <button className="danger" type="button" onClick={() => deleteSkill(skill)}>Hapus</button>
+                    <button className="danger" type="button" disabled={deletingSkillId === skill.id} onClick={() => deleteSkill(skill)}>
+                      {deletingSkillId === skill.id ? "Menghapus…" : "Hapus"}
+                    </button>
                   </div>
                 ) : (
                   <>
@@ -304,4 +345,37 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
       <span className="sr-only" aria-live="polite">{announcement}</span>
     </section>
   );
+}
+
+type ApiSkill = {
+  id: string;
+  name: string;
+  status: "active" | "learning";
+  level: string | null;
+};
+
+type SkillResponse = {
+  data?: { skill?: ApiSkill };
+  error?: { message?: string };
+};
+
+function toCareerSkill(skill: ApiSkill, evidenceCount: number): CareerSkill {
+  const level = skill.level === "Mahir" || skill.level === "Menengah" || skill.level === "Dasar"
+    ? skill.level
+    : "Dasar";
+  return {
+    id: skill.id,
+    name: skill.name,
+    level,
+    status: skill.status === "learning" ? "Dipelajari" : "Aktif",
+    evidenceCount,
+  };
+}
+
+async function readSkillResponse(response: Response): Promise<SkillResponse> {
+  try {
+    return await response.json() as SkillResponse;
+  } catch {
+    return {};
+  }
 }

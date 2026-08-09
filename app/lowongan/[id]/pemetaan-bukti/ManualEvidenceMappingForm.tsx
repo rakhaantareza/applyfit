@@ -39,7 +39,7 @@ type ManualEvidenceMappingFormProps = {
   requirements: MappingRequirement[];
   skills: MappingSkill[];
   savedMappings: SavedManualMapping[];
-  onSave: (mapping: SavedManualMapping) => void;
+  onSave: (mapping: SavedManualMapping) => Promise<void>;
 };
 
 export function ManualEvidenceMappingForm({
@@ -58,6 +58,7 @@ export function ManualEvidenceMappingForm({
   const [skillId, setSkillId] = useState(skills[0]?.id ?? "");
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const requirementFieldId = useId();
   const skillFieldId = useId();
 
@@ -127,7 +128,7 @@ export function ManualEvidenceMappingForm({
     setError("");
   }
 
-  function saveMapping(event: FormEvent<HTMLFormElement>) {
+  async function saveMapping(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!selectedRequirement || !selectedSkill) {
@@ -140,12 +141,17 @@ export function ManualEvidenceMappingForm({
       return;
     }
 
-    onSave({ requirementId: selectedRequirement.id, skillId: selectedSkill.id });
-    setAnnouncement(
-      `${selectedSkill.name} berhasil dihubungkan ke requirement sebagai data contoh.`,
-    );
-    setError("");
-    setIsOpen(false);
+    setIsSaving(true);
+    try {
+      await onSave({ requirementId: selectedRequirement.id, skillId: selectedSkill.id });
+      setAnnouncement(`${selectedSkill.name} berhasil dihubungkan ke requirement.`);
+      setError("");
+      setIsOpen(false);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Skill belum dapat dihubungkan.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -249,10 +255,10 @@ export function ManualEvidenceMappingForm({
           <div className="manual-mapping-actions">
             {error ? <p role="alert">{error}</p> : <span />}
             <div>
-              <button type="button" onClick={closeForm}>Batal</button>
-              <button className="primary" type="submit" disabled={!availableSkills.length}>
+              <button type="button" onClick={closeForm} disabled={isSaving}>Batal</button>
+              <button className="primary" type="submit" disabled={!availableSkills.length || isSaving}>
                 <Link2 aria-hidden="true" size={14} strokeWidth={1.9} />
-                Hubungkan requirement
+                {isSaving ? "Menghubungkan…" : "Hubungkan requirement"}
               </button>
             </div>
           </div>
@@ -260,7 +266,7 @@ export function ManualEvidenceMappingForm({
       ) : null}
 
       {savedMappings.length ? (
-        <div className="manual-mapping-results" aria-label="Hubungan manual contoh">
+        <div className="manual-mapping-results" aria-label="Hubungan manual">
           {savedMappings.map((mapping) => {
             const requirement = requirements.find(
               (item) => item.id === mapping.requirementId,

@@ -1,52 +1,61 @@
 "use client";
 
 import {
-  BriefcaseBusiness,
   Building2,
   Check,
   ExternalLink,
   MapPin,
   Monitor,
   Pencil,
+  Trash2,
   X,
 } from "lucide-react";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
-import type { MockJob } from "../mockJobs";
 
 type JobInfoEditorProps = {
-  initialJob: MockJob;
+  initialJob: EditableJobInfo & { initials: string };
+  jobId?: string;
+  allowEditing?: boolean;
+  onUpdated?: (job: EditableJobInfo) => void;
 };
 
-type EditableJobInfo = {
+export type EditableJobInfo = {
   title: string;
   company: string;
   source: string;
   location: string;
   arrangement: string;
-  employmentType: string;
 };
 
-export function JobInfoEditor({ initialJob }: JobInfoEditorProps) {
+export function JobInfoEditor({
+  initialJob,
+  jobId,
+  allowEditing = true,
+  onUpdated,
+}: JobInfoEditorProps) {
   const initialInfo: EditableJobInfo = {
     title: initialJob.title,
     company: initialJob.company,
     source: initialJob.source,
     location: initialJob.location,
     arrangement: initialJob.arrangement,
-    employmentType: initialJob.employmentType,
   };
   const [jobInfo, setJobInfo] = useState(initialInfo);
   const [draft, setDraft] = useState(initialInfo);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const titleId = useId();
   const companyId = useId();
   const sourceId = useId();
   const locationId = useId();
   const arrangementId = useId();
-  const employmentTypeId = useId();
   const titleRef = useRef<HTMLInputElement>(null);
+  const cancelDeleteRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!isEditing) return;
@@ -54,6 +63,20 @@ export function JobInfoEditor({ initialJob }: JobInfoEditorProps) {
     const focusFrame = window.requestAnimationFrame(() => titleRef.current?.focus());
     return () => window.cancelAnimationFrame(focusFrame);
   }, [isEditing]);
+
+  useEffect(() => {
+    if (!isDeleteDialogOpen) return;
+
+    cancelDeleteRef.current?.focus();
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape" && !isDeleting) {
+        setDeleteError("");
+        setIsDeleteDialogOpen(false);
+      }
+    }
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [isDeleteDialogOpen, isDeleting]);
 
   function openEditor() {
     setDraft(jobInfo);
@@ -68,11 +91,47 @@ export function JobInfoEditor({ initialJob }: JobInfoEditorProps) {
     setIsEditing(false);
   }
 
+  function openDeleteDialog() {
+    setDeleteError("");
+    setIsDeleteDialogOpen(true);
+  }
+
+  function closeDeleteDialog() {
+    if (isDeleting) return;
+    setDeleteError("");
+    setIsDeleteDialogOpen(false);
+  }
+
+  async function deleteJob() {
+    if (!jobId) return;
+
+    setIsDeleting(true);
+    setDeleteError("");
+    try {
+      const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const result = await readDeleteResponse(response);
+        throw new Error(result.error?.message ?? "Lowongan belum dapat dihapus.");
+      }
+
+      window.location.assign("/lowongan");
+    } catch (requestError) {
+      setDeleteError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Lowongan belum dapat dihapus.",
+      );
+      setIsDeleting(false);
+    }
+  }
+
   function updateDraft(field: keyof EditableJobInfo, value: string) {
     setDraft((current) => ({ ...current, [field]: value }));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const normalizedDraft = Object.fromEntries(
@@ -84,10 +143,36 @@ export function JobInfoEditor({ initialJob }: JobInfoEditorProps) {
       return;
     }
 
-    setJobInfo(normalizedDraft);
-    setError("");
-    setIsEditing(false);
-    setAnnouncement("Informasi lowongan contoh berhasil diperbarui.");
+    setIsSaving(true);
+    try {
+      if (jobId) {
+        const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: normalizedDraft.title,
+            company: normalizedDraft.company,
+            source: normalizedDraft.source || null,
+            location: normalizedDraft.location || null,
+            workArrangement: normalizedDraft.arrangement || null,
+          }),
+        });
+        const result = await readUpdateResponse(response);
+        if (!response.ok || !result.data?.job) {
+          throw new Error(result.error?.message ?? "Informasi lowongan belum dapat disimpan.");
+        }
+      }
+
+      setJobInfo(normalizedDraft);
+      setError("");
+      setIsEditing(false);
+      setAnnouncement("Informasi lowongan berhasil diperbarui.");
+      onUpdated?.(normalizedDraft);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Informasi lowongan belum dapat disimpan.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -105,11 +190,19 @@ export function JobInfoEditor({ initialJob }: JobInfoEditorProps) {
           </div>
         </div>
 
-        {!isEditing ? (
-          <button className="job-info-edit-button" type="button" onClick={openEditor}>
-            <Pencil aria-hidden="true" size={15} strokeWidth={1.9} />
-            Edit info
-          </button>
+        {!isEditing && allowEditing ? (
+          <div className="job-detail-actions">
+            <button className="job-info-edit-button" type="button" onClick={openEditor}>
+              <Pencil aria-hidden="true" size={15} strokeWidth={1.9} />
+              Edit info
+            </button>
+            {jobId ? (
+              <button className="job-delete-button" type="button" onClick={openDeleteDialog}>
+                <Trash2 aria-hidden="true" size={15} strokeWidth={1.9} />
+                Hapus lowongan
+              </button>
+            ) : null}
+          </div>
         ) : null}
       </div>
 
@@ -165,30 +258,16 @@ export function JobInfoEditor({ initialJob }: JobInfoEditorProps) {
               <option>Remote</option>
             </select>
           </label>
-          <label htmlFor={employmentTypeId}>
-            <span>Tipe pekerjaan</span>
-            <select
-              id={employmentTypeId}
-              value={draft.employmentType}
-              onChange={(event) => updateDraft("employmentType", event.target.value)}
-            >
-              <option>Penuh waktu</option>
-              <option>Paruh waktu</option>
-              <option>Kontrak</option>
-              <option>Magang</option>
-            </select>
-          </label>
-
           <div className="job-info-editor-actions">
             {error ? <p role="alert">{error}</p> : <span />}
             <div>
-              <button className="career-button secondary" type="button" onClick={closeEditor}>
+              <button className="career-button secondary" type="button" onClick={closeEditor} disabled={isSaving}>
                 <X aria-hidden="true" size={16} strokeWidth={1.9} />
                 Batal
               </button>
-              <button className="career-button primary" type="submit">
+              <button className="career-button primary" type="submit" disabled={isSaving}>
                 <Check aria-hidden="true" size={16} strokeWidth={2} />
-                Simpan perubahan
+                {isSaving ? "Menyimpan…" : "Simpan perubahan"}
               </button>
             </div>
           </div>
@@ -209,16 +288,71 @@ export function JobInfoEditor({ initialJob }: JobInfoEditorProps) {
         <span>
           <Monitor aria-hidden="true" size={14} strokeWidth={1.8} />
           <small>Cara kerja</small>
-          <strong>{jobInfo.arrangement}</strong>
-        </span>
-        <span>
-          <BriefcaseBusiness aria-hidden="true" size={14} strokeWidth={1.8} />
-          <small>Tipe</small>
-          <strong>{jobInfo.employmentType}</strong>
+          <strong>{jobInfo.arrangement || "Belum diisi"}</strong>
         </span>
       </div>
 
       <span className="sr-only" aria-live="polite">{announcement}</span>
+
+      {isDeleteDialogOpen ? (
+        <div className="job-delete-dialog-backdrop">
+          <div
+            className="job-delete-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="job-delete-dialog-title"
+            aria-describedby="job-delete-dialog-description"
+          >
+            <span className="job-delete-dialog-icon" aria-hidden="true">
+              <Trash2 size={20} strokeWidth={1.8} />
+            </span>
+            <div>
+              <p className="eyebrow">Konfirmasi penghapusan</p>
+              <h2 id="job-delete-dialog-title">Hapus lowongan ini?</h2>
+              <p id="job-delete-dialog-description">
+                <strong>{jobInfo.title}</strong> di {jobInfo.company} akan dihapus permanen dari daftar lowonganmu.
+              </p>
+            </div>
+            {deleteError ? <p className="job-delete-error" role="alert">{deleteError}</p> : null}
+            <div className="job-delete-dialog-actions">
+              <button
+                ref={cancelDeleteRef}
+                className="career-button secondary"
+                type="button"
+                disabled={isDeleting}
+                onClick={closeDeleteDialog}
+              >
+                Batal
+              </button>
+              <button
+                className="career-button danger"
+                type="button"
+                disabled={isDeleting}
+                onClick={deleteJob}
+              >
+                {isDeleting ? "Menghapus…" : "Ya, hapus lowongan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
+}
+
+type UpdateResponse = {
+  data?: { job?: { id: string } };
+  error?: { message?: string };
+};
+
+type DeleteResponse = {
+  error?: { message?: string };
+};
+
+async function readUpdateResponse(response: Response): Promise<UpdateResponse> {
+  try { return await response.json() as UpdateResponse; } catch { return {}; }
+}
+
+async function readDeleteResponse(response: Response): Promise<DeleteResponse> {
+  try { return await response.json() as DeleteResponse; } catch { return {}; }
 }

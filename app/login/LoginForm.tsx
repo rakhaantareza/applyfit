@@ -1,35 +1,22 @@
 "use client";
 
-import {
-  ArrowRight,
-  Eye,
-  EyeOff,
-  LockKeyhole,
-  Mail,
-} from "lucide-react";
-import { FormEvent, useState } from "react";
+import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
+import { type FormEvent, useState } from "react";
 import { StableLink as Link } from "../components/StableLink";
 
-const demoAccount = {
-  email: "aruna@example.com",
-  password: "applyfit-demo",
+type AuthResponse = {
+  data?: { user?: { id: string; email: string } };
+  error?: { code?: string; message?: string };
 };
 
-export function MockLoginForm() {
+export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  function useDemoAccount() {
-    setEmail(demoAccount.email);
-    setPassword(demoAccount.password);
-    setError("");
-  }
-
-  function submitLogin(event: FormEvent<HTMLFormElement>) {
+  async function submitLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
 
@@ -44,14 +31,26 @@ export function MockLoginForm() {
     }
 
     setIsSubmitting(true);
-    window.setTimeout(() => {
-      const storage = remember ? window.localStorage : window.sessionStorage;
-      storage.setItem(
-        "applyfit-demo-session",
-        JSON.stringify({ email: normalizedEmail, signedInAt: new Date().toISOString() }),
+    try {
+      const response = await fetch("/api/auth/sign-in", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail, password }),
+      });
+      const result = await readAuthResponse(response);
+      if (!response.ok || !result.data?.user) {
+        throw new Error(result.error?.message ?? "Email atau kata sandi tidak sesuai.");
+      }
+
+      window.location.assign(getLoginDestination());
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "ApplyFit belum dapat memproses proses masuk. Coba lagi.",
       );
-      window.location.assign("/beranda");
-    }, 650);
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -109,16 +108,6 @@ export function MockLoginForm() {
         </div>
       </div>
 
-      <label className="login-remember">
-        <input
-          type="checkbox"
-          checked={remember}
-          onChange={(event) => setRemember(event.target.checked)}
-        />
-        <span aria-hidden="true" />
-        Ingat sesi demo di perangkat ini
-      </label>
-
       {error ? (
         <p className="login-error" id="login-error" role="alert">
           {error}
@@ -126,24 +115,28 @@ export function MockLoginForm() {
       ) : null}
 
       <button className="login-submit" type="submit" disabled={isSubmitting}>
-        <span>{isSubmitting ? "Menyiapkan ruang kerjamu…" : "Masuk ke ApplyFit"}</span>
+        <span>{isSubmitting ? "Memeriksa akunmu…" : "Masuk ke ApplyFit"}</span>
         <ArrowRight aria-hidden="true" size={18} strokeWidth={1.9} />
       </button>
-
-      <div className="login-demo-divider"><span>atau</span></div>
-
-      <button
-        className="login-demo-button"
-        type="button"
-        onClick={useDemoAccount}
-        disabled={isSubmitting}
-      >
-        Gunakan akun demo
-      </button>
-
-      <p className="login-mock-note">
-        Simulasi frontend—data login tidak dikirim ke server.
-      </p>
     </form>
   );
+}
+
+function getLoginDestination() {
+  const requestedPath = new URLSearchParams(window.location.search).get("next");
+  if (!requestedPath?.startsWith("/") || requestedPath.startsWith("//")) {
+    return "/beranda";
+  }
+
+  const destination = new URL(requestedPath, window.location.origin);
+  if (destination.origin !== window.location.origin) return "/beranda";
+  return `${destination.pathname}${destination.search}${destination.hash}`;
+}
+
+async function readAuthResponse(response: Response): Promise<AuthResponse> {
+  try {
+    return await response.json() as AuthResponse;
+  } catch {
+    return {};
+  }
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AuthBrandPanel } from "../components/AuthBrandPanel";
 import { StableLink as Link } from "../components/StableLink";
-import { MockLoginForm } from "./MockLoginForm";
+import { LoginForm } from "./LoginForm";
 
 export const metadata: Metadata = {
   title: "Masuk",
@@ -23,11 +23,11 @@ export default function LoginPage() {
             <p className="eyebrow">Selamat datang kembali</p>
             <h2 id="login-title">Masuk ke ruang kerjamu</h2>
             <p>
-              Gunakan email apa pun untuk mencoba alur login pada versi frontend ini.
+              Masuk dengan akun yang terhubung ke ruang kerja ApplyFit milikmu.
             </p>
           </div>
 
-          <MockLoginForm />
+          <LoginForm />
 
           <p className="login-switch">
             Belum punya akun? <Link href="/daftar">Buat akun</Link>
