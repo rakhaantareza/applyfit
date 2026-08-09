@@ -6593,7 +6593,7 @@ a {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 767px) {
   .mobile-shell-header {
     align-items: center;
     background: rgba(245, 248, 246, 0.94);
@@ -7172,6 +7172,245 @@ a {
     border-top: 1px solid var(--line);
     padding-left: 0;
     padding-top: 20px;
+  }
+}
+
+@media (min-width: 431px) and (max-width: 767px) {
+  .profile-identity {
+    gap: 18px;
+    padding: 24px 22px;
+  }
+
+  .profile-avatar {
+    border-radius: 19px;
+    height: 68px;
+    width: 68px;
+  }
+
+  .profile-identity h2 {
+    margin-bottom: 6px;
+  }
+
+  .profile-identity p {
+    line-height: 1.58;
+  }
+
+  .career-direction:not(.career-direction-form) {
+    align-items: center;
+    display: grid;
+    gap: 12px 18px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 20px 22px;
+  }
+
+  .career-direction:not(.career-direction-form) .career-direction-heading {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .career-direction:not(.career-direction-form) .career-direction-field {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    padding-top: 12px;
+  }
+
+  .career-direction:not(.career-direction-form) .career-edit-button {
+    align-self: center;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .career-direction-form {
+    gap: 16px;
+    padding: 20px 22px;
+  }
+
+  .profile-skills-section {
+    padding: 24px 22px;
+  }
+
+  .profile-section-heading,
+  .profile-skill-heading-actions {
+    gap: 10px;
+  }
+
+  .skill-manager-summary {
+    flex-wrap: nowrap;
+    gap: 10px;
+    justify-content: space-between;
+    margin-top: 18px;
+    padding: 11px 0;
+  }
+
+  .profile-skill-list {
+    margin-top: 7px;
+  }
+
+  .profile-skill-row {
+    align-items: center;
+    gap: 10px 16px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 15px 0;
+  }
+
+  .profile-skill-name {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .profile-skill-name h3 {
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .profile-skill-state {
+    flex-wrap: wrap;
+    gap: 7px;
+    grid-column: 1;
+    grid-row: 2;
+    padding-left: 48px;
+  }
+
+  .profile-skill-evidence {
+    grid-column: 2;
+    grid-row: 2;
+    justify-content: flex-end;
+    padding-left: 0;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .skill-row-actions {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-end;
+    justify-self: end;
+    min-width: 0;
+  }
+
+  .skill-row-actions:has(.skill-delete-confirmation) {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: start;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .profile-main {
+    padding-left: clamp(22px, 3vw, 32px);
+    padding-right: clamp(22px, 3vw, 32px);
+  }
+
+  .career-profile-page {
+    gap: 26px;
+  }
+
+  .profile-identity {
+    gap: 18px;
+    padding: 26px 24px;
+  }
+
+  .profile-avatar {
+    border-radius: 19px;
+    height: 68px;
+    width: 68px;
+  }
+
+  .profile-identity h2 {
+    margin-bottom: 6px;
+  }
+
+  .profile-identity p {
+    line-height: 1.58;
+  }
+
+  .career-direction:not(.career-direction-form) {
+    gap: 12px 18px;
+    padding: 20px 24px;
+  }
+
+  .career-direction:not(.career-direction-form) .career-direction-field {
+    padding-top: 12px;
+  }
+
+  .career-direction-form {
+    gap: 16px;
+    padding: 20px 24px;
+  }
+
+  .profile-skills-section {
+    padding: 24px;
+  }
+
+  .profile-section-heading {
+    gap: 12px;
+  }
+
+  .profile-skill-heading-actions {
+    gap: 16px;
+  }
+
+  .skill-manager-summary {
+    flex-wrap: nowrap;
+    gap: 12px;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding: 11px 0;
+  }
+
+  .profile-skill-list {
+    margin-top: 7px;
+  }
+
+  .profile-skill-row {
+    align-items: center;
+    gap: 10px 18px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 15px 0;
+  }
+
+  .profile-skill-name {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .profile-skill-name h3 {
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .profile-skill-state {
+    flex-wrap: wrap;
+    gap: 7px;
+    grid-column: 1;
+    grid-row: 2;
+    padding-left: 48px;
+  }
+
+  .profile-skill-evidence {
+    grid-column: 2;
+    grid-row: 2;
+    justify-content: flex-end;
+    padding-left: 0;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .skill-row-actions {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-end;
+    justify-self: end;
+    min-width: 0;
+  }
+
+  .skill-row-actions:has(.skill-delete-confirmation) {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: start;
   }
 }
 
