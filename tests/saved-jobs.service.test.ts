@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  normalizeJobPosting,
   normalizeSavedJobs,
   SavedJobsQueryError,
 } from "../server/services/saved-jobs.ts";
@@ -61,4 +62,20 @@ test("normalizeSavedJobs rejects malformed database results", () => {
     () => normalizeSavedJobs([{ id: "job-without-required-fields" }]),
     SavedJobsQueryError,
   );
+});
+
+test("normalizeJobPosting includes the raw description for detail views", () => {
+  const job = normalizeJobPosting({
+    id: "job-1",
+    title: "Frontend Developer",
+    company: "Nusa Digital",
+    source: null,
+    source_url: null,
+    location: null,
+    work_arrangement: null,
+    raw_description: "Build accessible web products.",
+    created_at: "2026-08-07T01:45:00.000Z",
+    updated_at: "2026-08-07T01:45:00.000Z",
+  });
+  assert.equal(job.rawDescription, "Build accessible web products.");
 });

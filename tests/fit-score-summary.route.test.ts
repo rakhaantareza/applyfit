@@ -83,13 +83,24 @@ test("reports excluded non-skill requirements without scoring them", async () =>
     }),
   );
   const payload = (await response.json()) as {
-    data: { score: number; includedRequirements: number; excludedRequirements: number };
+    data: {
+      score: number;
+      includedRequirements: number;
+      excludedRequirements: number;
+      statusCounts: Record<string, number>;
+    };
   };
 
   assert.equal(response.status, 200);
   assert.equal(payload.data.score, 100);
   assert.equal(payload.data.includedRequirements, 1);
   assert.equal(payload.data.excludedRequirements, 1);
+  assert.deepEqual(payload.data.statusCounts, {
+    proven: 1,
+    partial: 0,
+    learning: 0,
+    missing: 0,
+  });
 });
 
 test("rejects an invalid requirement payload", async () => {

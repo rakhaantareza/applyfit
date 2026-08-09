@@ -196,3 +196,17 @@ Key patterns:
 - Reference users with `auth.users(id)`; use `auth.uid()` in RLS policies.
 - For storage uploads, persist both the returned `url` and `key`.
 <!-- INSFORGE:END -->
+
+## ApplyFit database ownership invariant
+
+- All application-owned tables and enums in `public` must be owned by
+  `project_admin`.
+- Create migrations with `npx -y @insforge/cli db migrations new <name>` and
+  apply them with `npm run db:migrate`. The wrapper checks ownership before and
+  after the official InsForge migration command.
+- Keep `migrations/` limited to valid migration `.sql` files; detailed project
+  guidance lives in `docs/DATABASE_MIGRATIONS.md`.
+- Never add `SET ROLE`, `RESET ROLE`, or owner-level connection workarounds to
+  ordinary migration files.
+- An ownership repair must not change RLS, grants, policies, application data,
+  or schema design.

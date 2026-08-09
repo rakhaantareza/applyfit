@@ -185,6 +185,7 @@ export async function POST(request: Request) {
   };
 
   for (const requirement of parsed.value.requirements) {
+    if (requirement.type !== "skill" && requirement.type !== "tool") continue;
     statusCounts[requirement.status] += 1;
   }
 

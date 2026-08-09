@@ -79,12 +79,17 @@ test("keeps non-skill requirements visible with no point contribution", async ()
   );
   const payload = (await response.json()) as {
     data: {
-      requirements: Array<{ isInformational: boolean; points: unknown }>;
+      requirements: Array<{
+        isInformational: boolean;
+        status: unknown;
+        points: unknown;
+      }>;
     };
   };
 
   assert.equal(response.status, 200);
   assert.equal(payload.data.requirements[0]?.isInformational, true);
+  assert.equal(payload.data.requirements[0]?.status, null);
   assert.equal(payload.data.requirements[0]?.points, null);
 });
 

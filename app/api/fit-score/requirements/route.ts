@@ -246,7 +246,7 @@ export async function POST(request: Request) {
           name: requirement.name,
           type: requirement.type,
           priority: requirement.priority,
-          status: requirement.status,
+          status: breakdown.includedInScore ? requirement.status : null,
           isInformational: !breakdown.includedInScore,
           evidences: requirement.evidences,
           points: breakdown.includedInScore

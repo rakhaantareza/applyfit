@@ -59,6 +59,43 @@ test("uses the strongest derived status when a requirement has multiple mappings
   );
 });
 
+test("keeps learning skills in Learning even when evidence is already linked", () => {
+  assert.equal(
+    deriveRequirementStatus([
+      {
+        skill: { id: "typescript", status: "learning" },
+        linkedEvidenceIds: ["course-project"],
+      },
+    ]),
+    "learning",
+  );
+});
+
+test("does not treat stale evidence without a linked skill as readiness", () => {
+  assert.equal(
+    deriveRequirementStatus([
+      { skill: null, linkedEvidenceIds: ["stale-evidence"] },
+    ]),
+    "missing",
+  );
+});
+
+test("Partial outranks Learning when multiple valid skills are mapped", () => {
+  assert.equal(
+    deriveRequirementStatus([
+      {
+        skill: { id: "react", status: "learning" },
+        linkedEvidenceIds: ["learning-project"],
+      },
+      {
+        skill: { id: "typescript", status: "active" },
+        linkedEvidenceIds: [],
+      },
+    ]),
+    "partial",
+  );
+});
+
 test("calculates the PRD example as 87.5 percent", () => {
   const result = calculateFitScore([
     {
