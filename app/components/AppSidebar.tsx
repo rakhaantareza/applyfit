@@ -1,6 +1,5 @@
 "use client";
 
-/* eslint-disable @next/next/no-html-link-for-pages -- Native navigation is intentional: the Sites Vinext client router fails in production. */
 /* eslint-disable @next/next/no-img-element -- Account avatars can use user-provided HTTPS hosts. */
 
 import {
@@ -19,7 +18,13 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import {
   getAccountInitials,
   getAuthDisplayName,
@@ -37,7 +42,7 @@ const navigation = [
   { label: "Profil Karier", icon: UserRound, href: "/profil-karier" },
   { label: "Pustaka Bukti", icon: LibraryBig, href: "/pustaka-bukti" },
   { label: "Lowongan", icon: BriefcaseBusiness, href: "/lowongan" },
-  { label: "Skor Kecocokan", icon: Gauge, href: "/" },
+  { label: "Skor Kecocokan", icon: Gauge, href: "/skor-kecocokan" },
 ] satisfies NavigationItem[];
 
 type AppSidebarProps = {
@@ -250,10 +255,15 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
         >
           <Menu aria-hidden="true" size={21} strokeWidth={1.9} />
         </button>
-        <a className="mobile-brand" href="/" aria-label="ApplyFit beranda">
+        <Link
+          className="mobile-brand"
+          href="/beranda"
+          aria-label="ApplyFit beranda"
+          onClick={closeMobileNavigation}
+        >
           <span className="brand-mark" aria-hidden="true">A</span>
           <span>ApplyFit</span>
-        </a>
+        </Link>
         <span className="mobile-page-label">{activeItem}</span>
       </header>
 
@@ -277,16 +287,16 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
         inert={isMobileViewport && !isMobileOpen ? true : undefined}
       >
         <div className="sidebar-header">
-          <a
+          <Link
             className="brand"
-            href="/"
+            href="/beranda"
             aria-label="ApplyFit beranda"
             data-tooltip="ApplyFit"
             onClick={closeMobileNavigation}
           >
             <span className="brand-mark" aria-hidden="true">A</span>
             <span className="brand-name">ApplyFit</span>
-          </a>
+          </Link>
 
           <button
             className="sidebar-toggle"
@@ -320,7 +330,7 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
             const Icon = item.icon;
 
             return (
-              <a
+              <Link
                 className={`nav-item${isActive ? " active" : ""}`}
                 href={item.href}
                 key={item.label}
@@ -332,13 +342,13 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
                   <Icon size={19} strokeWidth={1.8} />
                 </span>
                 <span className="nav-text">{item.label}</span>
-              </a>
+              </Link>
             );
           })}
         </nav>
 
         <div className="sidebar-footer" ref={accountMenuRef}>
-          <a
+          <Link
             className="profile-readiness"
             href="/profil-karier"
             data-tooltip={profileReadiness ? `Profil ${profileReadiness.percent}% lengkap` : "Lihat kelengkapan profil"}
@@ -357,7 +367,7 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
               </span>
               <span className="readiness-copy">{profileReadiness ? `${profileReadiness.complete} dari ${profileReadiness.total} dasar profil sudah tersedia.` : "Memuat dasar profil…"}</span>
             </span>
-          </a>
+          </Link>
 
           {isAccountMenuOpen ? (
             <div className="sidebar-account-menu" id="sidebar-account-menu" role="menu">
@@ -372,10 +382,10 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
                   <small>{accountDescription}</small>
                 </span>
               </div>
-              <a href="/pengaturan" role="menuitem" onClick={closeMobileNavigation}>
+              <Link href="/pengaturan" role="menuitem" onClick={closeMobileNavigation}>
                 <Settings aria-hidden="true" size={16} strokeWidth={1.8} />
                 Pengaturan akun
-              </a>
+              </Link>
               {accountError ? <p className="sidebar-account-error" role="alert">{accountError}</p> : null}
               <button
                 type="button"

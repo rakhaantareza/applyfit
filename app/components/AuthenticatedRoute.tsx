@@ -15,8 +15,8 @@ export function AuthenticatedRoute({ children }: { children: ReactNode }) {
   if (loading || !user) {
     return (
       <main className="session-route-check" aria-live="polite">
-        <span className="brand-mark" aria-hidden="true">A</span>
-        <strong>Memeriksa sesi aman…</strong>
+        <span className="brand-mark session-logo-flip" aria-hidden="true">A</span>
+        <strong>Menyiapkan ruang kerjamu…</strong>
       </main>
     );
   }

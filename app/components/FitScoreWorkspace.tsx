@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, BriefcaseBusiness, LoaderCircle, Plus } from "lucide-react";
+import { AlertCircle, BriefcaseBusiness, Plus } from "lucide-react";
 import { useEffect, useState, type CSSProperties } from "react";
 import { StableLink as Link } from "./StableLink";
 import {
@@ -142,8 +142,8 @@ export function FitScoreWorkspace() {
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   }
 
-  if (loadingJobs) return <FitScoreLoadState />;
-  if (error && !jobs.length) return <FitScoreLoadState error={error} />;
+  if (loadingJobs) return <FitScorePageFrame />;
+  if (error && !jobs.length) return <FitScoreErrorState error={error} />;
   if (!jobs.length) return <EmptyJobsState />;
 
   return (
@@ -153,7 +153,7 @@ export function FitScoreWorkspace() {
           <div><p className="eyebrow">Analisis kesiapan sebelum melamar</p><h1>Skor Kecocokan</h1><p className="header-copy">Pahami posisi profilmu terhadap requirement lowongan yang sedang dianalisis.</p></div>
           <JobSwitcher />
         </header>
-        {loadingAnalysis ? <FitScoreLoadState compact /> : error || !analysis ? <FitScoreLoadState error={error || "Fit Score belum dapat dimuat."} compact /> : <FitScoreContent analysis={analysis} />}
+        {loadingAnalysis ? null : error || !analysis ? <FitScoreErrorState error={error || "Fit Score belum dapat dimuat."} compact /> : <FitScoreContent analysis={analysis} />}
       </div>
     </JobAnalysisProvider>
   );
@@ -224,8 +224,18 @@ function FitScoreContent({ analysis }: { analysis: Analysis }) {
   );
 }
 
-function FitScoreLoadState({ error = "", compact = false }: { error?: string; compact?: boolean }) {
-  return <div className={`persisted-job-state ${error ? "error" : ""}${compact ? " compact" : ""}`}>{error ? <AlertCircle aria-hidden="true" size={22} /> : <LoaderCircle className="spin" aria-hidden="true" size={22} />}<strong>{error || "Menyiapkan analisis Fit Score…"}</strong>{error ? <button type="button" onClick={() => window.location.reload()}>Coba lagi</button> : null}</div>;
+function FitScorePageFrame() {
+  return (
+    <div className="page-container">
+      <header className="topbar">
+        <div><p className="eyebrow">Analisis kesiapan sebelum melamar</p><h1>Skor Kecocokan</h1><p className="header-copy">Pahami posisi profilmu terhadap requirement lowongan yang sedang dianalisis.</p></div>
+      </header>
+    </div>
+  );
+}
+
+function FitScoreErrorState({ error, compact = false }: { error: string; compact?: boolean }) {
+  return <div className={`persisted-job-state error${compact ? " compact" : ""}`}><AlertCircle aria-hidden="true" size={22} /><strong>{error}</strong><button type="button" onClick={() => window.location.reload()}>Coba lagi</button></div>;
 }
 
 function EmptyJobsState() {

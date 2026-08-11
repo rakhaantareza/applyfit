@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   ArrowRight,
   BookOpenCheck,
-  LoaderCircle,
   Waypoints,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -122,11 +121,13 @@ export function RequirementReviewWorkspace({ jobId }: { jobId: string }) {
 function ReviewLoadState({ error, jobId }: { error: string; jobId: string }) {
   return (
     <div className="page-container requirement-review-page">
-      <div className={`persisted-job-state ${error ? "error" : ""}`}>
-        {error ? <AlertCircle aria-hidden="true" size={22} /> : <LoaderCircle className="spin" aria-hidden="true" size={22} />}
-        <strong>{error || "Memuat requirement…"}</strong>
-        {error ? <Link href={`/lowongan/${jobId}`}>Kembali ke detail lowongan</Link> : null}
-      </div>
+      {error ? (
+        <div className="persisted-job-state error">
+          <AlertCircle aria-hidden="true" size={22} />
+          <strong>{error}</strong>
+          <Link href={`/lowongan/${jobId}`}>Kembali ke detail lowongan</Link>
+        </div>
+      ) : null}
     </div>
   );
 }

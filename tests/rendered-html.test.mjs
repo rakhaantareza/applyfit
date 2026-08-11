@@ -57,13 +57,47 @@ test("production worker serves the implemented calculation route", async () => {
   assert.match(html, /<h1>Contoh Perhitungan<\/h1>/i);
 });
 
-test("internal route links use the Vinext-safe navigation primitive", async () => {
+test("root and Fit Score use distinct routes", async () => {
+  const [rootSource, scoreSource, sidebarSource, proxySource] = await Promise.all([
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/skor-kecocokan/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/components/AppSidebar.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../proxy.ts", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(rootSource, /redirect\("\/beranda"\)/);
+  assert.doesNotMatch(rootSource, /FitScoreWorkspace/);
+  assert.match(scoreSource, /<FitScoreWorkspace\s*\/>/);
+  assert.match(sidebarSource, /href:\s*"\/skor-kecocokan"/);
+  assert.match(proxySource, /"\/skor-kecocokan\/:path\*"/);
+});
+
+test("unauthenticated visitors can directly open login and registration", async () => {
+  const [loginResponse, registrationResponse] = await Promise.all([
+    render("/login"),
+    render("/daftar"),
+  ]);
+
+  assert.equal(loginResponse.status, 200);
+  assert.equal(registrationResponse.status, 200);
+
+  const [loginHtml, registrationHtml] = await Promise.all([
+    loginResponse.text(),
+    registrationResponse.text(),
+  ]);
+  assert.match(loginHtml, /<title>Masuk \| ApplyFit<\/title>/i);
+  assert.match(registrationHtml, /<title>Buat Akun \| ApplyFit<\/title>/i);
+});
+
+test("internal route links preserve the root session through client navigation", async () => {
   const [stableLink, fitScoreWorkspace] = await Promise.all([
     readFile(new URL("../app/components/StableLink.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/FitScoreWorkspace.tsx", import.meta.url), "utf8"),
   ]);
 
-  assert.match(stableLink, /<a href=\{href\}/);
+  assert.match(stableLink, /from ["']next\/link["']/);
+  assert.match(stableLink, /<NextLink href=\{href\}/);
+  assert.doesNotMatch(stableLink, /<a href=\{href\}/);
   assert.match(fitScoreWorkspace, /StableLink as Link/);
   assert.doesNotMatch(fitScoreWorkspace, /from ["']next\/link["']/);
 });

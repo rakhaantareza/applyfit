@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, ArrowLeft, Clock3, LoaderCircle } from "lucide-react";
+import { AlertCircle, ArrowLeft, Clock3 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AppSidebar } from "../../components/AppSidebar";
 import { StableLink as Link } from "../../components/StableLink";
@@ -110,11 +110,13 @@ function PersistedJobState({ message }: { message: string }) {
       <AppSidebar activeItem="Lowongan" />
       <main className="main-content job-detail-main">
         <div className="page-container job-detail-page">
-          <div className={`persisted-job-state ${message ? "error" : ""}`}>
-            {message ? <AlertCircle aria-hidden="true" size={22} /> : <LoaderCircle className="spin" aria-hidden="true" size={22} />}
-            <strong>{message || "Memuat lowongan tersimpan…"}</strong>
-            {message ? <Link href="/lowongan">Kembali ke semua lowongan</Link> : null}
-          </div>
+          {message ? (
+            <div className="persisted-job-state error">
+              <AlertCircle aria-hidden="true" size={22} />
+              <strong>{message}</strong>
+              <Link href="/lowongan">Kembali ke semua lowongan</Link>
+            </div>
+          ) : null}
         </div>
       </main>
     </div>

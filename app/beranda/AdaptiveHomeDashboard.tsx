@@ -13,7 +13,6 @@ import {
   LibraryBig,
   Link2,
   ListChecks,
-  LoaderCircle,
   UserRound,
   type LucideIcon,
 } from "lucide-react";
@@ -51,14 +50,23 @@ type DashboardData = {
   mappingsByJob: Map<string, MappingSummary>;
   recentAnalyses: RecentAnalysis[];
 };
+type DashboardSnapshot = { userId: string; data: DashboardData };
+type DashboardFailure = { userId: string; message: string };
+
+const dashboardDataCache = new Map<string, DashboardData>();
 
 export function AdaptiveHomeDashboard() {
   const { user } = useAuthSession();
+  const userId = user?.id ?? "";
   const accountName = getAuthDisplayName(user);
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [error, setError] = useState("");
+  const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(() => {
+    const cached = userId ? dashboardDataCache.get(userId) : undefined;
+    return cached ? { userId, data: cached } : null;
+  });
+  const [failure, setFailure] = useState<DashboardFailure | null>(null);
 
   useEffect(() => {
+    if (!userId) return;
     let active = true;
     async function loadDashboard() {
       try {
@@ -104,7 +112,7 @@ export function AdaptiveHomeDashboard() {
         ).slice(0, 2);
         const recentAnalyses = (await Promise.all(analysisCandidates.map(calculateRecentAnalysis))).filter((analysis): analysis is RecentAnalysis => analysis !== null);
         if (!active) return;
-        setData({
+        const nextData: DashboardData = {
           profile: profileResult.data?.profile ?? null,
           skills: skillsResult.data?.skills ?? [],
           evidences: evidencesResult.data?.evidences ?? [],
@@ -112,17 +120,31 @@ export function AdaptiveHomeDashboard() {
           requirementsByJob: new Map(jobContexts.map(({ job, requirements }) => [job.id, requirements])),
           mappingsByJob: new Map(jobContexts.flatMap(({ job, mapping }) => mapping ? [[job.id, mapping] as const] : [])),
           recentAnalyses,
-        });
+        };
+        dashboardDataCache.set(userId, nextData);
+        setSnapshot({ userId, data: nextData });
+        setFailure(null);
       } catch (requestError) {
-        if (active) setError(requestError instanceof Error ? requestError.message : "Ringkasan akun belum dapat dimuat.");
+        if (active) {
+          setFailure({
+            userId,
+            message: requestError instanceof Error
+              ? requestError.message
+              : "Ringkasan akun belum dapat dimuat.",
+          });
+        }
       }
     }
     void loadDashboard();
     return () => { active = false; };
-  }, []);
+  }, [userId]);
 
+  const data = snapshot?.userId === userId
+    ? snapshot.data
+    : userId ? dashboardDataCache.get(userId) ?? null : null;
+  const error = failure?.userId === userId ? failure.message : "";
   const dashboard = useMemo(() => data ? buildDashboardState(data) : null, [data]);
-  if (!dashboard) return <DashboardLoadState error={error} />;
+  if (!data || !dashboard) return error ? <DashboardErrorState error={error} /> : null;
 
   const firstName = accountName.split(/\s+/)[0] ?? accountName;
   const onboarding = <OnboardingJourney completedSteps={dashboard.completedSteps} compact={!dashboard.isNewUser} steps={dashboard.steps} />;
@@ -233,8 +255,8 @@ function AttentionSection({ items }: { items: AttentionItem[] }) {
   );
 }
 
-function DashboardLoadState({ error = "" }: { error?: string }) {
-  return <div className={`career-profile-state${error ? " error" : ""}`} role={error ? "alert" : "status"}>{error ? <AlertCircle aria-hidden="true" size={22} /> : <LoaderCircle className="spin" aria-hidden="true" size={22} />}<strong>{error || "Menyiapkan ringkasan akun…"}</strong>{error ? <button type="button" onClick={() => window.location.reload()}>Coba lagi</button> : null}</div>;
+function DashboardErrorState({ error }: { error: string }) {
+  return <div className="career-profile-state error" role="alert"><AlertCircle aria-hidden="true" size={22} /><strong>{error}</strong><button type="button" onClick={() => window.location.reload()}>Coba lagi</button></div>;
 }
 
 async function calculateRecentAnalysis(context: { job: Job; requirements: Requirement[]; mapping: MappingSummary | null }): Promise<RecentAnalysis | null> {

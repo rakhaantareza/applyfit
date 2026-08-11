@@ -6,7 +6,6 @@ import {
   Building2,
   Clock3,
   ExternalLink,
-  LoaderCircle,
   MapPin,
   Monitor,
   Plus,
@@ -85,8 +84,10 @@ export function JobsWorkspace() {
     [jobs],
   );
 
-  if (loading || error) {
-    return <JobsLoadState error={error} />;
+  if (error) return <JobsErrorState error={error} />;
+
+  if (loading) {
+    return <div className="page-container jobs-page"><JobsPageHeader /></div>;
   }
 
   if (!jobs.length) {
@@ -95,22 +96,7 @@ export function JobsWorkspace() {
 
   return (
     <div className="page-container jobs-page">
-      <header className="jobs-page-header responsive-page-header">
-        <div>
-          <p className="eyebrow">Lowongan tersimpan</p>
-          <h1>Pahami setiap lowongan sebelum melamar</h1>
-          <p>
-            Simpan konteks pekerjaan dan pantau tahap review requirement agar
-            setiap analisis tetap spesifik pada role dan perusahaan yang tepat.
-          </p>
-        </div>
-        <div className="jobs-page-header-actions">
-          <Link className="jobs-add-button" href="/lowongan/baru">
-            <Plus aria-hidden="true" size={16} strokeWidth={2} />
-            Tambah lowongan
-          </Link>
-        </div>
-      </header>
+      <JobsPageHeader />
 
       <section className="jobs-overview" aria-labelledby="jobs-overview-title">
         <div className="jobs-overview-copy">
@@ -180,16 +166,7 @@ export function JobsWorkspace() {
 function JobsEmptyWorkspace() {
   return (
     <div className="page-container jobs-page">
-      <header className="jobs-page-header responsive-page-header">
-        <div>
-          <p className="eyebrow">Lowongan tersimpan</p>
-          <h1>Pahami setiap lowongan sebelum melamar</h1>
-          <p>
-            Simpan konteks pekerjaan dan pantau tahap review requirement agar
-            setiap analisis tetap spesifik pada role dan perusahaan yang tepat.
-          </p>
-        </div>
-      </header>
+      <JobsPageHeader showAction={false} />
 
       <section className="page-empty-state jobs-zero-state" aria-labelledby="jobs-empty-title">
         <span className="page-empty-state-icon" aria-hidden="true">
@@ -207,12 +184,35 @@ function JobsEmptyWorkspace() {
   );
 }
 
-function JobsLoadState({ error }: { error: string }) {
+function JobsPageHeader({ showAction = true }: { showAction?: boolean }) {
+  return (
+    <header className="jobs-page-header responsive-page-header">
+      <div>
+        <p className="eyebrow">Lowongan tersimpan</p>
+        <h1>Pahami setiap lowongan sebelum melamar</h1>
+        <p>
+          Simpan konteks pekerjaan dan pantau tahap review requirement agar
+          setiap analisis tetap spesifik pada role dan perusahaan yang tepat.
+        </p>
+      </div>
+      {showAction ? (
+        <div className="jobs-page-header-actions">
+          <Link className="jobs-add-button" href="/lowongan/baru">
+            <Plus aria-hidden="true" size={16} strokeWidth={2} />
+            Tambah lowongan
+          </Link>
+        </div>
+      ) : null}
+    </header>
+  );
+}
+
+function JobsErrorState({ error }: { error: string }) {
   return (
     <div className="page-container jobs-page">
-      <div className={`persisted-job-state ${error ? "error" : ""}`}>
-        {error ? <AlertCircle aria-hidden="true" size={22} /> : <LoaderCircle className="spin" aria-hidden="true" size={22} />}
-        <strong>{error || "Memuat lowongan tersimpan…"}</strong>
+      <div className="persisted-job-state error">
+        <AlertCircle aria-hidden="true" size={22} />
+        <strong>{error}</strong>
       </div>
     </div>
   );

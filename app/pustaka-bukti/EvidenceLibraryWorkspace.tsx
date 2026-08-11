@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, LoaderCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   EvidenceLibrary,
@@ -101,12 +101,14 @@ export function EvidenceLibraryWorkspace() {
     };
   }, []);
 
-  if (loading || error) {
+  if (loading) return null;
+
+  if (error) {
     return (
-      <div className={`career-profile-state${error ? " error" : ""}`} role={error ? "alert" : "status"}>
-        {error ? <AlertCircle aria-hidden="true" size={22} /> : <LoaderCircle className="spin" aria-hidden="true" size={22} />}
-        <strong>{error || "Memuat pustaka bukti…"}</strong>
-        {error ? <button type="button" onClick={() => window.location.reload()}>Coba lagi</button> : null}
+      <div className="career-profile-state error" role="alert">
+        <AlertCircle aria-hidden="true" size={22} />
+        <strong>{error}</strong>
+        <button type="button" onClick={() => window.location.reload()}>Coba lagi</button>
       </div>
     );
   }

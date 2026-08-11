@@ -4,6 +4,7 @@ import {
   isProtectedApiRoute,
   UNAUTHENTICATED_API_ERROR,
 } from "./server/http/api-route-protection.ts";
+import { shouldRedirectAuthenticatedUserFromAuthPage } from "./server/http/auth-page-access.ts";
 
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request });
@@ -15,6 +16,12 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const protectedApi = isProtectedApiRoute(pathname);
   const protectedPage = isProtectedAppRoute(pathname);
+
+  if (shouldRedirectAuthenticatedUserFromAuthPage(pathname, session.accessToken)) {
+    const redirect = NextResponse.redirect(new URL("/beranda", request.url));
+    copyResponseCookies(response, redirect);
+    return redirect;
+  }
 
   if ((!protectedApi && !protectedPage) || session.accessToken) {
     return response;
@@ -41,10 +48,13 @@ export const config = {
     "/",
     "/api/:path*",
     "/beranda/:path*",
+    "/daftar/:path*",
+    "/login/:path*",
     "/lowongan/:path*",
     "/pengaturan/:path*",
     "/profil-karier/:path*",
     "/pustaka-bukti/:path*",
+    "/skor-kecocokan/:path*",
   ],
 };
 
@@ -55,7 +65,8 @@ function isProtectedAppRoute(pathname: string) {
     pathname === "/lowongan" || pathname.startsWith("/lowongan/") ||
     pathname === "/pengaturan" || pathname.startsWith("/pengaturan/") ||
     pathname === "/profil-karier" || pathname.startsWith("/profil-karier/") ||
-    pathname === "/pustaka-bukti" || pathname.startsWith("/pustaka-bukti/")
+    pathname === "/pustaka-bukti" || pathname.startsWith("/pustaka-bukti/") ||
+    pathname === "/skor-kecocokan" || pathname.startsWith("/skor-kecocokan/")
   );
 }
 

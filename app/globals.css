@@ -9688,6 +9688,25 @@ a {
   min-height: 100svh;
 }
 
+.session-route-check .session-logo-flip {
+  animation: session-logo-flip 2.8s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+  backface-visibility: hidden;
+  transform-origin: center;
+  will-change: transform;
+}
+
+@keyframes session-logo-flip {
+  0%,
+  32% {
+    transform: rotate(-4deg) rotateY(0deg);
+  }
+
+  62%,
+  100% {
+    transform: rotate(-4deg) rotateY(360deg);
+  }
+}
+
 .empty-home-main {
   display: flex;
   min-height: 100svh;
@@ -11019,16 +11038,6 @@ a {
   font-weight: 760;
 }
 
-.account-settings-loading {
-  align-items: center;
-  color: var(--muted);
-  display: flex;
-  font-size: 12px;
-  gap: 10px;
-  justify-content: center;
-  min-height: 320px;
-}
-
 @media (max-width: 767px) {
   .account-profile-form {
     grid-template-columns: 1fr;
@@ -11086,4 +11095,10 @@ a {
   *::after {
     transition-duration: 0.01ms !important;
   }
+
+  .session-route-check .session-logo-flip {
+    animation: none;
+    transform: rotate(-4deg);
+  }
+
 }

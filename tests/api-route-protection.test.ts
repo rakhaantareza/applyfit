@@ -55,8 +55,16 @@ test("Next.js proxy refreshes InsForge sessions before guarding APIs and app pag
 
   assert.match(source, /@insforge\/sdk\/ssr\/middleware/);
   assert.match(source, /await updateSession/);
+  assert.match(
+    source,
+    /await updateSession[\s\S]+shouldRedirectAuthenticatedUserFromAuthPage/,
+  );
   assert.match(source, /session\.accessToken/);
   assert.match(source, /"\/api\/:path\*"/);
+  assert.match(source, /"\/login\/:path\*"/);
+  assert.match(source, /"\/daftar\/:path\*"/);
   assert.match(source, /"\/pengaturan\/:path\*"/);
+  assert.match(source, /shouldRedirectAuthenticatedUserFromAuthPage/);
+  assert.match(source, /NextResponse\.redirect\(new URL\("\/beranda"/);
   assert.match(source, /NextResponse\.redirect/);
 });

@@ -1,12 +1,10 @@
 "use client";
 
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
-  useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 
@@ -38,52 +36,74 @@ type AuthSessionContextValue = {
   refresh: () => Promise<AuthSessionUser | null>;
 };
 
-const AuthSessionContext = createContext<AuthSessionContextValue | null>(null);
+type AuthSessionState = Pick<AuthSessionContextValue, "user" | "loading">;
+
+const initialAuthSessionState: AuthSessionState = {
+  user: null,
+  loading: true,
+};
+let authSessionState = initialAuthSessionState;
+let authBootstrapRequest: Promise<AuthSessionUser | null> | null = null;
+const authSessionListeners = new Set<() => void>();
 
 export function AuthSessionProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthSessionUser | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const refresh = useCallback(async () => {
-    const nextUser = await loadCurrentUser();
-    setUser(nextUser);
-    return nextUser;
-  }, []);
-
   useEffect(() => {
-    let cancelled = false;
-
-    async function hydrateSession() {
-      const nextUser = await loadCurrentUser();
-      if (cancelled) return;
-      setUser(nextUser);
-      setLoading(false);
-    }
-
-    void hydrateSession();
-    return () => {
-      cancelled = true;
-    };
+    void bootstrapAuthSession();
   }, []);
 
-  const value = useMemo(
-    () => ({ user, loading, refresh }),
-    [loading, refresh, user],
-  );
-
-  return (
-    <AuthSessionContext.Provider value={value}>
-      {children}
-    </AuthSessionContext.Provider>
-  );
+  return children;
 }
 
 export function useAuthSession() {
-  const context = useContext(AuthSessionContext);
-  if (!context) {
-    throw new Error("useAuthSession must be used inside AuthSessionProvider.");
+  const { user, loading } = useSyncExternalStore(
+    subscribeToAuthSession,
+    getAuthSessionState,
+    getInitialAuthSessionState,
+  );
+  const refresh = useCallback(() => refreshAuthSession(), []);
+
+  return useMemo(
+    () => ({ user, loading, refresh }),
+    [loading, refresh, user],
+  );
+}
+
+function subscribeToAuthSession(listener: () => void) {
+  authSessionListeners.add(listener);
+  return () => authSessionListeners.delete(listener);
+}
+
+function getAuthSessionState() {
+  return authSessionState;
+}
+
+function getInitialAuthSessionState() {
+  return initialAuthSessionState;
+}
+
+function publishAuthSession(nextState: AuthSessionState) {
+  authSessionState = nextState;
+  authSessionListeners.forEach((listener) => listener());
+}
+
+function bootstrapAuthSession() {
+  if (!authSessionState.loading) {
+    return Promise.resolve(authSessionState.user);
   }
-  return context;
+
+  if (!authBootstrapRequest) {
+    authBootstrapRequest = refreshAuthSession().finally(() => {
+      authBootstrapRequest = null;
+    });
+  }
+
+  return authBootstrapRequest;
+}
+
+async function refreshAuthSession() {
+  const nextUser = await loadCurrentUser();
+  publishAuthSession({ user: nextUser, loading: false });
+  return nextUser;
 }
 
 async function loadCurrentUser(): Promise<AuthSessionUser | null> {

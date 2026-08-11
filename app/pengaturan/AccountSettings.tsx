@@ -105,12 +105,7 @@ export function AccountSettings() {
   }
 
   if (loading || !user) {
-    return (
-      <div className="account-settings-loading" aria-live="polite">
-        <LoaderCircle className="spin" aria-hidden="true" size={22} />
-        Memuat pengaturan akun…
-      </div>
-    );
+    return null;
   }
 
   return (

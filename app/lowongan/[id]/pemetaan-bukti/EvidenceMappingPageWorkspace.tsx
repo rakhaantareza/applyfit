@@ -8,7 +8,6 @@ import {
   Info,
   Laptop,
   LibraryBig,
-  LoaderCircle,
   MapPin,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -197,11 +196,13 @@ export function EvidenceMappingPageWorkspace({ jobId }: { jobId: string }) {
 function MappingLoadState({ error, jobId }: { error: string; jobId: string }) {
   return (
     <div className="page-container evidence-mapping-page">
-      <div className={`persisted-job-state ${error ? "error" : ""}`}>
-        {error ? <AlertCircle aria-hidden="true" size={22} /> : <LoaderCircle className="spin" aria-hidden="true" size={22} />}
-        <strong>{error || "Menyiapkan pemetaan requirement…"}</strong>
-        {error ? <Link href={`/lowongan/${jobId}/tinjau-syarat`}>Kembali ke review requirement</Link> : null}
-      </div>
+      {error ? (
+        <div className="persisted-job-state error">
+          <AlertCircle aria-hidden="true" size={22} />
+          <strong>{error}</strong>
+          <Link href={`/lowongan/${jobId}/tinjau-syarat`}>Kembali ke review requirement</Link>
+        </div>
+      ) : null}
     </div>
   );
 }
