@@ -47,26 +47,40 @@ export function requireEnvironmentVariable(name, { trim = true } = {}) {
 }
 
 export async function ensureDevelopmentServer(baseUrl) {
-  const loginUrl = new URL("/login", baseUrl);
+  const candidates = getLocalBaseUrlCandidates(baseUrl);
+  const failures = [];
 
-  let response;
-  try {
-    response = await fetch(loginUrl, {
-      redirect: "manual",
-      signal: AbortSignal.timeout(SERVER_CHECK_TIMEOUT_MS),
-    });
-  } catch (error) {
-    throw new ScreenshotWorkflowError(
-      `ApplyFit is not reachable at ${baseUrl}. Start the development server with "npm run dev" and try again.`,
-      { cause: error },
-    );
+  for (const candidate of candidates) {
+    const loginUrl = new URL("/login", candidate);
+    try {
+      const response = await fetch(loginUrl, {
+        redirect: "manual",
+        signal: AbortSignal.timeout(SERVER_CHECK_TIMEOUT_MS),
+      });
+
+      if (response.status < 500) return candidate;
+      failures.push(`${candidate} returned HTTP ${response.status}`);
+    } catch (error) {
+      failures.push(`${candidate} failed: ${errorMessage(error)}`);
+    }
   }
 
-  if (response.status >= 500) {
-    throw new ScreenshotWorkflowError(
-      `ApplyFit responded with HTTP ${response.status} at ${loginUrl}. Check the development server output before retrying.`,
-    );
-  }
+  throw new ScreenshotWorkflowError(
+    `ApplyFit is not reachable. Tried ${candidates.join(" and ")}. Start the development server with "npm run dev" and try again. ${failures.join("; ")}`,
+  );
+}
+
+function getLocalBaseUrlCandidates(baseUrl) {
+  const url = new URL(baseUrl);
+  const fallbackHost = url.hostname === "127.0.0.1"
+    ? "localhost"
+    : url.hostname === "localhost" ? "127.0.0.1" : null;
+
+  if (!fallbackHost) return [url.origin];
+
+  const fallbackUrl = new URL(url.origin);
+  fallbackUrl.hostname = fallbackHost;
+  return [url.origin, fallbackUrl.origin];
 }
 
 export async function fileExists(filePath) {

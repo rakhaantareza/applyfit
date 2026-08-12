@@ -25,8 +25,8 @@ let browser;
 let context;
 
 try {
-  const baseUrl = getBaseUrl(DEFAULT_BASE_URL);
-  await ensureDevelopmentServer(baseUrl);
+  const configuredBaseUrl = getBaseUrl(DEFAULT_BASE_URL);
+  const baseUrl = await ensureDevelopmentServer(configuredBaseUrl);
 
   if (!(await fileExists(AUTH_STATE_PATH))) throw expiredStateError();
 

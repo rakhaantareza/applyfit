@@ -23,7 +23,7 @@ let browser;
 let context;
 
 try {
-  const baseUrl = getBaseUrl(DEFAULT_BASE_URL);
+  const configuredBaseUrl = getBaseUrl(DEFAULT_BASE_URL);
   const email = requireEnvironmentVariable("DEMO_EMAIL").toLocaleLowerCase("id-ID");
   const password = requireEnvironmentVariable("DEMO_PASSWORD", { trim: false });
 
@@ -34,7 +34,7 @@ try {
     throw new ScreenshotWorkflowError("DEMO_PASSWORD must contain at least 6 characters.");
   }
 
-  await ensureDevelopmentServer(baseUrl);
+  const baseUrl = await ensureDevelopmentServer(configuredBaseUrl);
   await mkdir(path.dirname(AUTH_STATE_PATH), { recursive: true });
 
   browser = await chromium.launch({ headless: true });
@@ -42,7 +42,7 @@ try {
   const page = await context.newPage();
   configurePage(page);
 
-  await page.goto(new URL("/login", baseUrl).href, { waitUntil: "domcontentloaded" });
+  await page.goto(new URL("/login", baseUrl).href, { waitUntil: "networkidle" });
   await page.locator("#login-email").fill(email);
   await page.locator("#login-password").fill(password);
 
@@ -53,9 +53,9 @@ try {
   );
   await page.getByRole("button", { name: "Masuk ke ApplyFit" }).click();
   const signInResponse = await signInResponsePromise;
-  const body = await readJsonResponse(signInResponse);
 
-  if (!signInResponse.ok() || !body?.data?.user) {
+  if (!signInResponse.ok()) {
+    const body = await readJsonResponse(signInResponse);
     if (isVerificationFailure(signInResponse, body)) {
       throw new ScreenshotWorkflowError(
         "The demo account is not email-verified. Verify it manually through the existing ApplyFit registration flow, then run this command again.",
@@ -66,12 +66,21 @@ try {
     );
   }
 
-  if (body.data.user.email?.toLocaleLowerCase("id-ID") !== email) {
+  await page.waitForURL((url) => url.pathname !== "/login");
+  const accountResponse = await page.request.get(new URL("/api/account/profile", baseUrl).href);
+  const accountBody = await readJsonResponse(accountResponse);
+  const account = accountBody?.data?.account;
+  if (!accountResponse.ok() || !account) {
+    throw new ScreenshotWorkflowError(
+      "Authentication succeeded, but ApplyFit could not confirm the authenticated account profile.",
+    );
+  }
+  if (account.email?.toLocaleLowerCase("id-ID") !== email) {
     throw new ScreenshotWorkflowError(
       "Authentication returned a different account than DEMO_EMAIL; the state was not saved.",
     );
   }
-  if (body.data.user.emailVerified !== true) {
+  if (account.emailVerified !== true) {
     throw new ScreenshotWorkflowError(
       "The demo account signed in but is not marked as email-verified. Verify it manually before saving screenshot state.",
     );
