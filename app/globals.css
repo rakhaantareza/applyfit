@@ -1305,15 +1305,15 @@ a {
 .status-item {
   align-items: center;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   font-size: var(--text-xs);
   gap: 7px;
+  white-space: nowrap;
 }
 
 .status-item strong {
   font-size: var(--text-lg);
   line-height: 1;
-  margin-left: auto;
 }
 
 .status-dot {
