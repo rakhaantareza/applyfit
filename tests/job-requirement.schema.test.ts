@@ -22,6 +22,10 @@ const saveReviewMigrationUrl = new URL(
   "../migrations/20260809174000_save-reviewed-job-requirements.sql",
   import.meta.url,
 );
+const saveReviewAliasFixMigrationUrl = new URL(
+  "../migrations/20260812005521_fix-reviewed-requirements-item-alias.sql",
+  import.meta.url,
+);
 
 test("job requirement model persists only reviewed requirement data", async () => {
   const bootstrapSql = await readFile(bootstrapMigrationUrl, "utf8");
@@ -117,4 +121,20 @@ test("review persistence updates retained IDs and replaces only omitted requirem
     /ALTER FUNCTION public\.save_reviewed_job_requirements\(UUID, JSONB\)\s+OWNER TO project_admin/,
   );
   assert.doesNotMatch(sql, /SECURITY DEFINER/);
+});
+
+test("review persistence qualifies JSON items without PL/pgSQL name conflicts", async () => {
+  const sql = await readFile(saveReviewAliasFixMigrationUrl, "utf8");
+
+  assert.match(sql, /DECLARE\s+reviewed_item JSONB;/);
+  assert.doesNotMatch(sql, /DECLARE\s+item JSONB;/);
+  assert.match(sql, /JSONB_TYPEOF\(entry\.item\)/);
+  assert.match(sql, /NULLIF\(BTRIM\(entry\.item->>'name'\), ''\)/);
+  assert.match(sql, /FOR reviewed_item IN/);
+  assert.match(sql, /item_id := NULLIF\(reviewed_item->>'id', ''\)::UUID/);
+  assert.match(sql, /LANGUAGE plpgsql\s+SECURITY INVOKER/);
+  assert.match(
+    sql,
+    /ALTER FUNCTION public\.save_reviewed_job_requirements\(UUID, JSONB\)\s+OWNER TO project_admin/,
+  );
 });
