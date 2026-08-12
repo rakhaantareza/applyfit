@@ -67,6 +67,32 @@ npm run dev
 
 Configure required service credentials in an ignored local environment file. Never commit credentials or local environment values.
 
+### Authenticated responsive screenshots
+
+ApplyFit uses one manually registered and verified demo account for local authenticated screenshots. Add these values to the ignored `.env.local` file; never commit the password:
+
+```bash
+DEMO_EMAIL=applyfit.demo@gmail.com
+DEMO_PASSWORD=your-local-demo-password
+# Optional; defaults to http://127.0.0.1:3000
+BASE_URL=http://127.0.0.1:3000
+```
+
+After installing dependencies, install the single supported browser once:
+
+```bash
+npx playwright install chromium
+```
+
+With `npm run dev` running at `BASE_URL`, create or refresh the reusable authenticated state through ApplyFit's real login form, then generate all approved responsive screenshots:
+
+```bash
+npm run screenshots:auth
+npm run screenshots
+```
+
+The authenticated state is stored at `.playwright/auth/demo.json`; screenshots are written under `screenshots/<route>/<viewport-width>.png`. Both locations are gitignored because the state may contain session credentials and the images are local review artifacts. Re-run `npm run screenshots:auth` whenever the saved session expires.
+
 ### Validate
 
 ```bash

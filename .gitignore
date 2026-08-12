@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/.playwright/
+/screenshots/
 
 # next.js
 /.next/

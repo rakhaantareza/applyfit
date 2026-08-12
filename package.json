@@ -11,6 +11,8 @@
     "start": "vinext start",
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
+    "screenshots:auth": "node --env-file-if-exists=.env.local scripts/screenshots/auth.mjs",
+    "screenshots": "node --env-file-if-exists=.env.local scripts/screenshots/capture.mjs",
     "db:migrate": "node scripts/db-ownership.mjs migrate",
     "db:ownership:check": "node scripts/db-ownership.mjs check",
     "db:migrations:list": "npx -y @insforge/cli db migrations list"
@@ -37,6 +39,7 @@
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.1.1",
     "globals": "16.4.0",
+    "playwright": "^1.62.1",
     "react-server-dom-webpack": "19.2.6",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
