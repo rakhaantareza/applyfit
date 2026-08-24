@@ -4,6 +4,8 @@ import { chromium } from "playwright";
 import {
   AUTH_STATE_PATH,
   DEFAULT_BASE_URL,
+  SCREENSHOT_BROWSER_LAUNCH_OPTIONS,
+  SCREENSHOT_DEVICE_SCALE_FACTOR,
   SCREENSHOT_ROUTES,
 } from "./config.mjs";
 import {
@@ -37,8 +39,11 @@ try {
   const baseUrl = await ensureDevelopmentServer(configuredBaseUrl);
   await mkdir(path.dirname(AUTH_STATE_PATH), { recursive: true });
 
-  browser = await chromium.launch({ headless: true });
-  context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  browser = await chromium.launch(SCREENSHOT_BROWSER_LAUNCH_OPTIONS);
+  context = await browser.newContext({
+    deviceScaleFactor: SCREENSHOT_DEVICE_SCALE_FACTOR,
+    viewport: { width: 1280, height: 800 },
+  });
   const page = await context.newPage();
   configurePage(page);
 

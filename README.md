@@ -67,7 +67,7 @@ npm run dev
 
 Configure required service credentials in an ignored local environment file. Never commit credentials or local environment values.
 
-### Authenticated responsive screenshots
+### Responsive screenshots
 
 ApplyFit uses one manually registered and verified demo account for local authenticated screenshots. Add these values to the ignored `.env.local` file; never commit the password:
 
@@ -90,6 +90,18 @@ With `npm run dev` running at `BASE_URL`, create or refresh the reusable authent
 npm run screenshots:auth
 npm run screenshots
 ```
+
+`npm run screenshots` keeps the demo-account workspace captures in their authenticated context, then uses a separate context without stored authentication to capture `/login`, `/daftar`, and `/lupa-kata-sandi`.
+
+To capture the high-density portfolio job workflow, run:
+
+```bash
+npm run screenshots:portfolio
+```
+
+The portfolio command resolves an existing demo-account job with persisted
+requirements at runtime, then writes detail, requirement-review, evidence-mapping,
+and analysis images for that same job under `screenshots/portfolio/job-workspace/`.
 
 The authenticated state is stored at `.playwright/auth/demo.json`; screenshots are written under `screenshots/<route>/<viewport-width>.png`. Both locations are gitignored because the state may contain session credentials and the images are local review artifacts. Re-run `npm run screenshots:auth` whenever the saved session expires.
 

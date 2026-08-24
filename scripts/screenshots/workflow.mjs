@@ -1,7 +1,9 @@
 import { access } from "node:fs/promises";
+import { SCREENSHOT_FONT_PROBES } from "./config.mjs";
 
 const NAVIGATION_TIMEOUT_MS = 30_000;
 const SERVER_CHECK_TIMEOUT_MS = 5_000;
+const APP_ROUTE_PROBE_PATH = "/beranda";
 const ROUTE_ERROR_SELECTOR = [
   ".app-shell .career-profile-state.error",
   ".app-shell .persisted-job-state.error",
@@ -51,17 +53,19 @@ export async function ensureDevelopmentServer(baseUrl) {
   const failures = [];
 
   for (const candidate of candidates) {
-    const loginUrl = new URL("/login", candidate);
+    const routeUrl = new URL(APP_ROUTE_PROBE_PATH, candidate);
     try {
-      const response = await fetch(loginUrl, {
+      const response = await fetch(routeUrl, {
         redirect: "manual",
         signal: AbortSignal.timeout(SERVER_CHECK_TIMEOUT_MS),
       });
 
-      if (response.status < 500) return candidate;
-      failures.push(`${candidate} returned HTTP ${response.status}`);
+      if (await isApplyFitRouteResponse(response, candidate)) return candidate;
+      failures.push(
+        `${routeUrl.href} did not serve the ApplyFit route (HTTP ${response.status})`,
+      );
     } catch (error) {
-      failures.push(`${candidate} failed: ${errorMessage(error)}`);
+      failures.push(`${routeUrl.href} failed: ${errorMessage(error)}`);
     }
   }
 
@@ -70,17 +74,108 @@ export async function ensureDevelopmentServer(baseUrl) {
   );
 }
 
+async function isApplyFitRouteResponse(response, candidate) {
+  if (response.status >= 300 && response.status < 400) {
+    const location = response.headers.get("location");
+    if (!location) return false;
+
+    const redirectUrl = new URL(location, candidate);
+    return redirectUrl.origin === candidate && redirectUrl.pathname === "/login";
+  }
+
+  if (!response.ok) return false;
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("text/html")) return false;
+
+  const html = await response.text();
+  return /ApplyFit/i.test(html);
+}
+
 function getLocalBaseUrlCandidates(baseUrl) {
   const url = new URL(baseUrl);
-  const fallbackHost = url.hostname === "127.0.0.1"
-    ? "localhost"
-    : url.hostname === "localhost" ? "127.0.0.1" : null;
+  if (!["127.0.0.1", "localhost"].includes(url.hostname)) return [url.origin];
 
-  if (!fallbackHost) return [url.origin];
+  const localhostUrl = new URL(url.origin);
+  localhostUrl.hostname = "localhost";
+  const loopbackUrl = new URL(url.origin);
+  loopbackUrl.hostname = "127.0.0.1";
+  return [localhostUrl.origin, loopbackUrl.origin];
+}
 
-  const fallbackUrl = new URL(url.origin);
-  fallbackUrl.hostname = fallbackHost;
-  return [url.origin, fallbackUrl.origin];
+export async function verifyScreenshotRoutes(request, baseUrl, routes) {
+  const failures = [];
+
+  for (const route of routes) {
+    const targetUrl = new URL(route.href ?? route.path, baseUrl);
+    try {
+      const response = await request.get(targetUrl.href, {
+        failOnStatusCode: false,
+        timeout: NAVIGATION_TIMEOUT_MS,
+      });
+      const finalUrl = new URL(response.url());
+
+      if (!response.ok()) {
+        failures.push(`${route.label} returned HTTP ${response.status()}`);
+      } else if (
+        finalUrl.origin !== baseUrl ||
+        finalUrl.pathname !== route.path ||
+        (targetUrl.search && finalUrl.search !== targetUrl.search)
+      ) {
+        failures.push(`${route.label} resolved to ${finalUrl.href}`);
+      }
+    } catch (error) {
+      failures.push(`${route.label} failed: ${errorMessage(error)}`);
+    }
+  }
+
+  if (failures.length > 0) {
+    throw new ScreenshotWorkflowError(
+      `Screenshot route verification failed for ${baseUrl}: ${failures.join("; ")}`,
+    );
+  }
+}
+
+export async function resolveScreenshotJob(request, baseUrl) {
+  const jobsResponse = await request.get(new URL("/api/jobs", baseUrl).href, {
+    failOnStatusCode: false,
+  });
+  if (jobsResponse.status() === 401) throw expiredStateError();
+
+  const jobsBody = await readJsonResponse(jobsResponse);
+  const jobs = Array.isArray(jobsBody?.data?.jobs)
+    ? jobsBody.data.jobs.filter(
+      (job) =>
+        typeof job?.id === "string" && job.id &&
+        typeof job?.title === "string" && typeof job?.company === "string",
+    )
+    : [];
+  if (!jobsResponse.ok() || jobs.length === 0) {
+    throw new ScreenshotWorkflowError(
+      "The authenticated demo account has no existing job available for screenshot capture.",
+    );
+  }
+
+  for (const job of jobs) {
+    const encodedJobId = encodeURIComponent(job.id);
+    const requirementsResponse = await request.get(
+      new URL(`/api/jobs/${encodedJobId}/requirements`, baseUrl).href,
+      { failOnStatusCode: false },
+    );
+    if (!requirementsResponse.ok()) continue;
+
+    const requirementsBody = await readJsonResponse(requirementsResponse);
+    if (!(Number(requirementsBody?.data?.total) > 0)) continue;
+
+    const mappingResponse = await request.get(
+      new URL(`/api/jobs/${encodedJobId}/requirements/mapping-summary`, baseUrl).href,
+      { failOnStatusCode: false },
+    );
+    if (mappingResponse.ok()) return job;
+  }
+
+  throw new ScreenshotWorkflowError(
+    "The authenticated demo account has no existing job with persisted requirements ready for detail, review, mapping, and analysis screenshots.",
+  );
 }
 
 export async function fileExists(filePath) {
@@ -98,7 +193,7 @@ export function configurePage(page) {
 }
 
 export async function openAuthenticatedRoute(page, baseUrl, route) {
-  const targetUrl = new URL(route.path, baseUrl);
+  const targetUrl = new URL(route.href ?? route.path, baseUrl);
   let response;
 
   try {
@@ -134,9 +229,60 @@ export async function openAuthenticatedRoute(page, baseUrl, route) {
     );
   }
 
-  await waitForFonts(page, route.label);
+  await settleResponsiveLayout(page, route.label);
   await throwIfRouteErrorVisible(page, route.label);
   assertExpectedPath(page.url(), route);
+}
+
+export async function openUnauthenticatedRoute(page, baseUrl, route) {
+  const targetUrl = new URL(route.href ?? route.path, baseUrl);
+  let response;
+
+  try {
+    response = await page.goto(targetUrl.href, { waitUntil: "domcontentloaded" });
+  } catch (error) {
+    throw new ScreenshotWorkflowError(
+      `Failed to load ${route.label} at ${targetUrl.href}: ${errorMessage(error)}`,
+      { cause: error },
+    );
+  }
+
+  if (!response) {
+    throw new ScreenshotWorkflowError(
+      `No navigation response was received for ${route.label} at ${targetUrl.href}.`,
+    );
+  }
+  if (!response.ok()) {
+    throw new ScreenshotWorkflowError(
+      `${route.label} failed to load with HTTP ${response.status()} at ${targetUrl.href}.`,
+    );
+  }
+
+  try {
+    await page.locator(route.readySelector).waitFor({ state: "visible" });
+    await page.waitForLoadState("networkidle", { timeout: NAVIGATION_TIMEOUT_MS });
+  } catch (error) {
+    throw new ScreenshotWorkflowError(
+      `${route.label} did not reach its unauthenticated ready state within ${NAVIGATION_TIMEOUT_MS / 1000} seconds.`,
+      { cause: error },
+    );
+  }
+
+  await settleResponsiveLayout(page, route.label);
+  assertUnauthenticatedPath(page.url(), route);
+}
+
+export function assertUnauthenticatedPath(currentUrl, route) {
+  const url = new URL(currentUrl);
+  const expectedUrl = new URL(route.href ?? route.path, url.origin);
+  if (
+    url.pathname !== route.path ||
+    (expectedUrl.search && url.search !== expectedUrl.search)
+  ) {
+    throw new ScreenshotWorkflowError(
+      `${route.label} redirected unexpectedly from ${expectedUrl.pathname}${expectedUrl.search} to ${url.pathname}${url.search}.`,
+    );
+  }
 }
 
 async function waitForAuthenticatedRoute(page, route) {
@@ -196,16 +342,63 @@ async function waitForAuthenticatedRoute(page, route) {
 }
 
 async function waitForFonts(page, routeLabel) {
+  let report;
   try {
-    await page.evaluate(async () => {
-      if (document.fonts) await document.fonts.ready;
-    });
+    report = await page.evaluate(async (fontProbes) => {
+      if (!document.fonts) return { supported: false };
+
+      const loadResults = await Promise.all(
+        fontProbes.map(async (probe) => ({
+          family: probe.family,
+          loadedCount: (await document.fonts.load(probe.descriptor, probe.sample)).length,
+        })),
+      );
+
+      // Cover every additional face currently needed by rendered content.
+      await document.fonts.ready;
+
+      const normalizeFamily = (family) => family.replaceAll('"', "").replaceAll("'", "");
+      const loadedFamilies = [...document.fonts]
+        .filter((face) => face.status === "loaded")
+        .map((face) => normalizeFamily(face.family));
+
+      return {
+        loadResults,
+        loadedFamilies,
+        status: document.fonts.status,
+        supported: true,
+      };
+    }, SCREENSHOT_FONT_PROBES);
   } catch (error) {
     throw new ScreenshotWorkflowError(
       `Fonts did not finish loading for ${routeLabel}: ${errorMessage(error)}`,
       { cause: error },
     );
   }
+
+  if (!report.supported) {
+    throw new ScreenshotWorkflowError(
+      `The browser does not expose document.fonts for ${routeLabel}; refusing to capture with unverified fallback fonts.`,
+    );
+  }
+
+  const missingFamilies = SCREENSHOT_FONT_PROBES
+    .filter((probe) => {
+      const result = report.loadResults.find((entry) => entry.family === probe.family);
+      return !result?.loadedCount || !report.loadedFamilies.includes(probe.family);
+    })
+    .map((probe) => probe.family);
+
+  if (report.status !== "loaded" || missingFamilies.length > 0) {
+    const detail = missingFamilies.length > 0
+      ? ` Missing application font faces: ${missingFamilies.join(", ")}.`
+      : "";
+    throw new ScreenshotWorkflowError(
+      `Application fonts were not fully loaded for ${routeLabel}; refusing to capture fallback typography.${detail}`,
+    );
+  }
+
+  return report;
 }
 
 async function throwIfRouteErrorVisible(page, routeLabel) {
@@ -218,20 +411,76 @@ async function throwIfRouteErrorVisible(page, routeLabel) {
   }
 }
 
-export async function settleResponsiveLayout(page) {
-  await page.evaluate(
-    () => new Promise((resolve) => {
-      window.requestAnimationFrame(() => window.requestAnimationFrame(resolve));
-    }),
-  );
+export async function settleResponsiveLayout(page, routeLabel = "the current page") {
+  const fontReport = await waitForFonts(page, routeLabel);
+
+  const layoutIsStable = await page.evaluate(async () => {
+    await Promise.all(
+      [...document.images]
+        .filter((image) => image.complete)
+        .map((image) => image.decode?.().catch(() => {})),
+    );
+
+    const nextFrame = () => new Promise((resolve) => window.requestAnimationFrame(resolve));
+    const layoutSignature = () => {
+      const root = document.documentElement;
+      const body = document.body;
+      const elementMetrics = [...body.querySelectorAll("*")]
+        .filter(
+          (element) =>
+            element instanceof HTMLElement && element.getClientRects().length > 0,
+        )
+        .map((element) => [
+          element.offsetLeft,
+          element.offsetTop,
+          element.offsetWidth,
+          element.offsetHeight,
+          element.scrollWidth,
+          element.scrollHeight,
+        ]);
+
+      return JSON.stringify([
+        root.clientWidth,
+        root.clientHeight,
+        root.scrollWidth,
+        root.scrollHeight,
+        body.scrollWidth,
+        body.scrollHeight,
+        elementMetrics,
+      ]);
+    };
+
+    let previous = "";
+    let stableFrames = 0;
+    for (let frame = 0; frame < 30; frame += 1) {
+      await nextFrame();
+      const current = layoutSignature();
+      stableFrames = current === previous ? stableFrames + 1 : 0;
+      if (stableFrames >= 2) return true;
+      previous = current;
+    }
+    return false;
+  });
+
+  if (!layoutIsStable) {
+    throw new ScreenshotWorkflowError(
+      `${routeLabel} did not reach a stable layout after its fonts loaded.`,
+    );
+  }
+
+  return fontReport;
 }
 
 export function assertExpectedPath(currentUrl, route) {
   const url = new URL(currentUrl);
   if (url.pathname === "/login") throw expiredStateError();
-  if (url.pathname !== route.path) {
+  const expectedUrl = new URL(route.href ?? route.path, url.origin);
+  if (
+    url.pathname !== route.path ||
+    (expectedUrl.search && url.search !== expectedUrl.search)
+  ) {
     throw new ScreenshotWorkflowError(
-      `${route.label} redirected unexpectedly from ${route.path} to ${url.pathname}.`,
+      `${route.label} redirected unexpectedly from ${expectedUrl.pathname}${expectedUrl.search} to ${url.pathname}${url.search}.`,
     );
   }
 }

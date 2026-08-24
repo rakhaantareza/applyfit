@@ -1,12 +1,13 @@
-import { mkdir, readFile } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { chromium } from "playwright";
 import {
   AUTH_STATE_PATH,
+  buildJobScreenshotRoutes,
   DEFAULT_BASE_URL,
-  PROJECT_ROOT,
+  PORTFOLIO_DEVICE_SCALE_FACTOR,
+  SCREENSHOT_BROWSER_LAUNCH_OPTIONS,
   SCREENSHOT_ROOT,
-  SCREENSHOT_ROUTES,
 } from "./config.mjs";
 import {
   ScreenshotWorkflowError,
@@ -19,26 +20,20 @@ import {
   getBaseUrl,
   openAuthenticatedRoute,
   settleResponsiveLayout,
+  resolveScreenshotJob,
+  verifyScreenshotRoutes,
 } from "./workflow.mjs";
 
 const PORTFOLIO_VIEWPORT_WIDTH = 1440;
 const INITIAL_VIEWPORT_HEIGHT = 1200;
-const DEVICE_SCALE_FACTOR = 2;
 const APPROVED_CAPTURE_HEIGHT = 1106;
 const MIN_REGION_BOTTOM_PADDING = 16;
-const PLUS_JAKARTA_FONT_PATH = path.join(
-  PROJECT_ROOT,
-  "node_modules",
-  "@fontsource-variable",
-  "plus-jakarta-sans",
-  "files",
-  "plus-jakarta-sans-latin-wght-normal.woff2",
-);
-const OUTPUT_PATH = path.join(
+const FEATURED_OUTPUT_PATH = path.join(
   SCREENSHOT_ROOT,
   "portfolio",
   "applyfit-featured.png",
 );
+const JOB_WORKSPACE_OUTPUT_DIRECTORY = path.join(SCREENSHOT_ROOT, "portfolio", "job-workspace");
 
 let browser;
 let context;
@@ -48,16 +43,10 @@ try {
   const baseUrl = await ensureDevelopmentServer(configuredBaseUrl);
   if (!(await fileExists(AUTH_STATE_PATH))) throw expiredStateError();
 
-  const fitScoreRoute = SCREENSHOT_ROUTES.find(
-    (route) => route.path === "/skor-kecocokan",
-  );
-  if (!fitScoreRoute) {
-    throw new ScreenshotWorkflowError("The Fit Score screenshot route is not configured.");
-  }
 
-  browser = await chromium.launch({ headless: true });
+  browser = await chromium.launch(SCREENSHOT_BROWSER_LAUNCH_OPTIONS);
   context = await browser.newContext({
-    deviceScaleFactor: DEVICE_SCALE_FACTOR,
+    deviceScaleFactor: PORTFOLIO_DEVICE_SCALE_FACTOR,
     storageState: AUTH_STATE_PATH,
     viewport: {
       width: PORTFOLIO_VIEWPORT_WIDTH,
@@ -65,52 +54,49 @@ try {
     },
   });
 
+  const job = await resolveScreenshotJob(context.request, baseUrl);
+  const workspaceRoutes = buildJobScreenshotRoutes(job.id);
+  await verifyScreenshotRoutes(context.request, baseUrl, workspaceRoutes);
+  await mkdir(JOB_WORKSPACE_OUTPUT_DIRECTORY, { recursive: true });
+
   const page = await context.newPage();
   configurePage(page);
-  await openPortfolioRoute(page, baseUrl, fitScoreRoute);
-  const fontReport = await ensurePortfolioFont(page);
-  await validateFeaturedContent(page);
 
-  let region = await measureFeaturedRegion(page);
-  await page.setViewportSize({
-    width: PORTFOLIO_VIEWPORT_WIDTH,
-    height: region.height,
-  });
-  await settleResponsiveLayout(page);
-
-  // Re-measure after the viewport change so the fixed sidebar fills the exact
-  // same DOM-bounded region as the Fit Score content.
-  region = await measureFeaturedRegion(page);
-  if (page.viewportSize()?.height !== region.height) {
+  for (const route of workspaceRoutes) {
     await page.setViewportSize({
       width: PORTFOLIO_VIEWPORT_WIDTH,
-      height: region.height,
+      height: INITIAL_VIEWPORT_HEIGHT,
     });
-    await settleResponsiveLayout(page);
-    region = await measureFeaturedRegion(page);
+    await openPortfolioRoute(page, baseUrl, route);
+    await validateWorkspaceJob(page, route, job);
+
+    const outputPath = path.join(JOB_WORKSPACE_OUTPUT_DIRECTORY, `${route.slug}.png`);
+    await page.screenshot({
+      animations: "disabled",
+      caret: "hide",
+      fullPage: true,
+      path: outputPath,
+      scale: "device",
+    });
+    console.log(`${route.label}: ${path.relative(process.cwd(), outputPath)}`);
   }
 
-  await mkdir(path.dirname(OUTPUT_PATH), { recursive: true });
-  await page.screenshot({
-    animations: "disabled",
-    caret: "hide",
-    clip: {
-      x: 0,
-      y: 0,
-      width: PORTFOLIO_VIEWPORT_WIDTH,
-      height: region.height,
-    },
-    path: OUTPUT_PATH,
-    scale: "device",
-  });
+  const analysisRoute = workspaceRoutes.at(-1);
+  if (!analysisRoute || analysisRoute.kind !== "analysis") {
+    throw new ScreenshotWorkflowError("The portfolio analysis route is not configured last.");
+  }
+  const { fontReport, region } = await captureFeaturedAnalysis(page, analysisRoute, job);
 
-  console.log("Captured the authenticated ApplyFit portfolio feature image.");
-  console.log(`Saved to ${path.relative(process.cwd(), OUTPUT_PATH)}.`);
   console.log(
-    `Output dimensions: ${PORTFOLIO_VIEWPORT_WIDTH * DEVICE_SCALE_FACTOR}x${region.height * DEVICE_SCALE_FACTOR}.`,
+    `Captured 4 authenticated job-workspace screenshots for ${job.title} at ${job.company}.`,
+  );
+  console.log(`Resolved demo job ID at runtime: ${job.id}.`);
+  console.log(`Featured analysis: ${path.relative(process.cwd(), FEATURED_OUTPUT_PATH)}.`);
+  console.log(
+    `Output dimensions: ${PORTFOLIO_VIEWPORT_WIDTH * PORTFOLIO_DEVICE_SCALE_FACTOR}x${region.height * PORTFOLIO_DEVICE_SCALE_FACTOR}.`,
   );
   console.log(
-    `Verified fonts: ${fontReport.pageHeading.family} (${fontReport.pageHeading.weight}), ${fontReport.readinessHeading.family} (${fontReport.readinessHeading.weight}).`,
+    `Verified application fonts: ${fontReport.loadedFamilies.join(", ")}.`,
   );
 } catch (error) {
   const message = errorMessage(error);
@@ -144,116 +130,71 @@ async function openPortfolioRoute(page, baseUrl, route) {
   }
 }
 
-async function ensurePortfolioFont(page) {
-  const fontData = await readFile(PLUS_JAKARTA_FONT_PATH);
-  const fontSource = `data:font/woff2;base64,${fontData.toString("base64")}`;
-  await page.addStyleTag({
-    content: `
-      @font-face {
-        font-family: "Plus Jakarta Sans";
-        font-style: normal;
-        font-display: block;
-        font-weight: 200 800;
-        src: url("${fontSource}") format("woff2-variations");
-      }
-    `,
-  });
 
-  const report = await page.evaluate(async () => {
-    await Promise.all([
-      document.fonts.load('400 16px "Plus Jakarta Sans"', "Skor Kecocokan"),
-      document.fonts.load(
-        '700 16px "Plus Jakarta Sans"',
-        "Analisis kesiapanmu untuk role ini",
-      ),
-    ]);
-    await document.fonts.ready;
+async function validateWorkspaceJob(page, route, job) {
+  await requireExactText(
+    page.locator(route.jobTitleSelector).first(),
+    job.title,
+    `${route.label} job`,
+  );
 
-    const familyName = "Plus Jakarta Sans";
-    const loadedFaces = [...document.fonts].filter(
-      (face) =>
-        face.family.replaceAll('"', "").replaceAll("'", "") === familyName &&
-        face.status === "loaded",
-    );
-    const readStyle = (selector) => {
-      const element = document.querySelector(selector);
-      if (!element) return null;
-      const computed = getComputedStyle(element);
-      return {
-        family: computed.fontFamily,
-        weight: computed.fontWeight,
-      };
-    };
-
-    return {
-      fontSetStatus: document.fonts.status,
-      loadedFaceCount: loadedFaces.length,
-      pageHeading: readStyle(".topbar h1"),
-      readinessHeading: readStyle("#score-title"),
-    };
-  });
-
-  const headings = [report.pageHeading, report.readinessHeading];
-  if (
-    report.fontSetStatus !== "loaded" ||
-    report.loadedFaceCount < 1 ||
-    headings.some((heading) => !heading?.family.includes("Plus Jakarta Sans"))
-  ) {
+  if (route.kind !== "analysis") return;
+  const currentUrl = new URL(page.url());
+  if (currentUrl.searchParams.get("job") !== job.id) {
     throw new ScreenshotWorkflowError(
-      "Plus Jakarta Sans did not finish loading for the portfolio screenshot.",
+      `Job analysis did not retain the resolved demo job ID ${job.id}.`,
     );
   }
 
-  return report;
-}
-
-async function validateFeaturedContent(page) {
-  await requireExactText(page.locator(".sidebar-user-copy strong"), "Kimi Leonhart", "demo persona");
   await requireExactText(page.locator(".topbar h1"), "Skor Kecocokan", "page heading");
   await requireExactText(
-    page.locator(".analyzed-job-heading strong"),
-    "Frontend Engineer",
-    "analyzed job title",
-  );
-  await requireExactText(
     page.locator(".analyzed-job-heading > span"),
-    "Northstar Labs",
+    job.company,
     "analyzed company",
   );
+  const scoreText = (await page.locator(".score-ring strong").textContent())?.trim();
+  const score = Number(scoreText?.replaceAll(".", "").replace(",", "."));
+  if (!scoreText || !Number.isFinite(score) || score < 0 || score > 100) {
+    throw new ScreenshotWorkflowError(
+      `Expected a calculated Fit Score for ${job.title}, but found ${scoreText || "no score"}.`,
+    );
+  }
+}
 
-  const score = (await page.locator(".score-ring strong").textContent())?.trim();
-  if (!score || !/^92[,.]3$/.test(score)) {
-    throw new ScreenshotWorkflowError(
-      `Expected the prepared 92.3% Fit Score, but found ${score || "no score"}.`,
-    );
+async function captureFeaturedAnalysis(page, analysisRoute, job) {
+  await validateWorkspaceJob(page, analysisRoute, job);
+  let region = await measureFeaturedRegion(page);
+  await page.setViewportSize({
+    width: PORTFOLIO_VIEWPORT_WIDTH,
+    height: region.height,
+  });
+  const fontReport = await settleResponsiveLayout(page, `${analysisRoute.label} featured viewport`);
+
+  region = await measureFeaturedRegion(page);
+  if (page.viewportSize()?.height !== region.height) {
+    await page.setViewportSize({
+      width: PORTFOLIO_VIEWPORT_WIDTH,
+      height: region.height,
+    });
+    await settleResponsiveLayout(page, `${analysisRoute.label} featured viewport`);
+    region = await measureFeaturedRegion(page);
   }
 
-  const statuses = await page.locator(".status-item").evaluateAll((items) =>
-    items.map((item) => ({
-      label: item.querySelector("span:not(.status-dot)")?.textContent?.trim(),
-      value: item.querySelector("strong")?.textContent?.trim(),
-    })),
-  );
-  const proven = statuses.find((status) => status.label === "Proven");
-  const missing = statuses.find((status) => status.label === "Missing");
-  if (proven?.value !== "10" || missing?.value !== "2") {
-    throw new ScreenshotWorkflowError(
-      "Expected the prepared Proven 10 and Missing 2 status summary.",
-    );
-  }
+  await mkdir(path.dirname(FEATURED_OUTPUT_PATH), { recursive: true });
+  await page.screenshot({
+    animations: "disabled",
+    caret: "hide",
+    clip: {
+      x: 0,
+      y: 0,
+      width: PORTFOLIO_VIEWPORT_WIDTH,
+      height: region.height,
+    },
+    path: FEATURED_OUTPUT_PATH,
+    scale: "device",
+  });
 
-  const attentionCards = page.locator(".attention-item");
-  if (await attentionCards.count() !== 2) {
-    throw new ScreenshotWorkflowError(
-      "Expected exactly two missing requirement cards in Perlu Perhatian.",
-    );
-  }
-  const cardStatuses = await attentionCards.locator(".status-badge").allTextContents();
-  if (cardStatuses.some((status) => status.trim() !== "Missing")) {
-    throw new ScreenshotWorkflowError(
-      "Both Perlu Perhatian cards must have Missing status.",
-    );
-  }
+  return { fontReport, region };
 }
 
 async function requireExactText(locator, expected, label) {
@@ -283,17 +224,18 @@ async function measureFeaturedRegion(page) {
     );
   }
 
-  const bottomPadding = APPROVED_CAPTURE_HEIGHT - bounds.attentionBottom;
-  if (bottomPadding < MIN_REGION_BOTTOM_PADDING) {
+  const minimumHeight = Math.ceil(bounds.attentionBottom + MIN_REGION_BOTTOM_PADDING);
+  const maximumHeight = Math.floor(bounds.requirementsTop) - 1;
+  if (minimumHeight > maximumHeight) {
     throw new ScreenshotWorkflowError(
-      "The approved capture no longer contains the complete Perlu Perhatian section.",
-    );
-  }
-  if (APPROVED_CAPTURE_HEIGHT >= Math.floor(bounds.requirementsTop)) {
-    throw new ScreenshotWorkflowError(
-      "The DOM capture boundary would include Detail Requirement; no image was written.",
+      "The featured capture cannot include Perlu Perhatian without also including Detail Requirement.",
     );
   }
 
-  return { height: APPROVED_CAPTURE_HEIGHT };
+  return {
+    height: Math.min(
+      Math.max(APPROVED_CAPTURE_HEIGHT, minimumHeight),
+      maximumHeight,
+    ),
+  };
 }
