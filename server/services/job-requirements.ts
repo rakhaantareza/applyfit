@@ -2,7 +2,7 @@ import type { InsForgeClient } from "@insforge/sdk";
 import { getJobPosting } from "./saved-jobs.ts";
 
 const REQUIREMENT_COLUMNS =
-  "id,job_id,name,type,priority,created_at,updated_at";
+  "id,job_id,name,type,priority,reviewed_without_evidence,created_at,updated_at";
 
 export type JobRequirementType = "skill" | "tool" | "education" | "experience";
 export type JobRequirementPriority = "required" | "preferred";
@@ -13,6 +13,7 @@ export type JobRequirement = {
   name: string;
   type: JobRequirementType;
   priority: JobRequirementPriority;
+  reviewedWithoutEvidence: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -87,13 +88,23 @@ function isRequirementPriority(value: unknown): value is JobRequirementPriority 
 
 export function normalizeJobRequirement(value: unknown): JobRequirement {
   if (!isRecord(value)) throw new JobRequirementsQueryError();
-  const { id, job_id, name, type, priority, created_at, updated_at } = value;
+  const {
+    id,
+    job_id,
+    name,
+    type,
+    priority,
+    reviewed_without_evidence,
+    created_at,
+    updated_at,
+  } = value;
   if (
     typeof id !== "string" ||
     typeof job_id !== "string" ||
     typeof name !== "string" ||
     !isRequirementType(type) ||
     !isRequirementPriority(priority) ||
+    typeof reviewed_without_evidence !== "boolean" ||
     typeof created_at !== "string" ||
     typeof updated_at !== "string"
   ) {
@@ -105,6 +116,7 @@ export function normalizeJobRequirement(value: unknown): JobRequirement {
     name,
     type,
     priority,
+    reviewedWithoutEvidence: reviewed_without_evidence,
     createdAt: created_at,
     updatedAt: updated_at,
   };

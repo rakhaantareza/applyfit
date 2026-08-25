@@ -2,6 +2,7 @@
 
 import { AlertCircle, BriefcaseBusiness, Plus } from "lucide-react";
 import { useEffect, useState, type CSSProperties } from "react";
+import { JobFocusShell } from "./JobFocusShell";
 import { StableLink as Link } from "./StableLink";
 import {
   AnalyzedJobContext,
@@ -72,7 +73,7 @@ type ApiRequirementDetail = {
 
 type Analysis = { summary: FitSummary; requirements: Requirement[] };
 
-export function FitScoreWorkspace() {
+export function FitScoreWorkspace({ jobId }: { jobId: string }) {
   const [jobs, setJobs] = useState<JobAnalysisJob[]>([]);
   const [selectedJobId, setSelectedJobId] = useState("");
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
@@ -88,9 +89,10 @@ export function FitScoreWorkspace() {
         const result = await readJson<JobsResponse>(response);
         if (!response.ok || !result.data?.jobs) throw new Error(result.error?.message ?? "Lowongan belum dapat dimuat.");
         const analysisJobs = result.data.jobs.map(toAnalysisJob);
-        const queryJobId = new URLSearchParams(window.location.search).get("job");
-        const initialId = analysisJobs.some((job) => job.id === queryJobId) ? queryJobId! : analysisJobs[0]?.id ?? "";
-        if (active) { setJobs(analysisJobs); setSelectedJobId(initialId); }
+        if (!analysisJobs.some((job) => job.id === jobId)) {
+          throw new Error("Lowongan tidak ditemukan.");
+        }
+        if (active) { setJobs(analysisJobs); setSelectedJobId(jobId); }
       } catch (requestError) {
         if (active) setError(requestError instanceof Error ? requestError.message : "Lowongan belum dapat dimuat.");
       } finally {
@@ -99,7 +101,7 @@ export function FitScoreWorkspace() {
     }
     void loadJobs();
     return () => { active = false; };
-  }, []);
+  }, [jobId]);
 
   useEffect(() => {
     if (!selectedJobId) return;
@@ -137,24 +139,38 @@ export function FitScoreWorkspace() {
 
   function selectJob(jobId: string) {
     setSelectedJobId(jobId);
-    const url = new URL(window.location.href);
-    url.searchParams.set("job", jobId);
-    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    window.history.replaceState(null, "", `/lowongan/${encodeURIComponent(jobId)}/analisis`);
   }
 
-  if (loadingJobs) return <FitScorePageFrame />;
-  if (error && !jobs.length) return <FitScoreErrorState error={error} />;
-  if (!jobs.length) return <EmptyJobsState />;
+  if (loadingJobs) return <FitScorePageFrame jobId={jobId} />;
+  if (error && !jobs.length) {
+    return (
+      <JobFocusShell activeStep="analysis" jobId={jobId}>
+        <div className="page-container">
+          <FitScoreErrorState error={error} />
+        </div>
+      </JobFocusShell>
+    );
+  }
+  if (!jobs.length) return <EmptyJobsState jobId={jobId} />;
 
+  const selectedJob = jobs.find((job) => job.id === selectedJobId);
   return (
     <JobAnalysisProvider jobs={jobs} selectedJobId={selectedJobId} onSelectJob={selectJob}>
-      <div className="page-container">
-        <header className="topbar">
-          <div><p className="eyebrow">Analisis kesiapan sebelum melamar</p><h1>Skor Kecocokan</h1><p className="header-copy">Pahami posisi profilmu terhadap requirement lowongan yang sedang dianalisis.</p></div>
-          <JobSwitcher />
-        </header>
-        {loadingAnalysis ? null : error || !analysis ? <FitScoreErrorState error={error || "Fit Score belum dapat dimuat."} compact /> : <FitScoreContent analysis={analysis} />}
-      </div>
+      <JobFocusShell
+        activeStep="analysis"
+        company={selectedJob?.company}
+        jobId={selectedJobId}
+        title={selectedJob?.title}
+      >
+        <div className="page-container">
+          <header className="topbar">
+            <div><p className="eyebrow">Analisis kesiapan sebelum melamar</p><h1>Skor Kecocokan</h1><p className="header-copy">Pahami posisi profilmu terhadap requirement lowongan yang sedang dianalisis.</p></div>
+            <JobSwitcher />
+          </header>
+          {loadingAnalysis ? null : error || !analysis ? <FitScoreErrorState error={error || "Fit Score belum dapat dimuat."} compact /> : <FitScoreContent analysis={analysis} />}
+        </div>
+      </JobFocusShell>
     </JobAnalysisProvider>
   );
 }
@@ -195,7 +211,7 @@ function FitScoreContent({ analysis }: { analysis: Analysis }) {
           </div>
         </article>
         <div className="status-summary" aria-label="Ringkasan status requirement">
-          <div className="status-summary-heading"><div><p className="eyebrow">Ringkasan status</p><h2>{summary.totalRequirements} requirement lowongan</h2></div><p>{summary.excludedRequirements} requirement pengalaman atau pendidikan tetap terlihat sebagai konteks dan tidak masuk skor MVP.</p></div>
+          <div className="status-summary-heading"><div><p className="eyebrow">Ringkasan status</p><h2>{summary.totalRequirements} requirement lowongan</h2></div><p>{summary.excludedRequirements} requirement pengalaman atau pendidikan tetap terlihat sebagai konteks dan tidak masuk Fit Score.</p></div>
           <div className="status-list">{statusSummary.map((item) => <div className="status-item" key={item.label}><span className={`status-dot ${item.className}`} /><span>{item.label}</span><strong>{item.value}</strong></div>)}</div>
           <div className="status-bar" aria-hidden="true">{statusSummary.map((item) => <span className={item.className} key={item.label} />)}</div>
         </div>
@@ -211,26 +227,26 @@ function FitScoreContent({ analysis }: { analysis: Analysis }) {
         <RequirementList requirements={requirements} />
       </section>
 
-      <details className="scoring-disclosure">
-        <summary><span><span className="eyebrow">Transparansi skor</span><strong>Bagaimana Fit Score dihitung?</strong><small>Lihat formula, bobot, dan contoh perhitungan.</small></span><span className="disclosure-icon" aria-hidden="true">+</span></summary>
-        <div className="scoring-content">
-          <div><h2>Aturannya tetap dan dapat ditelusuri</h2><p>Setiap poin berasal dari bobot prioritas dan multiplier status requirement.</p></div>
-          <div className="formula-card"><div><span>Poin saat ini</span><strong>{formatNumber(summary.currentPoints)}</strong></div><span className="formula-symbol">÷</span><div><span>Poin maksimum</span><strong>{formatNumber(summary.maximumPoints)}</strong></div><span className="formula-symbol">×</span><strong>100</strong></div>
-          <div className="weights"><div><span className="weight-mark required">3</span><span><strong>Requirement wajib</strong><small>Bobot 3 poin</small></span></div><div><span className="weight-mark preferred">1</span><span><strong>Requirement preferensi</strong><small>Bobot 1 poin</small></span></div></div>
-          <Link className="text-button" href="/contoh-perhitungan" aria-label="Lihat contoh perhitungan skor lengkap">Lihat contoh perhitungan <span aria-hidden="true">→</span></Link>
-        </div>
-      </details>
+      <Link
+        className="fit-score-guide-link"
+        href="/contoh-perhitungan"
+        aria-label="Pelajari cara Fit Score dihitung"
+      >
+        Cara Fit Score dihitung <span aria-hidden="true">→</span>
+      </Link>
     </>
   );
 }
 
-function FitScorePageFrame() {
+function FitScorePageFrame({ jobId }: { jobId: string }) {
   return (
-    <div className="page-container">
-      <header className="topbar">
-        <div><p className="eyebrow">Analisis kesiapan sebelum melamar</p><h1>Skor Kecocokan</h1><p className="header-copy">Pahami posisi profilmu terhadap requirement lowongan yang sedang dianalisis.</p></div>
-      </header>
-    </div>
+    <JobFocusShell activeStep="analysis" jobId={jobId}>
+      <div className="page-container">
+        <header className="topbar">
+          <div><p className="eyebrow">Analisis kesiapan sebelum melamar</p><h1>Skor Kecocokan</h1><p className="header-copy">Pahami posisi profilmu terhadap requirement lowongan yang sedang dianalisis.</p></div>
+        </header>
+      </div>
+    </JobFocusShell>
   );
 }
 
@@ -238,9 +254,10 @@ function FitScoreErrorState({ error, compact = false }: { error: string; compact
   return <div className={`persisted-job-state error${compact ? " compact" : ""}`}><AlertCircle aria-hidden="true" size={22} /><strong>{error}</strong><button type="button" onClick={() => window.location.reload()}>Coba lagi</button></div>;
 }
 
-function EmptyJobsState() {
+function EmptyJobsState({ jobId }: { jobId: string }) {
   return (
-    <div className="page-container">
+    <JobFocusShell activeStep="analysis" jobId={jobId}>
+      <div className="page-container">
       <header className="topbar">
         <div>
           <p className="eyebrow">Analisis kesiapan sebelum melamar</p>
@@ -259,7 +276,8 @@ function EmptyJobsState() {
           Tambah lowongan
         </Link>
       </section>
-    </div>
+      </div>
+    </JobFocusShell>
   );
 }
 
@@ -270,7 +288,7 @@ function buildPracticalSummary(summary: FitSummary) {
     `${summary.statusCounts.learning} masih Learning`,
     `${summary.statusCounts.missing} belum memiliki skill yang dipetakan`,
   ];
-  return `${parts.join(", ")}. ${summary.excludedRequirements} requirement pengalaman atau pendidikan berada di luar skor MVP.`;
+  return `${parts.join(", ")}. ${summary.excludedRequirements} requirement pengalaman atau pendidikan berada di luar Fit Score.`;
 }
 
 function buildPayloadRequirements(requirements: MappingRequirement[], informational: InformationalRequirement[]) {
@@ -301,7 +319,7 @@ function toRequirement(requirement: ApiRequirementDetail): Requirement {
     kind: kindLabels[requirement.type],
     priority: requirement.priority === "required" ? "Wajib" : "Preferensi",
     status,
-    note: requirement.isInformational ? "Disimpan sebagai konteks dan tidak dihitung dalam Fit Score MVP." : statusNotes[status](requirement.evidences.length),
+    note: requirement.isInformational ? "Disimpan sebagai konteks dan tidak dihitung dalam Fit Score." : statusNotes[status](requirement.evidences.length),
     evidence: requirement.evidences.map((evidence) => ({ title: evidence.title, type: evidenceTypeLabels[evidence.type] })),
     score: requirement.points,
   };

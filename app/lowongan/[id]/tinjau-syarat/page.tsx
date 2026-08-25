@@ -1,25 +1,12 @@
-import type { Metadata } from "next";
-import { AppSidebar } from "../../../components/AppSidebar";
-import { RequirementReviewWorkspace } from "./RequirementReviewWorkspace";
-import { AuthenticatedRoute } from "../../../components/AuthenticatedRoute";
+import { redirect } from "next/navigation";
 
-type RequirementReviewPageProps = {
+type LegacyRequirementReviewPageProps = {
   params: Promise<{ id: string }>;
 };
 
-export const metadata: Metadata = {
-  title: "Tinjau Syarat",
-  description: "Periksa requirement hasil ekstraksi sebelum dipakai dalam analisis ApplyFit.",
-};
-
-export default async function RequirementReviewPage({ params }: RequirementReviewPageProps) {
+export default async function LegacyRequirementReviewPage({
+  params,
+}: LegacyRequirementReviewPageProps) {
   const { id } = await params;
-  return (
-    <AuthenticatedRoute><div className="app-shell">
-      <AppSidebar activeItem="Lowongan" />
-      <main className="main-content requirement-review-main">
-        <RequirementReviewWorkspace jobId={id} />
-      </main>
-    </div></AuthenticatedRoute>
-  );
+  redirect(`/lowongan/${encodeURIComponent(id)}/persyaratan`);
 }

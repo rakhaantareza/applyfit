@@ -27,6 +27,7 @@ import {
 
 type WorkspaceRequirement = MappingRequirement & {
   autoMatchReason: string | null;
+  reviewedWithoutEvidence: boolean;
 };
 
 type EvidenceMappingWorkspaceProps = {
@@ -63,7 +64,11 @@ export function EvidenceMappingWorkspace({
   skills,
 }: EvidenceMappingWorkspaceProps) {
   const [manualMappings, setManualMappings] = useState<SavedManualMapping[]>([]);
-  const [noEvidenceRequirementIds, setNoEvidenceRequirementIds] = useState<string[]>([]);
+  const [noEvidenceRequirementIds, setNoEvidenceRequirementIds] = useState<string[]>(
+    () => requirements
+      .filter((requirement) => requirement.reviewedWithoutEvidence)
+      .map((requirement) => requirement.id),
+  );
   const [pendingNoEvidenceId, setPendingNoEvidenceId] = useState<string | null>(null);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
@@ -133,7 +138,17 @@ export function EvidenceMappingWorkspace({
     );
   }
 
-  function undoWithoutEvidence(requirement: WorkspaceRequirement) {
+  async function undoWithoutEvidence(requirement: WorkspaceRequirement) {
+    setRequestError("");
+    const response = await fetch(
+      `/api/jobs/${encodeURIComponent(jobId)}/requirements/${encodeURIComponent(requirement.id)}/without-evidence`,
+      { method: "DELETE" },
+    );
+    const result = await readMutationResponse(response);
+    if (!response.ok) {
+      setRequestError(result.error?.message ?? "Tanda tanpa bukti belum dapat dibatalkan.");
+      return;
+    }
     setNoEvidenceRequirementIds((current) =>
       current.filter((id) => id !== requirement.id),
     );
@@ -194,9 +209,9 @@ export function EvidenceMappingWorkspace({
             <Waypoints size={22} strokeWidth={1.8} />
           </span>
           <div>
-            <p className="eyebrow">Kesiapan pemetaan</p>
+            <p className="eyebrow">Cocokkan Profil</p>
             <h2 id="mapping-overview-title">
-              {resolvedRequirementCount} dari {requirements.length} requirement skill sudah ditinjau
+              {resolvedRequirementCount} dari {requirements.length} requirement skill sudah diperiksa
             </h2>
             <p>
               Hubungan di bawah ini memakai skill dan bukti dari profil kariermu.
@@ -204,15 +219,15 @@ export function EvidenceMappingWorkspace({
             </p>
           </div>
         </div>
-        <div className="mapping-progress" aria-label={`Pemetaan ${mappingProgress} persen`}>
+        <div className="mapping-progress" aria-label={`Kecocokan profil ${mappingProgress} persen`}>
           <div>
-            <span>Progres pemetaan</span>
+            <span>Progres kecocokan</span>
             <strong>{mappingProgress}%</strong>
           </div>
           <span className="mapping-progress-track" aria-hidden="true">
             <span style={{ width: `${mappingProgress}%` }} />
           </span>
-          <small>{mappedEvidenceIds.size} bukti unik sudah ikut mendukung pemetaan.</small>
+          <small>{mappedEvidenceIds.size} bukti unik sudah ikut mendukung kecocokan.</small>
         </div>
       </section>
 
@@ -224,10 +239,10 @@ export function EvidenceMappingWorkspace({
           <strong>{autoMatchedRequirementCount} kecocokan nama ditemukan otomatis</strong>
           <p>
             ApplyFit hanya menautkan nama skill yang cocok langsung. Requirement tanpa
-            kecocokan tetap dibiarkan terbuka untuk ditinjau pengguna.
+            kecocokan tetap dibiarkan terbuka untuk diperiksa pengguna.
           </p>
         </div>
-        <small>Exact match</small>
+        <small>Cocok otomatis</small>
       </div>
 
       <ManualEvidenceMappingForm
@@ -368,7 +383,7 @@ export function EvidenceMappingWorkspace({
             <ClipboardCheck size={20} strokeWidth={1.8} />
           </span>
           <div>
-            <p className="eyebrow">Review hasil pemetaan</p>
+            <p className="eyebrow">Hasil Cocokkan Profil</p>
             <h2 id="mapping-review-title">Lihat status yang diturunkan dari hubungan saat ini</h2>
             <p>
               Ringkasan ini membantu memeriksa dasar analisis sebelum Fit Score dihitung.
@@ -387,7 +402,7 @@ export function EvidenceMappingWorkspace({
 
         {isReviewOpen ? (
           <div className="mapping-review-content" id="mapping-review-content">
-            <div className="mapping-review-summary" aria-label="Ringkasan status hasil pemetaan">
+            <div className="mapping-review-summary" aria-label="Ringkasan hasil Cocokkan Profil">
               {reviewStatusOrder.map((status) => (
                 <span className={status} key={status}>
                   <i aria-hidden="true" />

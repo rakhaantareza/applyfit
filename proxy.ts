@@ -52,6 +52,7 @@ export const config = {
     "/login/:path*",
     "/lowongan/:path*",
     "/pengaturan/:path*",
+    "/portfolio-pengalaman/:path*",
     "/profil-karier/:path*",
     "/pustaka-bukti/:path*",
     "/skor-kecocokan/:path*",
@@ -64,6 +65,7 @@ function isProtectedAppRoute(pathname: string) {
     pathname === "/beranda" || pathname.startsWith("/beranda/") ||
     pathname === "/lowongan" || pathname.startsWith("/lowongan/") ||
     pathname === "/pengaturan" || pathname.startsWith("/pengaturan/") ||
+    pathname === "/portfolio-pengalaman" || pathname.startsWith("/portfolio-pengalaman/") ||
     pathname === "/profil-karier" || pathname.startsWith("/profil-karier/") ||
     pathname === "/pustaka-bukti" || pathname.startsWith("/pustaka-bukti/") ||
     pathname === "/skor-kecocokan" || pathname.startsWith("/skor-kecocokan/")

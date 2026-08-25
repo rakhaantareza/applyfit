@@ -13,12 +13,7 @@ export function AuthenticatedRoute({ children }: { children: ReactNode }) {
   }, [loading, user]);
 
   if (loading || !user) {
-    return (
-      <main className="session-route-check" aria-live="polite">
-        <span className="brand-mark session-logo-flip" aria-hidden="true">A</span>
-        <strong>Menyiapkan ruang kerjamu…</strong>
-      </main>
-    );
+    return null;
   }
 
   return children;

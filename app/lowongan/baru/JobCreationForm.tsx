@@ -48,7 +48,7 @@ export function JobCreationForm() {
       const createdJobId = result.data?.job?.id;
       if (!response.ok || !createdJobId) {
         const fallback = response.status === 401
-          ? "Sesi backend belum aktif. Masuk dengan akun yang terhubung ke InsForge lalu coba lagi."
+          ? "Sesi akun belum aktif. Masuk kembali lalu coba lagi."
           : "Lowongan belum dapat disimpan. Coba lagi.";
         throw new Error(result.error?.message ?? fallback);
       }

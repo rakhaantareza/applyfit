@@ -3,7 +3,7 @@ import { StableLink as Link } from "./StableLink";
 
 const readinessFlow = [
   "Susun skill dan bukti dalam satu profil",
-  "Tinjau requirement lowongan secara transparan",
+  "Periksa Persyaratan lowongan secara transparan",
   "Pahami dasar setiap poin Fit Score",
 ];
 

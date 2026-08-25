@@ -567,7 +567,7 @@ export function EvidenceLibrary({
                 <strong>
                   {hasActiveFilters
                     ? "Tidak ada bukti yang cocok"
-                    : "Pustaka bukti masih kosong"}
+                    : "Portfolio & Pengalaman masih kosong"}
                 </strong>
                 <p>
                   {hasActiveFilters

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AppSidebar } from "../components/AppSidebar";
+import { AppShell } from "../components/AppShell";
 import { AccountSettings } from "./AccountSettings";
 import { AuthenticatedRoute } from "../components/AuthenticatedRoute";
 
@@ -10,9 +10,7 @@ export const metadata: Metadata = {
 
 export default function AccountSettingsPage() {
   return (
-    <AuthenticatedRoute><div className="app-shell">
-      <AppSidebar activeItem={null} />
-      <main className="main-content account-settings-main">
+    <AuthenticatedRoute><AppShell activeItem="Pengaturan" mainClassName="account-settings-main">
         <div className="page-container account-settings-page">
           <header className="account-settings-page-header">
             <div>
@@ -23,7 +21,6 @@ export default function AccountSettingsPage() {
           </header>
           <AccountSettings />
         </div>
-      </main>
-    </div></AuthenticatedRoute>
+    </AppShell></AuthenticatedRoute>
   );
 }

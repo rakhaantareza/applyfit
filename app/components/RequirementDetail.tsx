@@ -67,10 +67,10 @@ export function RequirementDetail({ requirement }: RequirementDetailProps) {
             {isNonSkill && (
               <span
                 className="scope-pill"
-                title="Requirement non-skill tetap ditampilkan, tetapi tidak memengaruhi skor MVP."
+                title="Requirement non-skill tetap ditampilkan, tetapi tidak memengaruhi Fit Score."
               >
                 <span aria-hidden="true">i</span>
-                Di luar skor MVP
+                Di luar Fit Score
               </span>
             )}
           </div>

@@ -12,6 +12,7 @@ import type { Skill } from "../server/services/skills.ts";
 const baseRequirement = {
   jobId: "job-1",
   priority: "required" as const,
+  reviewedWithoutEvidence: false,
   createdAt: "2026-08-09T09:00:00.000Z",
   updatedAt: "2026-08-09T09:00:00.000Z",
 };
@@ -92,7 +93,13 @@ test("review summary derives all statuses and separates informational requiremen
     { ...baseRequirement, id: "req-partial", name: "TypeScript", type: "skill" },
     { ...baseRequirement, id: "req-learning", name: "Testing", type: "tool" },
     { ...baseRequirement, id: "req-missing-graphql", name: "GraphQL", type: "skill" },
-    { ...baseRequirement, id: "req-missing-accessibility", name: "Accessibility", type: "skill" },
+    {
+      ...baseRequirement,
+      id: "req-missing-accessibility",
+      name: "Accessibility",
+      type: "skill",
+      reviewedWithoutEvidence: true,
+    },
     { ...baseRequirement, id: "req-education", name: "Sarjana", type: "education" },
   ];
   const skills: Skill[] = [
@@ -132,11 +139,13 @@ test("review summary derives all statuses and separates informational requiremen
   assert.deepEqual(summary.requirements.map(({ status }) => status), [
     "proven", "partial", "learning", "missing", "missing",
   ]);
+  assert.equal(summary.requirements[0]?.reviewedWithoutEvidence, false);
+  assert.equal(summary.requirements[4]?.reviewedWithoutEvidence, true);
   assert.deepEqual(summary.statusCounts, {
     proven: 1, partial: 1, learning: 1, missing: 2,
   });
-  assert.equal(summary.mappedCount, 3);
-  assert.equal(summary.unmappedCount, 2);
+  assert.equal(summary.mappedCount, 4);
+  assert.equal(summary.unmappedCount, 1);
   assert.equal(summary.totalMappableRequirements, 5);
   assert.deepEqual(summary.informationalRequirements, [{
     id: "req-education",

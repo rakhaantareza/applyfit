@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { AppSidebar } from "../components/AppSidebar";
-import { AuthenticatedRoute } from "../components/AuthenticatedRoute";
-import { FitScoreWorkspace } from "../components/FitScoreWorkspace";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Skor Kecocokan",
@@ -9,15 +7,11 @@ export const metadata: Metadata = {
     "Pahami kesiapan profil untuk lowongan tertentu melalui requirement dan bukti yang transparan.",
 };
 
-export default function FitScorePage() {
-  return (
-    <AuthenticatedRoute>
-      <div className="app-shell">
-        <AppSidebar activeItem="Skor Kecocokan" />
-        <main className="main-content" id="top">
-          <FitScoreWorkspace />
-        </main>
-      </div>
-    </AuthenticatedRoute>
-  );
+export default async function FitScorePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ job?: string }>;
+}) {
+  const { job } = await searchParams;
+  redirect(job ? `/lowongan/${encodeURIComponent(job)}/analisis` : "/lowongan");
 }

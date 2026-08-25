@@ -93,6 +93,14 @@ npm run screenshots
 
 `npm run screenshots` keeps the demo-account workspace captures in their authenticated context, then uses a separate context without stored authentication to capture `/login`, `/daftar`, and `/lupa-kata-sandi`.
 
+For deterministic Dark-theme review of the authenticated Ringkasan page, run:
+
+```bash
+npm run screenshots:dark
+```
+
+The Dark command sets ApplyFit's explicit appearance preference before application scripts run and writes its responsive captures under `screenshots/dark/ringkasan/` without changing the default screenshot folders.
+
 To capture the high-density portfolio job workflow, run:
 
 ```bash

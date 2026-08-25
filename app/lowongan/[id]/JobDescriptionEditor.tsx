@@ -261,7 +261,7 @@ export function JobDescriptionEditor({
                 </span>
               </div>
               {reviewHref ? (
-                <Link href={reviewHref}>Tinjau hasil <span aria-hidden="true">→</span></Link>
+                <Link href={reviewHref}>Buka Persyaratan <span aria-hidden="true">→</span></Link>
               ) : null}
             </div>
           </div>

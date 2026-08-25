@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AppSidebar } from "../components/AppSidebar";
+import { AppShell } from "../components/AppShell";
 import { JobsWorkspace } from "./JobsWorkspace";
 import { AuthenticatedRoute } from "../components/AuthenticatedRoute";
 
@@ -11,11 +11,8 @@ export const metadata: Metadata = {
 
 export default function JobsPage() {
   return (
-    <AuthenticatedRoute><div className="app-shell">
-      <AppSidebar activeItem="Lowongan" />
-      <main className="main-content jobs-main">
+    <AuthenticatedRoute><AppShell activeItem="Lowongan" mainClassName="jobs-main">
         <JobsWorkspace />
-      </main>
-    </div></AuthenticatedRoute>
+    </AppShell></AuthenticatedRoute>
   );
 }

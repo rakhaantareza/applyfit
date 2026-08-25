@@ -43,6 +43,7 @@ export type MappingReviewRequirement = Pick<
   JobRequirement,
   "id" | "name" | "type" | "priority"
 > & {
+  reviewedWithoutEvidence: boolean;
   status: RequirementStatus;
   skills: MappingReviewSkill[];
 };
@@ -185,17 +186,22 @@ export function buildRequirementMappingReviewSummary(
       skill: { id: skill.id, status: skill.status },
       linkedEvidenceIds: skill.evidences.map(({ id }) => id),
     })));
+    const reviewedWithoutEvidence =
+      requirement.reviewedWithoutEvidence && mappedSkills.length === 0;
     return {
       id: requirement.id,
       name: requirement.name,
       type: requirement.type,
       priority: requirement.priority,
+      reviewedWithoutEvidence,
       status,
       skills: mappedSkills,
     };
   });
   const mappedCount = mappableRequirements.filter(
-    (requirement) => (mappingsByRequirement.get(requirement.id)?.length ?? 0) > 0,
+    (requirement) =>
+      (mappingsByRequirement.get(requirement.id)?.length ?? 0) > 0 ||
+      requirement.reviewedWithoutEvidence,
   ).length;
   const statusCounts: Record<RequirementStatus, number> = {
     proven: 0,
@@ -345,15 +351,39 @@ export async function markRequirementWithoutEvidence(
   userId: string,
   jobId: string,
   requirementId: string,
-): Promise<{ requirementId: string; status: "missing" }> {
+): Promise<{
+  requirementId: string;
+  reviewedWithoutEvidence: true;
+  status: "missing";
+}> {
   await getJobRequirement(client, userId, jobId, requirementId);
-  const { error } = await client.database
-    .from("requirement_mappings")
-    .delete()
-    .eq("requirement_id", requirementId)
-    .eq("user_id", userId);
+  const { error } = await client.database.rpc("set_requirement_without_evidence", {
+    target_job_id: jobId,
+    target_requirement_id: requirementId,
+    reviewed_without_evidence_value: true,
+  });
   if (error) throw new RequirementMappingsQueryError();
-  return { requirementId, status: "missing" };
+  return { requirementId, reviewedWithoutEvidence: true, status: "missing" };
+}
+
+export async function clearRequirementWithoutEvidence(
+  client: InsForgeClient,
+  userId: string,
+  jobId: string,
+  requirementId: string,
+): Promise<{
+  requirementId: string;
+  reviewedWithoutEvidence: false;
+  status: "missing";
+}> {
+  await getJobRequirement(client, userId, jobId, requirementId);
+  const { error } = await client.database.rpc("set_requirement_without_evidence", {
+    target_job_id: jobId,
+    target_requirement_id: requirementId,
+    reviewed_without_evidence_value: false,
+  });
+  if (error) throw new RequirementMappingsQueryError();
+  return { requirementId, reviewedWithoutEvidence: false, status: "missing" };
 }
 
 export async function getRequirementMappingReviewSummary(

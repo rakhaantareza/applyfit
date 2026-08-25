@@ -157,7 +157,7 @@ export function AccountSettings() {
           <div>
             <p className="eyebrow">Akses dan keamanan</p>
             <h2 id="account-security-title">Email dan kata sandi</h2>
-            <p>Identitas login dikelola langsung oleh InsForge Auth.</p>
+            <p>Email dan kata sandi digunakan untuk mengakses akun ApplyFit.</p>
           </div>
         </div>
 

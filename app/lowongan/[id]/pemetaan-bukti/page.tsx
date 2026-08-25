@@ -1,23 +1,12 @@
-import type { Metadata } from "next";
-import { AppSidebar } from "../../../components/AppSidebar";
-import { EvidenceMappingPageWorkspace } from "./EvidenceMappingPageWorkspace";
-import { AuthenticatedRoute } from "../../../components/AuthenticatedRoute";
+import { redirect } from "next/navigation";
 
-type EvidenceMappingPageProps = { params: Promise<{ id: string }> };
-
-export const metadata: Metadata = {
-  title: "Pemetaan Bukti",
-  description: "Hubungkan requirement lowongan dengan skill dan bukti profil secara transparan.",
+type LegacyProfileMatchingPageProps = {
+  params: Promise<{ id: string }>;
 };
 
-export default async function EvidenceMappingPage({ params }: EvidenceMappingPageProps) {
+export default async function LegacyProfileMatchingPage({
+  params,
+}: LegacyProfileMatchingPageProps) {
   const { id } = await params;
-  return (
-    <AuthenticatedRoute><div className="app-shell">
-      <AppSidebar activeItem="Lowongan" />
-      <main className="main-content evidence-mapping-main">
-        <EvidenceMappingPageWorkspace jobId={id} />
-      </main>
-    </div></AuthenticatedRoute>
-  );
+  redirect(`/lowongan/${encodeURIComponent(id)}/cocokkan-profil`);
 }

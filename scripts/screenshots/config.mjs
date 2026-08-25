@@ -32,9 +32,9 @@ export const SCREENSHOT_BROWSER_LAUNCH_OPTIONS = {
 // screenshots from silently capturing Arial/monospace fallback glyphs.
 export const SCREENSHOT_FONT_PROBES = [
   {
-    family: "Plus Jakarta Sans",
-    descriptor: '400 16px "Plus Jakarta Sans"',
-    sample: "ApplyFit Skor Kecocokan",
+    family: "Inter",
+    descriptor: '400 16px "Inter"',
+    sample: "ApplyFit Analisis",
   },
   {
     family: "Geist Mono",
@@ -68,9 +68,9 @@ export const SCREENSHOT_ROUTES = [
     readySelector: ".career-profile-hero",
   },
   {
-    label: "Evidence Library",
-    slug: "evidence-library",
-    path: "/pustaka-bukti",
+    label: "Portfolio & Pengalaman",
+    slug: "portfolio-pengalaman",
+    path: "/portfolio-pengalaman",
     readySelector: ".evidence-overview",
   },
   {
@@ -78,12 +78,6 @@ export const SCREENSHOT_ROUTES = [
     slug: "job-management",
     path: "/lowongan",
     readySelector: ".jobs-overview, .jobs-zero-state",
-  },
-  {
-    label: "Fit Score",
-    slug: "fit-score",
-    path: "/skor-kecocokan",
-    readySelector: ".fit-story, .fit-score-empty",
   },
   {
     label: "Account Settings",
@@ -132,16 +126,16 @@ export function buildJobScreenshotRoutes(jobId) {
       jobTitleSelector: "#job-detail-title",
     },
     {
-      label: "Requirement Review",
-      slug: "requirement-review",
-      path: `${jobPath}/tinjau-syarat`,
+      label: "Persyaratan",
+      slug: "persyaratan",
+      path: `${jobPath}/persyaratan`,
       readySelector: ".requirement-review-overview",
       jobTitleSelector: ".requirement-review-overview dd",
     },
     {
-      label: "Requirement Mapping",
-      slug: "requirement-mapping",
-      path: `${jobPath}/pemetaan-bukti`,
+      label: "Cocokkan Profil",
+      slug: "cocokkan-profil",
+      path: `${jobPath}/cocokkan-profil`,
       readySelector: ".mapping-job-context",
       jobTitleSelector: "#mapping-job-title",
     },
@@ -149,8 +143,7 @@ export function buildJobScreenshotRoutes(jobId) {
       kind: "analysis",
       label: "Job Analysis",
       slug: "job-analysis",
-      path: "/skor-kecocokan",
-      href: `/skor-kecocokan?job=${encodedJobId}`,
+      path: `${jobPath}/analisis`,
       readySelector: ".fit-story",
       jobTitleSelector: ".analyzed-job-heading strong",
     },

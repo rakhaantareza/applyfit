@@ -538,7 +538,7 @@ export function RequirementReviewEditor({
           <div className="requirement-review-counts" aria-label="Ringkasan hasil ekstraksi">
             <span><strong>{requiredRequirements.length}</strong> wajib</span>
             <span><strong>{preferredRequirements.length}</strong> preferensi</span>
-            <span><strong>{excludedRequirementCount}</strong> di luar skor MVP</span>
+            <span><strong>{excludedRequirementCount}</strong> di luar Fit Score</span>
           </div>
           <div>
             <button className="secondary" type="button" onClick={openSelectionMode}>
@@ -713,7 +713,7 @@ export function RequirementReviewEditor({
         <CircleAlert aria-hidden="true" size={17} strokeWidth={1.8} />
         <p>
           Requirement pengalaman dan pendidikan tetap disimpan sebagai konteks,
-          tetapi tidak dihitung dalam Fit Score MVP. Halaman ini belum menampilkan
+          tetapi tidak dihitung dalam Fit Score. Halaman ini belum menampilkan
           status kesiapan profil.
         </p>
       </div>
@@ -733,7 +733,7 @@ export function RequirementReviewEditor({
             <strong>{hasSaved ? "Review tersimpan" : "Simpan hasil review"}</strong>
             <p>
               {hasSaved
-                ? "Requirement yang sudah ditinjau tersimpan untuk lowongan ini."
+                ? "Persyaratan yang sudah diperiksa tersimpan untuk lowongan ini."
                 : isDirty
                   ? "Ada perubahan pada requirement yang belum disimpan."
                   : "Simpan daftar ini setelah kamu selesai memeriksa hasil ekstraksi."}

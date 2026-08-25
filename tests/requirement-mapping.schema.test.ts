@@ -18,6 +18,10 @@ const prdAlignmentMigrationUrl = new URL(
   "../migrations/20260809180001_align-requirement-mappings-with-prd.sql",
   import.meta.url,
 );
+const persistedReviewMigrationUrl = new URL(
+  "../migrations/20260825010000_persist-requirement-without-evidence.sql",
+  import.meta.url,
+);
 
 test("mapping model persists a non-null Requirement to Skill to Evidence chain", async () => {
   const [sql, alignmentSql] = await Promise.all([
@@ -94,4 +98,22 @@ test("latest alignment removes the obsolete null-skill marker model", async () =
     /DROP FUNCTION IF EXISTS public\.mark_requirement_without_evidence\(UUID, UUID\)/,
   );
   assert.doesNotMatch(alignmentSql, /VALUES \([^)]*, NULL\)/);
+});
+
+test("without-evidence review is persisted separately from skill mappings", async () => {
+  const sql = await readFile(persistedReviewMigrationUrl, "utf8");
+
+  assert.match(
+    sql,
+    /ADD COLUMN reviewed_without_evidence BOOLEAN NOT NULL DEFAULT FALSE/,
+  );
+  assert.match(
+    sql,
+    /CREATE FUNCTION public\.set_requirement_without_evidence\([\s\S]*?reviewed_without_evidence_value BOOLEAN[\s\S]*?DELETE FROM public\.requirement_mappings[\s\S]*?SET reviewed_without_evidence = reviewed_without_evidence_value/,
+  );
+  assert.match(
+    sql,
+    /CREATE TRIGGER requirement_mappings_clear_reviewed_without_evidence[\s\S]*?BEFORE INSERT ON public\.requirement_mappings/,
+  );
+  assert.doesNotMatch(sql, /INSERT INTO public\.requirement_mappings[\s\S]*?NULL/);
 });

@@ -1,8 +1,8 @@
 "use client";
 
-import { AlertCircle, ArrowLeft, Clock3 } from "lucide-react";
+import { AlertCircle, Clock3 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { AppSidebar } from "../../components/AppSidebar";
+import { JobFocusShell } from "../../components/JobFocusShell";
 import { StableLink as Link } from "../../components/StableLink";
 import { JobDescriptionEditor } from "./JobDescriptionEditor";
 import { JobInfoEditor, type EditableJobInfo } from "./JobInfoEditor";
@@ -51,7 +51,7 @@ export function PersistedJobDetail({ jobId }: { jobId: string }) {
     return () => { active = false; };
   }, [jobId]);
 
-  if (!job) return <PersistedJobState message={error} />;
+  if (!job) return <PersistedJobState jobId={jobId} message={error} />;
 
   const info: EditableJobInfo & { initials: string } = {
     title: job.title,
@@ -63,27 +63,24 @@ export function PersistedJobDetail({ jobId }: { jobId: string }) {
   };
 
   return (
-    <div className="app-shell">
-      <AppSidebar activeItem="Lowongan" />
-      <main className="main-content job-detail-main">
+    <JobFocusShell
+      activeStep="detail"
+      company={job.company}
+      jobId={job.id}
+      mainClassName="job-detail-main"
+      title={job.title}
+    >
         <div className="page-container job-detail-page">
-          <header className="job-detail-page-header">
-            <Link href="/lowongan"><ArrowLeft aria-hidden="true" size={15} strokeWidth={1.9} />Kembali ke semua lowongan</Link>
-            <span className={`job-stage ${requirementCount ? "review" : "draft"}`}>
-              {requirementCount ? "Requirement tersimpan" : "Belum diekstrak"}
-            </span>
-          </header>
-
           <JobInfoEditor initialJob={info} jobId={job.id} />
 
           <section className="job-detail-content" aria-label="Isi lowongan">
             <JobDescriptionEditor
               initialDescription={job.rawDescription}
               jobId={job.id}
-              reviewHref={`/lowongan/${job.id}/tinjau-syarat`}
+              reviewHref={`/lowongan/${job.id}/persyaratan`}
             />
             <aside className="job-detail-aside" aria-label="Status lowongan">
-              <div><p className="eyebrow">Langkah berikutnya</p><span className={`job-stage ${requirementCount ? "review" : "draft"}`}>{requirementCount ? "Siap ditinjau" : "Draft tersimpan"}</span><p>{requirementCount ? "Periksa requirement tersimpan sebelum melanjutkan ke pemetaan." : "Ekstrak requirement dari deskripsi, lalu periksa hasilnya sebelum analisis."}</p></div>
+              <div><p className="eyebrow">Langkah berikutnya</p><span className={`job-stage ${requirementCount ? "review" : "draft"}`}>{requirementCount ? "Siap diperiksa" : "Draft tersimpan"}</span><p>{requirementCount ? "Periksa requirement tersimpan sebelum melanjutkan ke Cocokkan Profil." : "Ekstrak requirement dari deskripsi, lalu periksa hasilnya sebelum analisis."}</p></div>
               <dl>
                 <div><dt>Requirement tersimpan</dt><dd>{requirementCount || "Belum ada"}</dd></div>
                 <div><dt>Disimpan</dt><dd>{formatDate(job.createdAt)}</dd></div>
@@ -91,24 +88,21 @@ export function PersistedJobDetail({ jobId }: { jobId: string }) {
               </dl>
               <p className="job-detail-source-note"><Clock3 aria-hidden="true" size={13} strokeWidth={1.8} />Konteks ini berasal dari informasi yang kamu simpan.</p>
               {requirementCount ? (
-                <Link className="career-button primary" href={`/lowongan/${job.id}/tinjau-syarat`}>
-                  Tinjau requirement
+                <Link className="career-button primary" href={`/lowongan/${job.id}/persyaratan`}>
+                  Buka Persyaratan
                   <span aria-hidden="true">→</span>
                 </Link>
               ) : null}
             </aside>
           </section>
         </div>
-      </main>
-    </div>
+    </JobFocusShell>
   );
 }
 
-function PersistedJobState({ message }: { message: string }) {
+function PersistedJobState({ jobId, message }: { jobId: string; message: string }) {
   return (
-    <div className="app-shell">
-      <AppSidebar activeItem="Lowongan" />
-      <main className="main-content job-detail-main">
+    <JobFocusShell activeStep="detail" jobId={jobId} mainClassName="job-detail-main">
         <div className="page-container job-detail-page">
           {message ? (
             <div className="persisted-job-state error">
@@ -118,8 +112,7 @@ function PersistedJobState({ message }: { message: string }) {
             </div>
           ) : null}
         </div>
-      </main>
-    </div>
+    </JobFocusShell>
   );
 }
 

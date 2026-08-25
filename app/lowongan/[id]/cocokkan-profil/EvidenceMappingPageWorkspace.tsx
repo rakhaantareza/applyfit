@@ -11,6 +11,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { JobFocusShell } from "../../../components/JobFocusShell";
 import { StableLink as Link } from "../../../components/StableLink";
 import { EvidenceMappingWorkspace } from "./EvidenceMappingWorkspace";
 import type { MappingSkill } from "./ManualEvidenceMappingForm";
@@ -37,6 +38,7 @@ type SummaryRequirement = {
   name: string;
   type: "skill" | "tool";
   priority: "required" | "preferred";
+  reviewedWithoutEvidence: boolean;
   skills: Array<{ id: string }>;
 };
 
@@ -58,6 +60,7 @@ type MappingData = {
     id: string;
     text: string;
     priority: "Wajib" | "Preferensi";
+    reviewedWithoutEvidence: boolean;
     skillIds: string[];
     autoMatchReason: string | null;
   }>;
@@ -102,7 +105,7 @@ export function EvidenceMappingPageWorkspace({ jobId }: { jobId: string }) {
         );
         const summaryResult = await readJson<SummaryResponse>(summaryResponse);
         if (!summaryResponse.ok || !summaryResult.data) {
-          throw new Error(summaryResult.error?.message ?? "Pemetaan requirement belum dapat dimuat.");
+          throw new Error(summaryResult.error?.message ?? "Cocokkan Profil belum dapat dimuat.");
         }
 
         const apiSkills = skillsResult.data.skills;
@@ -133,6 +136,7 @@ export function EvidenceMappingPageWorkspace({ jobId }: { jobId: string }) {
               id: requirement.id,
               text: requirement.name,
               priority: requirement.priority === "required" ? "Wajib" : "Preferensi",
+              reviewedWithoutEvidence: requirement.reviewedWithoutEvidence,
               skillIds: requirement.skills.map((skill) => skill.id),
               autoMatchReason: exactMatch
                 ? `Nama ${exactMatch.skillName} cocok langsung dengan requirement.`
@@ -142,7 +146,7 @@ export function EvidenceMappingPageWorkspace({ jobId }: { jobId: string }) {
           informationalRequirements: summaryResult.data.informationalRequirements,
         });
       } catch (requestError) {
-        if (active) setError(requestError instanceof Error ? requestError.message : "Pemetaan requirement belum dapat dimuat.");
+        if (active) setError(requestError instanceof Error ? requestError.message : "Cocokkan Profil belum dapat dimuat.");
       }
     }
 
@@ -153,11 +157,18 @@ export function EvidenceMappingPageWorkspace({ jobId }: { jobId: string }) {
   if (!job || !mapping) return <MappingLoadState error={error} jobId={jobId} />;
 
   return (
-    <div className="page-container evidence-mapping-page">
+    <JobFocusShell
+      activeStep="match"
+      company={job.company}
+      jobId={job.id}
+      mainClassName="evidence-mapping-main"
+      title={job.title}
+    >
+      <div className="page-container evidence-mapping-page">
       <header className="evidence-mapping-header">
         <div>
-          <Link href={`/lowongan/${job.id}/tinjau-syarat`}><ArrowLeft aria-hidden="true" size={15} strokeWidth={1.9} />Kembali ke review requirement</Link>
-          <p className="eyebrow">Pemetaan bukti</p>
+          <Link href={`/lowongan/${job.id}/persyaratan`}><ArrowLeft aria-hidden="true" size={15} strokeWidth={1.9} />Kembali ke review requirement</Link>
+          <p className="eyebrow">Cocokkan Profil</p>
           <h1>Hubungkan syarat lowongan ke profilmu</h1>
           <p>Telusuri hubungan antara requirement, skill, dan bukti sebelum ApplyFit menyusun analisis kesiapan.</p>
         </div>
@@ -178,7 +189,7 @@ export function EvidenceMappingPageWorkspace({ jobId }: { jobId: string }) {
       <details className="mapping-informational">
         <summary>
           <span aria-hidden="true"><Info size={17} strokeWidth={1.8} /></span>
-          <span><strong>{mapping.informationalRequirements.length} requirement tetap disimpan sebagai konteks</strong><small>Pengalaman dan pendidikan tidak masuk Fit Score MVP.</small></span>
+          <span><strong>{mapping.informationalRequirements.length} requirement tetap disimpan sebagai konteks</strong><small>Pengalaman dan pendidikan tidak masuk Fit Score.</small></span>
           <ChevronDown aria-hidden="true" size={18} strokeWidth={1.8} />
         </summary>
         <div>
@@ -188,22 +199,25 @@ export function EvidenceMappingPageWorkspace({ jobId }: { jobId: string }) {
         </div>
       </details>
 
-      <div className="mapping-evidence-note"><LibraryBig aria-hidden="true" size={17} strokeWidth={1.8} /><p>Bukti dikelola di <Link href="/pustaka-bukti">Pustaka Bukti</Link> dan dapat digunakan kembali untuk lowongan lain.</p></div>
-    </div>
+      <div className="mapping-evidence-note"><LibraryBig aria-hidden="true" size={17} strokeWidth={1.8} /><p>Bukti dikelola di <Link href="/portfolio-pengalaman">Portfolio & Pengalaman</Link> dan dapat digunakan kembali untuk lowongan lain.</p></div>
+      </div>
+    </JobFocusShell>
   );
 }
 
 function MappingLoadState({ error, jobId }: { error: string; jobId: string }) {
   return (
-    <div className="page-container evidence-mapping-page">
-      {error ? (
-        <div className="persisted-job-state error">
-          <AlertCircle aria-hidden="true" size={22} />
-          <strong>{error}</strong>
-          <Link href={`/lowongan/${jobId}/tinjau-syarat`}>Kembali ke review requirement</Link>
-        </div>
-      ) : null}
-    </div>
+    <JobFocusShell activeStep="match" jobId={jobId} mainClassName="evidence-mapping-main">
+      <div className="page-container evidence-mapping-page">
+        {error ? (
+          <div className="persisted-job-state error">
+            <AlertCircle aria-hidden="true" size={22} />
+            <strong>{error}</strong>
+            <Link href={`/lowongan/${jobId}/persyaratan`}>Kembali ke review requirement</Link>
+          </div>
+        ) : null}
+      </div>
+    </JobFocusShell>
   );
 }
 

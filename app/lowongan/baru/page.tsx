@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ArrowLeft, FileSearch, Save, ScanSearch } from "lucide-react";
-import { AppSidebar } from "../../components/AppSidebar";
+import { AppShell } from "../../components/AppShell";
 import { StableLink as Link } from "../../components/StableLink";
 import { JobCreationForm } from "./JobCreationForm";
 import { AuthenticatedRoute } from "../../components/AuthenticatedRoute";
@@ -12,10 +12,7 @@ export const metadata: Metadata = {
 
 export default function NewJobPage() {
   return (
-    <AuthenticatedRoute><div className="app-shell">
-      <AppSidebar activeItem="Lowongan" />
-
-      <main className="main-content new-job-main">
+    <AuthenticatedRoute><AppShell activeItem="Lowongan" mainClassName="new-job-main">
         <div className="page-container new-job-page">
           <header className="new-job-header">
             <Link href="/lowongan">
@@ -27,7 +24,7 @@ export default function NewJobPage() {
               <h1>Simpan konteks pekerjaan</h1>
               <p>
                 Masukkan informasi dari lowongan aslinya. ApplyFit akan menyimpannya
-                sebagai satu konteks pekerjaan yang terpisah sebelum requirement ditinjau.
+                sebagai satu konteks pekerjaan yang terpisah sebelum Persyaratan diperiksa.
               </p>
             </div>
           </header>
@@ -49,7 +46,7 @@ export default function NewJobPage() {
                 </li>
                 <li>
                   <span><ScanSearch aria-hidden="true" size={16} strokeWidth={1.8} /></span>
-                  <div><strong>Tinjau sebelum analisis</strong><p>Kamu tetap memegang kendali atas hasil ekstraksi.</p></div>
+                  <div><strong>Periksa sebelum analisis</strong><p>Kamu tetap memegang kendali atas hasil ekstraksi.</p></div>
                 </li>
               </ol>
               <p className="new-job-guidance-note">
@@ -58,7 +55,6 @@ export default function NewJobPage() {
             </aside>
           </div>
         </div>
-      </main>
-    </div></AuthenticatedRoute>
+    </AppShell></AuthenticatedRoute>
   );
 }

@@ -1,16 +1,12 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element -- Account avatars can use user-provided HTTPS hosts. */
-
 import {
+  ArrowRight,
   BriefcaseBusiness,
-  ChartNoAxesCombined,
-  Gauge,
+  CircleHelp,
   House,
   LibraryBig,
-  LogOut,
   Menu,
-  MoreHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
   Settings,
@@ -20,39 +16,64 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import {
+  Fragment,
   useEffect,
-  useRef,
-  useState,
   useSyncExternalStore,
 } from "react";
-import {
-  getAccountInitials,
-  getAuthDisplayName,
-  useAuthSession,
-} from "./AuthSessionProvider";
 
 type NavigationItem = {
   label: string;
   icon: LucideIcon;
   href: string;
+  group?: "Karier";
 };
 
 const navigation = [
   { label: "Ringkasan", icon: House, href: "/beranda" },
-  { label: "Profil Karier", icon: UserRound, href: "/profil-karier" },
-  { label: "Pustaka Bukti", icon: LibraryBig, href: "/pustaka-bukti" },
-  { label: "Lowongan", icon: BriefcaseBusiness, href: "/lowongan" },
-  { label: "Skor Kecocokan", icon: Gauge, href: "/skor-kecocokan" },
+  {
+    label: "Profil",
+    icon: UserRound,
+    href: "/profil-karier",
+    group: "Karier",
+  },
+  {
+    label: "Portfolio & Pengalaman",
+    icon: LibraryBig,
+    href: "/portfolio-pengalaman",
+  },
+  {
+    label: "Lowongan",
+    icon: BriefcaseBusiness,
+    href: "/lowongan",
+  },
 ] satisfies NavigationItem[];
 
+const utilityNavigation = {
+  label: "Pengaturan",
+  icon: Settings,
+  href: "/pengaturan",
+} satisfies NavigationItem;
+
+export type AppSidebarActiveItem =
+  | "Ringkasan"
+  | "Profil"
+  | "Portfolio & Pengalaman"
+  | "Lowongan"
+  | "Cara Fit Score dihitung"
+  | "Pengaturan"
+  | null;
+
 type AppSidebarProps = {
-  activeItem?: (typeof navigation)[number]["label"] | null;
+  activeItem?: AppSidebarActiveItem;
 };
 
 const sidebarPreferenceKey = "applyfit-sidebar-collapsed";
 const sidebarPreferenceEvent = "applyfit-sidebar-preference";
 const tabletSidebarPreferenceKey = "applyfit-tablet-sidebar-expanded";
 const tabletSidebarPreferenceEvent = "applyfit-tablet-sidebar-preference";
+
+let mobileSidebarOpen = false;
+const mobileSidebarListeners = new Set<() => void>();
 
 function subscribeToSidebarPreference(callback: () => void) {
   window.addEventListener("storage", callback);
@@ -74,7 +95,6 @@ function getServerSidebarPreference() {
 
 function subscribeToTabletSidebarPreference(callback: () => void) {
   window.addEventListener(tabletSidebarPreferenceEvent, callback);
-
   return () => window.removeEventListener(tabletSidebarPreferenceEvent, callback);
 }
 
@@ -82,7 +102,21 @@ function getTabletSidebarPreference() {
   return window.sessionStorage.getItem(tabletSidebarPreferenceKey) === "true";
 }
 
-export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
+function subscribeToMobileSidebar(callback: () => void) {
+  mobileSidebarListeners.add(callback);
+  return () => mobileSidebarListeners.delete(callback);
+}
+
+function getMobileSidebarState() {
+  return mobileSidebarOpen;
+}
+
+function setMobileSidebarOpen(isOpen: boolean) {
+  mobileSidebarOpen = isOpen;
+  mobileSidebarListeners.forEach((listener) => listener());
+}
+
+export function AppSidebar({ activeItem = null }: AppSidebarProps) {
   const isDesktopCollapsed = useSyncExternalStore(
     subscribeToSidebarPreference,
     getSidebarPreference,
@@ -93,77 +127,19 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
     getTabletSidebarPreference,
     getServerSidebarPreference,
   );
-  const { user, loading: isAccountLoading } = useAuthSession();
-  const activeAccountName = isAccountLoading ? "Memuat akun…" : getAuthDisplayName(user);
-  const activeAccountEmail = user?.email ?? "Sesi belum tersedia";
-  const accountInitials = getAccountInitials(activeAccountName);
-  const accountAvatarUrl = user?.profile?.avatar_url?.trim() || null;
-  const accountDescription = user?.emailVerified
-    ? "Email terverifikasi"
-    : "Akun ApplyFit";
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [accountError, setAccountError] = useState("");
-  const [profileReadiness, setProfileReadiness] = useState<{ percent: number; complete: number; total: number } | null>(null);
-  const [isMobileViewport, setIsMobileViewport] = useState(false);
-  const [isTabletViewport, setIsTabletViewport] = useState(false);
-  const accountMenuRef = useRef<HTMLDivElement>(null);
+  const isMobileOpen = useSyncExternalStore(
+    subscribeToMobileSidebar,
+    getMobileSidebarState,
+    getServerSidebarPreference,
+  );
+  const [isMobileViewport, isTabletViewport] = useSidebarViewport();
   const isSidebarCollapsed = isTabletViewport
     ? !isTabletExpanded
     : isDesktopCollapsed;
 
   useEffect(() => {
-    if (!user) return;
-    let active = true;
-    async function loadReadiness() {
-      try {
-        const [profileResponse, skillsResponse, evidencesResponse] = await Promise.all([
-          fetch("/api/career-profile", { cache: "no-store" }),
-          fetch("/api/career-profile/skills", { cache: "no-store" }),
-          fetch("/api/evidences", { cache: "no-store" }),
-        ]);
-        if (!profileResponse.ok || !skillsResponse.ok || !evidencesResponse.ok) return;
-        const [profileResult, skillsResult, evidencesResult] = await Promise.all([
-          readSidebarJson(profileResponse),
-          readSidebarJson(skillsResponse),
-          readSidebarJson(evidencesResponse),
-        ]);
-        const profile = profileResult.data?.profile;
-        const complete = [
-          Boolean(profile?.targetRole?.trim()),
-          Boolean(profile?.careerField?.trim()),
-          (skillsResult.data?.skills?.length ?? 0) > 0,
-          (evidencesResult.data?.evidences?.length ?? 0) > 0,
-        ].filter(Boolean).length;
-        if (active) setProfileReadiness({ percent: Math.round((complete / 4) * 100), complete, total: 4 });
-      } catch {
-        // The full page owns actionable API errors; the shell keeps its neutral fallback.
-      }
-    }
-    void loadReadiness();
-    return () => { active = false; };
-  }, [user]);
-
-  useEffect(() => {
-    const mobileQuery = window.matchMedia("(max-width: 767px)");
-    const tabletQuery = window.matchMedia("(min-width: 768px) and (max-width: 1023px)");
-
-    function syncViewport() {
-      setIsMobileViewport(mobileQuery.matches);
-      setIsTabletViewport(tabletQuery.matches);
-      if (!mobileQuery.matches) setIsMobileOpen(false);
-    }
-
-    syncViewport();
-    mobileQuery.addEventListener("change", syncViewport);
-    tabletQuery.addEventListener("change", syncViewport);
-
-    return () => {
-      mobileQuery.removeEventListener("change", syncViewport);
-      tabletQuery.removeEventListener("change", syncViewport);
-    };
-  }, []);
+    if (!isMobileViewport) setMobileSidebarOpen(false);
+  }, [isMobileViewport]);
 
   useEffect(() => {
     if (!isMobileOpen) return;
@@ -171,102 +147,23 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setIsMobileOpen(false);
+    function closeWithKeyboard(event: KeyboardEvent) {
+      if (event.key === "Escape") setMobileSidebarOpen(false);
     }
 
-    window.addEventListener("keydown", handleKeyDown);
-
+    window.addEventListener("keydown", closeWithKeyboard);
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keydown", closeWithKeyboard);
     };
   }, [isMobileOpen]);
 
-  useEffect(() => {
-    if (!isAccountMenuOpen) return;
-
-    function closeAccountMenu(event: PointerEvent) {
-      if (!accountMenuRef.current?.contains(event.target as Node)) {
-        setIsAccountMenuOpen(false);
-      }
-    }
-
-    function handleAccountMenuKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setIsAccountMenuOpen(false);
-    }
-
-    document.addEventListener("pointerdown", closeAccountMenu);
-    window.addEventListener("keydown", handleAccountMenuKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", closeAccountMenu);
-      window.removeEventListener("keydown", handleAccountMenuKeyDown);
-    };
-  }, [isAccountMenuOpen]);
-
-  function toggleDesktopSidebar() {
-    if (isTabletViewport) {
-      window.sessionStorage.setItem(
-        tabletSidebarPreferenceKey,
-        String(!isTabletExpanded),
-      );
-      window.dispatchEvent(new Event(tabletSidebarPreferenceEvent));
-      return;
-    }
-
-    window.localStorage.setItem(sidebarPreferenceKey, String(!isDesktopCollapsed));
-    window.dispatchEvent(new Event(sidebarPreferenceEvent));
-  }
-
   function closeMobileNavigation() {
-    setIsMobileOpen(false);
-    setIsAccountMenuOpen(false);
-  }
-
-  async function logOutSession() {
-    setAccountError("");
-    setIsLoggingOut(true);
-    try {
-      const response = await fetch("/api/auth/sign-out", { method: "POST" });
-      if (!response.ok && response.status !== 204) {
-        throw new Error("Sesi belum dapat diakhiri.");
-      }
-      window.location.assign("/login");
-    } catch (requestError) {
-      setAccountError(
-        requestError instanceof Error
-          ? requestError.message
-          : "Sesi belum dapat diakhiri.",
-      );
-      setIsLoggingOut(false);
-    }
+    setMobileSidebarOpen(false);
   }
 
   return (
     <>
-      <header className="mobile-shell-header">
-        <button
-          className="mobile-menu-button"
-          type="button"
-          aria-label="Buka navigasi utama"
-          aria-expanded={isMobileOpen}
-          aria-controls="app-navigation"
-          onClick={() => setIsMobileOpen(true)}
-        >
-          <Menu aria-hidden="true" size={21} strokeWidth={1.9} />
-        </button>
-        <Link
-          className="mobile-brand"
-          href="/beranda"
-          aria-label="ApplyFit beranda"
-          onClick={closeMobileNavigation}
-        >
-          <span className="brand-mark" aria-hidden="true">A</span>
-          <span>ApplyFit</span>
-        </Link>
-        <span className="mobile-page-label">{activeItem}</span>
-      </header>
-
       <button
         className={`sidebar-backdrop${isMobileOpen ? " visible" : ""}`}
         type="button"
@@ -278,186 +175,217 @@ export function AppSidebar({ activeItem = "Skor Kecocokan" }: AppSidebarProps) {
       <aside
         className={`sidebar${isSidebarCollapsed ? " sidebar-collapsed" : ""}${
           isTabletViewport && isTabletExpanded ? " sidebar-tablet-expanded" : ""
-        }${
-          isMobileOpen ? " sidebar-mobile-open" : ""
-        }`}
+        }${isMobileOpen ? " sidebar-mobile-open" : ""}`}
         id="app-navigation"
         aria-label="Navigasi aplikasi"
         aria-hidden={isMobileViewport && !isMobileOpen ? true : undefined}
         inert={isMobileViewport && !isMobileOpen ? true : undefined}
       >
-        <div className="sidebar-header">
-          <Link
-            className="brand"
-            href="/beranda"
-            aria-label="ApplyFit beranda"
-            data-tooltip="ApplyFit"
-            onClick={closeMobileNavigation}
-          >
-            <span className="brand-mark" aria-hidden="true">A</span>
-            <span className="brand-name">ApplyFit</span>
-          </Link>
-
-          <button
-            className="sidebar-toggle"
-            type="button"
-            aria-label={isSidebarCollapsed ? "Perluas sidebar" : "Ringkas sidebar"}
-            aria-pressed={isSidebarCollapsed}
-            data-tooltip={isSidebarCollapsed ? "Perluas sidebar" : "Ringkas sidebar"}
-            onClick={toggleDesktopSidebar}
-          >
-            {isSidebarCollapsed ? (
-              <PanelLeftOpen aria-hidden="true" size={18} strokeWidth={1.8} />
-            ) : (
-              <PanelLeftClose aria-hidden="true" size={18} strokeWidth={1.8} />
-            )}
-          </button>
-
+        <div className="sidebar-mobile-heading">
+          <span>Navigasi</span>
           <button
             className="mobile-drawer-close"
             type="button"
             aria-label="Tutup navigasi utama"
             onClick={closeMobileNavigation}
           >
-            <X aria-hidden="true" size={20} strokeWidth={1.9} />
+            <X aria-hidden="true" size={18} strokeWidth={1.8} />
           </button>
         </div>
 
         <nav className="main-nav" aria-label="Navigasi utama">
-          <p className="nav-label">Workspace</p>
           {navigation.map((item) => {
             const isActive = item.label === activeItem;
             const Icon = item.icon;
 
             return (
-              <Link
-                className={`nav-item${isActive ? " active" : ""}`}
-                href={item.href}
-                key={item.label}
-                aria-current={isActive ? "page" : undefined}
-                data-tooltip={item.label}
-                onClick={closeMobileNavigation}
-              >
-                <span className="nav-icon" aria-hidden="true">
-                  <Icon size={19} strokeWidth={1.8} />
-                </span>
-                <span className="nav-text">{item.label}</span>
-              </Link>
+              <Fragment key={item.label}>
+                {item.group ? <p className="nav-label">{item.group}</p> : null}
+                <Link
+                  className={`nav-item${isActive ? " active" : ""}`}
+                  href={item.href}
+                  aria-current={isActive ? "page" : undefined}
+                  data-tooltip={item.label}
+                  onClick={closeMobileNavigation}
+                >
+                  <span className="nav-icon" aria-hidden="true">
+                    <Icon size={17} strokeWidth={1.7} />
+                  </span>
+                  <span className="nav-text">{item.label}</span>
+                </Link>
+              </Fragment>
             );
           })}
         </nav>
 
-        <div className="sidebar-footer" ref={accountMenuRef}>
+        <section
+          className={`sidebar-fit-guide${
+            activeItem === "Cara Fit Score dihitung" ? " active" : ""
+          }`}
+          aria-label="Panduan Fit Score"
+        >
+          <div className="sidebar-fit-guide-expanded">
+            <div className="sidebar-fit-guide-meta">
+              <span>Fit Score</span>
+              <CircleHelp aria-hidden="true" size={14} strokeWidth={1.7} />
+            </div>
+            <Link
+              className="sidebar-fit-guide-title"
+              href="/contoh-perhitungan"
+              aria-current={activeItem === "Cara Fit Score dihitung" ? "page" : undefined}
+              onClick={closeMobileNavigation}
+            >
+              Cara Fit Score dihitung
+            </Link>
+            <p>Pahami status, bobot, dan formula yang membentuk skor.</p>
+            <div className="sidebar-fit-guide-statuses" aria-label="Status Fit Score">
+              {[
+                ["Proven", "proven"],
+                ["Partial", "partial"],
+                ["Learning", "learning"],
+                ["Missing", "missing"],
+              ].map(([label, className]) => (
+                <span key={label}>
+                  <i className={`status-dot ${className}`} aria-hidden="true" />
+                  {label}
+                </span>
+              ))}
+            </div>
+            <Link
+              className="sidebar-fit-guide-link"
+              href="/contoh-perhitungan"
+              onClick={closeMobileNavigation}
+            >
+              Pelajari selengkapnya
+              <ArrowRight aria-hidden="true" size={14} strokeWidth={1.7} />
+            </Link>
+          </div>
+
           <Link
-            className="profile-readiness"
-            href="/profil-karier"
-            data-tooltip={profileReadiness ? `Profil ${profileReadiness.percent}% lengkap` : "Lihat kelengkapan profil"}
+            className={`sidebar-fit-guide-collapsed nav-item${
+              activeItem === "Cara Fit Score dihitung" ? " active" : ""
+            }`}
+            href="/contoh-perhitungan"
+            aria-label="Cara Fit Score dihitung"
+            aria-current={activeItem === "Cara Fit Score dihitung" ? "page" : undefined}
+            data-tooltip="Cara Fit Score dihitung"
             onClick={closeMobileNavigation}
           >
-            <span className="readiness-rail" aria-hidden="true">
-              <ChartNoAxesCombined size={18} strokeWidth={1.8} />
-            </span>
-            <span className="readiness-expanded">
-              <span className="readiness-heading">
-                <span>Kelengkapan profil</span>
-                <strong>{profileReadiness ? `${profileReadiness.percent}%` : "—"}</strong>
-              </span>
-              <span className="readiness-track" aria-label={profileReadiness ? `Kelengkapan profil ${profileReadiness.percent} persen` : "Kelengkapan profil sedang dimuat"}>
-                <span style={{ width: `${profileReadiness?.percent ?? 0}%` }} />
-              </span>
-              <span className="readiness-copy">{profileReadiness ? `${profileReadiness.complete} dari ${profileReadiness.total} dasar profil sudah tersedia.` : "Memuat dasar profil…"}</span>
+            <span className="nav-icon" aria-hidden="true">
+              <CircleHelp size={18} strokeWidth={1.7} />
             </span>
           </Link>
+        </section>
 
-          {isAccountMenuOpen ? (
-            <div className="sidebar-account-menu" id="sidebar-account-menu" role="menu">
-              <div className="sidebar-account-heading">
-                <AccountAvatar
-                  avatarUrl={accountAvatarUrl}
-                  initials={accountInitials}
-                  name={activeAccountName}
-                />
-                <span>
-                  <strong>{activeAccountName}</strong>
-                  <small>{accountDescription}</small>
-                </span>
-              </div>
-              <Link href="/pengaturan" role="menuitem" onClick={closeMobileNavigation}>
-                <Settings aria-hidden="true" size={16} strokeWidth={1.8} />
-                Pengaturan akun
-              </Link>
-              {accountError ? <p className="sidebar-account-error" role="alert">{accountError}</p> : null}
-              <button
-                type="button"
-                role="menuitem"
-                onClick={logOutSession}
-                disabled={isLoggingOut}
-              >
-                <LogOut aria-hidden="true" size={16} strokeWidth={1.8} />
-                {isLoggingOut ? "Mengakhiri sesi…" : "Keluar dari akun"}
-              </button>
-            </div>
-          ) : null}
-
-          <button
-            className="sidebar-user"
-            type="button"
-            aria-label={`${isAccountMenuOpen ? "Tutup" : "Buka"} menu akun ${activeAccountName}`}
-            aria-expanded={isAccountMenuOpen}
-            aria-controls="sidebar-account-menu"
-            data-tooltip={`Akun ${activeAccountName}`}
-            onClick={() => setIsAccountMenuOpen((current) => !current)}
+        <nav className="sidebar-utility" aria-label="Navigasi utilitas">
+          <Link
+            className={activeItem === utilityNavigation.label ? "nav-item active" : "nav-item"}
+            href={utilityNavigation.href}
+            aria-current={activeItem === utilityNavigation.label ? "page" : undefined}
+            data-tooltip={utilityNavigation.label}
+            onClick={closeMobileNavigation}
           >
-            <AccountAvatar
-              avatarUrl={accountAvatarUrl}
-              initials={accountInitials}
-              name={activeAccountName}
-            />
-            <span className="sidebar-user-copy">
-              <strong>{activeAccountName}</strong>
-              <small>{activeAccountEmail}</small>
+            <span className="nav-icon" aria-hidden="true">
+              <Settings size={17} strokeWidth={1.7} />
             </span>
-            <MoreHorizontal
-              className="sidebar-user-more"
-              aria-hidden="true"
-              size={18}
-              strokeWidth={1.8}
-            />
-          </button>
-        </div>
+            <span className="nav-text">{utilityNavigation.label}</span>
+          </Link>
+        </nav>
       </aside>
     </>
   );
 }
 
-type SidebarApiResponse = {
-  data?: {
-    profile?: { targetRole?: string; careerField?: string } | null;
-    skills?: unknown[];
-    evidences?: unknown[];
-  };
-};
+export function AppSidebarToggle() {
+  const isDesktopCollapsed = useSyncExternalStore(
+    subscribeToSidebarPreference,
+    getSidebarPreference,
+    getServerSidebarPreference,
+  );
+  const isTabletExpanded = useSyncExternalStore(
+    subscribeToTabletSidebarPreference,
+    getTabletSidebarPreference,
+    getServerSidebarPreference,
+  );
+  const [, isTabletViewport] = useSidebarViewport();
+  const isSidebarCollapsed = isTabletViewport
+    ? !isTabletExpanded
+    : isDesktopCollapsed;
 
-async function readSidebarJson(response: Response): Promise<SidebarApiResponse> {
-  try { return await response.json() as SidebarApiResponse; } catch { return {}; }
+  function toggleSidebar() {
+    if (isTabletViewport) {
+      window.sessionStorage.setItem(
+        tabletSidebarPreferenceKey,
+        String(!isTabletExpanded),
+      );
+      window.dispatchEvent(new Event(tabletSidebarPreferenceEvent));
+      return;
+    }
+
+    window.localStorage.setItem(
+      sidebarPreferenceKey,
+      String(!isDesktopCollapsed),
+    );
+    window.dispatchEvent(new Event(sidebarPreferenceEvent));
+  }
+
+  return (
+    <button
+      className="sidebar-context-toggle"
+      type="button"
+      aria-controls="app-navigation"
+      aria-label={isSidebarCollapsed ? "Perluas sidebar" : "Ringkas sidebar"}
+      aria-pressed={isSidebarCollapsed}
+      title={isSidebarCollapsed ? "Perluas sidebar" : "Ringkas sidebar"}
+      onClick={toggleSidebar}
+    >
+      {isSidebarCollapsed ? (
+        <PanelLeftOpen aria-hidden="true" size={16} strokeWidth={1.75} />
+      ) : (
+        <PanelLeftClose aria-hidden="true" size={16} strokeWidth={1.75} />
+      )}
+    </button>
+  );
 }
 
-function AccountAvatar({
-  avatarUrl,
-  initials,
-  name,
-}: {
-  avatarUrl: string | null;
-  initials: string;
-  name: string;
-}) {
+export function AppMobileMenuButton() {
+  const isOpen = useSyncExternalStore(
+    subscribeToMobileSidebar,
+    getMobileSidebarState,
+    getServerSidebarPreference,
+  );
+
   return (
-    <span
-      className={`avatar${avatarUrl ? " has-image" : ""}`}
-      aria-label={avatarUrl ? `Foto profil ${name}` : undefined}
-      aria-hidden={avatarUrl ? undefined : true}
+    <button
+      className="app-topbar-mobile-menu"
+      type="button"
+      aria-label="Buka navigasi utama"
+      aria-expanded={isOpen}
+      aria-controls="app-navigation"
+      onClick={() => setMobileSidebarOpen(true)}
     >
-      {avatarUrl ? <img src={avatarUrl} alt="" /> : initials}
-    </span>
+      <Menu aria-hidden="true" size={18} strokeWidth={1.8} />
+    </button>
+  );
+}
+
+function useSidebarViewport() {
+  const isMobileViewport = useViewportMatch("(max-width: 767px)");
+  const isTabletViewport = useViewportMatch(
+    "(min-width: 768px) and (max-width: 1023px)",
+  );
+
+  return [isMobileViewport, isTabletViewport] as const;
+}
+
+function useViewportMatch(query: string) {
+  return useSyncExternalStore(
+    (callback) => {
+      const mediaQuery = window.matchMedia(query);
+      mediaQuery.addEventListener("change", callback);
+      return () => mediaQuery.removeEventListener("change", callback);
+    },
+    () => window.matchMedia(query).matches,
+    getServerSidebarPreference,
   );
 }

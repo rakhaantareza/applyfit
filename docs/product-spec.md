@@ -34,6 +34,24 @@ ApplyFit should help users understand their current fit. It must not decide whet
 - The UI should communicate state and next action without excessive explanation.
 - ApplyFit should feel like a focused product, not a CRUD dashboard or HR admin system.
 
+### Experience north star
+
+ApplyFit should feel like a **calm tool/workspace**, not a feature-heavy career dashboard.
+
+The interface should get out of the way of the user's actual task: understanding a job, connecting it to their existing profile, and seeing what is already supported or still missing.
+
+Use these principles when making visual or structural decisions:
+
+- **Calm workspace over dashboard.** Do not fill available space merely because it exists.
+- **One primary focus per screen.** The user should immediately understand what they are doing and what comes next.
+- **Typography and spacing carry hierarchy.** Do not solve every hierarchy problem with another card, badge, or colored container.
+- **Persistent navigation only when useful.** Focused workflows may use a different shell from general app navigation.
+- **Fewer surfaces.** Prefer whitespace, dividers, and natural grouping over stacks of rounded cards.
+- **Brand through restraint.** Forest green establishes identity; lime is punctuation, not a highlighter applied everywhere.
+- **Progressive disclosure.** Show detail when it becomes useful instead of front-loading everything.
+- **No decorative productivity metrics.** A metric should exist only if it helps orientation or the next decision.
+- **The UI should disappear behind the task.** Users should spend their attention on requirements, skills, portfolio items, and gaps rather than the interface itself.
+
 ---
 
 ## 2. Target Users
@@ -48,9 +66,58 @@ The default product voice should assume users understand common job-search terms
 
 ---
 
-## 3. Information Architecture
+## 3. Information Architecture and Layout Families
 
 ApplyFit separates reusable career information from job-specific work.
+
+Navigation structure and page shell are related but not identical. Not every screen needs the full application sidebar.
+
+### Layout families
+
+ApplyFit uses three layout families:
+
+#### App shell
+
+Use the global app shell for reusable career areas and top-level navigation:
+
+- Ringkasan
+- Profil
+- Portfolio & Pengalaman
+- Lowongan
+
+The shell uses a slim application top bar, a compact persistent sidebar on desktop, and the existing responsive navigation mechanics at smaller breakpoints.
+
+The top bar is the application-level chrome and contains:
+
+- the ApplyFit mark and wordmark,
+- the sidebar collapse or mobile navigation control,
+- a compact account/avatar trigger.
+
+The sidebar is primarily navigation, with the compact Fit Score guide as its only explanatory module. This shell should feel like a quiet tool frame, not a dashboard frame.
+
+#### Job focus shell
+
+Once the user opens a specific job, the interface enters a focused job workspace.
+
+The job workspace does **not** require the full global sidebar. Prefer a focused shell with:
+
+- an obvious way back to Lowongan,
+- the selected role and company as context,
+- job-level actions when necessary,
+- contextual navigation: Detail → Persyaratan → Cocokkan Profil → Analisis.
+
+The purpose is to give the job workflow more horizontal space and reduce navigation noise while the user is working through one job.
+
+Do not duplicate the same navigation in both a full sidebar and a large job-level navigation treatment unless there is a clear usability reason.
+
+#### Standalone shell
+
+Authentication, password recovery, and similar entry/account-access flows do not use the app dashboard shell.
+
+They should remain focused and self-contained.
+
+Pengaturan may use a simplified account layout or the app shell when useful for orientation, but it must not introduce dashboard widgets or unrelated product status.
+
 
 ### Global navigation
 
@@ -58,13 +125,29 @@ ApplyFit separates reusable career information from job-specific work.
 - **Karier**
   - **Profil**
   - **Portfolio & Pengalaman**
-- **Lowongan**
+  - **Lowongan**
 
-Account controls remain at the bottom of the navigation and provide access to Pengaturan and Keluar.
+Account identity and actions live in the top bar account menu, not persistently in the sidebar. The menu provides access to Pengaturan, appearance selection, and Keluar without keeping the email permanently visible in the shell.
 
 `Karier` is a subtle grouping label, not a heavy accordion or enterprise-style navigation tree.
 
-`Lowongan` is a direct navigation item. Do not add a redundant `Semua Lowongan` submenu when there is no second global job destination.
+`Lowongan` is visually grouped under `Karier` while remaining a direct navigation item. Do not add a redundant `Semua Lowongan` submenu when there is no second global job destination.
+
+The desktop sidebar should be compact and visually quiet:
+
+- narrow enough to feel like navigation rather than a content column,
+- neutral application chrome rather than a large dark-green block,
+- no profile-completeness card or dashboard widget inside the sidebar,
+- no account profile block, email, or account actions,
+- a compact `Cara Fit Score dihitung` guide near the bottom, followed by a quiet Pengaturan utility separated by one subtle divider,
+- restrained active state,
+- muted default items,
+- minimal section styling,
+- approximately 13px navigation type with compact 17–18px line icons,
+- consistent icon rhythm in expanded and collapsed states,
+- Profil, Portfolio & Pengalaman, and Lowongan aligned with the other navigation rows; grouping is communicated by the Karier label rather than indentation,
+- no divider or expanded group gap before Lowongan,
+- no decorative use of lime across text + icon + indicator simultaneously.
 
 ### Job workspace navigation
 
@@ -282,13 +365,13 @@ The analysis should provide:
 - An actionable `Perlu perhatian` area that can take the user back to unresolved profile connections.
 - Compact requirement rows.
 - Expandable details for linked skills, Portfolio & Pengalaman, and score contribution.
-- A concise explanation of how Fit Score is calculated.
+- One quiet link to the centralized `Cara Fit Score dihitung` explainer.
 
 Avoid repeating formula math on every collapsed requirement row. If the hero already summarizes the statuses, do not add another large summary card that says the same thing.
 
 A job selector on this page is a workspace switcher, not a “score comparison” control.
 
-`Cara Fit Score dihitung` is preferred over technical labels such as `Transparansi Skor`.
+`Cara Fit Score dihitung` is preferred over technical labels such as `Transparansi Skor`. Do not repeat the formula in an expandable block at the bottom of Analisis when the centralized explainer is available.
 
 On mobile, lead with exceptions and next actions before exhaustive proof.
 
@@ -332,6 +415,17 @@ Formula:
 
 AI must not determine this score.
 
+### Fit Score explainer
+
+The existing `/contoh-perhitungan` destination is the single `Cara Fit Score dihitung` explainer. It contains:
+
+- Proven, Partial, Learning, and Missing semantics and multipliers.
+- Wajib and Preferensi weighting.
+- The deterministic Fit Score formula and score scope.
+- The concrete worked example under a `Contoh perhitungan` section.
+
+The expanded global sidebar may show a compact educational guide linking to this page above Pengaturan. The collapsed rail shows only one Fit Score/help utility icon. This module is explanatory navigation, not a completeness widget, promotional card, or product metric.
+
 ### Requirement classification semantics
 
 Classification should follow the meaning of the requirement, not a shallow keyword rule.
@@ -349,34 +443,49 @@ Quantified tenure, general professional experience, and education remain context
 
 ## 9. Ringkasan
 
-Ringkasan is a continuation and decision surface, not a generic analytics dashboard.
+Ringkasan is a **calm continuation surface**, not a dashboard full of widgets.
 
-Preferred information order is:
+Its main job is to answer:
 
-1. Greeting and a short orientation.
-2. Career/profile foundation status.
-3. Current or latest job work / analysis.
-4. Meaningful gaps that are distinct from the primary workflow action.
-5. Workflow progress and the single primary next step.
+- What am I currently working on?
+- What should I do next?
+- Is there one important career-profile gap I need to know about?
 
-It should answer:
+The default screen should remain intentionally sparse.
 
-- Where am I in the ApplyFit flow?
-- What should I continue next?
-- What was my latest job analysis?
-- Is there an important profile gap I should know about?
+Preferred structure:
 
-The workflow component owns the primary next action. Other cards should not repeat the same CTA.
+1. A small greeting/orientation.
+2. **Current work + next action** as the primary focal area.
+3. A compact career-foundation summary when useful.
+4. Latest analysis context only when it helps the user continue.
+5. Lightweight workflow progress only when it improves orientation.
+
+Do not create separate cards for every available count or metric.
+
+Avoid:
+
+- grids of statistic cards,
+- generic recommendation feeds,
+- decorative trend charts,
+- application-count dashboards,
+- large “top skills” widgets,
+- repeated next-action cards,
+- card-based representations of every workflow step.
+
+If workflow progress is shown, prefer a light inline/step treatment rather than four large feature cards.
+
+The workflow area owns the primary next action. Other sections must not repeat the same CTA.
 
 Page state must be internally consistent. For example, do not show a `Simpan lowongan` empty action when the same page already knows the user has an active saved job or mapping progress.
 
-Use meaningful stats only when they help orientation; avoid decorative dashboard metrics.
+Use a number only when it materially helps orientation or the next decision.
 
 Do not show empty-state copy until relevant data has actually finished resolving.
 
-Avoid system-facing labels such as “Data akun terhubung”.
+Avoid system-facing labels such as `Data akun terhubung`.
 
-Do not add new Ringkasan features merely to make the page feel fuller; its job is to summarize and continue existing work.
+Whitespace is intentional. Do not add content merely to make Ringkasan feel fuller.
 
 ---
 
@@ -499,12 +608,10 @@ Loading should be invisible when fast and quiet when necessary.
 ### Initial protected-route bootstrap
 
 - Do not show `Menyiapkan ruang kerjamu...`.
-- Avoid theatrical loading treatments.
-- If auth/session resolution takes noticeable time, a minimal centered ApplyFit mark or neutral placeholder is sufficient.
-- Do not use a looping flip animation or other theatrical branded motion.
-- Do not introduce a full-page skeleton solely for session bootstrap.
-- Motion should be subtle or absent.
-- Preserve reduced-motion behavior if motion remains.
+- Keep the page visually neutral and empty while auth/session resolution is pending.
+- Do not show an ApplyFit mark, branded copy, animation, full-screen loader, or skeleton solely for session resolution.
+- Do not render protected-page empty or error states before the authenticated session has resolved.
+- Render the application only after the session resolves; redirect unauthenticated visitors without an intermediate branded screen.
 
 ### Internal navigation
 
@@ -559,20 +666,132 @@ Prefer user meaning over implementation meaning.
 
 ---
 
-## 14. UI and Interaction Principles
+## 14. Visual Foundation and Interaction Principles
+
+### Typography
+
+ApplyFit uses **Inter** as the primary UI typeface.
+
+Typography should feel neutral, sharp, and highly readable rather than expressive for its own sake.
+
+Preferred weight range:
+
+- 400 for body and secondary content.
+- 500 for controls, navigation, and compact emphasis.
+- 600 for primary headings or genuinely important emphasis.
+
+Avoid excessive bold weight, oversized dashboard numbers, all-caps eyebrow labels, and aggressive letter spacing.
+
+Hierarchy should come primarily from size, weight, spacing, and placement.
+
+### Color system
+
+Preserve ApplyFit's identity while reducing visual noise:
+
+- **Neutral light/off-white chrome** — top bar and sidebar in the light theme.
+- **Soft off-white** — default light application canvas.
+- **White / near-white** — grouped light-theme surfaces only when a distinct surface is actually needed.
+- **Neutral near-black / charcoal** — dark-theme chrome, canvas, and surfaces with subtle tonal separation.
+- **Muted neutral / gray-green** — secondary text, borders, inactive navigation, and metadata.
+- **Forest green** — intentional brand and primary-action moments, not a structural shell background.
+- **Lime** — restrained punctuation for a small number of important active states, progress signals, or brand details.
+
+Lime must not simultaneously color the text, icon, indicator, border, and background of the same state.
+
+Color should clarify state, not decorate every component.
+
+### Appearance
+
+ApplyFit provides three appearance preferences:
+
+- **System** — default; follows the operating-system or browser color-scheme preference.
+- **Light** — explicitly uses the neutral light foundation.
+- **Dark** — explicitly uses the neutral near-black foundation.
+
+An explicit Light or Dark selection is persisted locally. Returning to System removes the explicit override and resumes following the current system preference.
+
+Shared components consume semantic theme concepts such as:
+
+- background,
+- chrome,
+- surface and subtle surface,
+- foreground and muted foreground,
+- border,
+- primary,
+- accent,
+- destructive.
+
+The dark theme must remain neutral rather than becoming a green-tinted dashboard. Both themes use flat surfaces, subtle borders, and absent or extremely soft shadows.
+
+### Surfaces, borders, and radius
+
+ApplyFit should use fewer visible containers.
+
+- Prefer spacing or a divider before introducing another card.
+- Use subtle neutral borders for structure.
+- Shadows should be absent or very soft; do not rely on floating-card shadows as the default hierarchy mechanism.
+- Use small-to-moderate corner radii, roughly in the 8–12px range for most product surfaces.
+- Avoid giant pill containers except for controls whose interaction genuinely benefits from that shape.
+- Avoid nested cards unless the nesting expresses a real relationship.
+
+### Spacing and density
+
+- Default to generous whitespace around the primary task.
+- Dense screens should become compact through rows, tables, or progressive disclosure, not through tiny text.
+- Forms and reading surfaces should use intentional content widths rather than stretching to fill every available pixel.
+- Job workflows may use wider content than profile/settings forms because they contain requirement lists and comparison detail.
+- Every global app-shell screen uses the same centered content-container width.
+- Every selected-job workspace screen uses the same job-workspace content-container width. The two layout families may use different widths.
+
+### Sidebar
+
+The sidebar should take structural inspiration from quiet professional tools rather than generic SaaS dashboards.
+
+- Compact width and spacing.
+- Neutral light or charcoal chrome that follows the active appearance.
+- Muted default navigation.
+- One restrained tonal active treatment; avoid a large CTA-like pill or lime rail.
+- Section labels are subtle, sentence case, and low-emphasis.
+- Profil, Portfolio & Pengalaman, and Lowongan use the same row alignment as Ringkasan; do not present the Karier group as a tree.
+- Lowongan follows the same compact row rhythm as the other Karier destinations.
+- A compact `Cara Fit Score dihitung` guide may sit near the bottom; in the collapsed rail it becomes one Fit Score/help icon.
+- Pengaturan remains the only account utility item and uses one subtle divider above it.
+- No completeness widgets, promotional cards, or dashboard metrics.
+- No account identity, email, appearance controls, or account actions.
+- Collapsed rail remains visually coherent with the expanded version.
+- Collapsed navigation keeps one consistent icon rhythm and does not reproduce expanded grouping gaps literally.
+
+### Top bar
+
+The global top bar owns brand, the navigation control, and account access. It remains slim, flat, and separated with a subtle bottom border. It must not add notification controls, promotional utilities, streaks, or other unrelated chrome.
+
+On desktop, the ApplyFit mark and wordmark remain visible in both expanded and collapsed sidebar states. The collapse or expand control sits directly after the wordmark with a small gap. Collapsing changes only the sidebar width; it does not collapse or reposition the top-bar brand area.
+
+Global pages do not show breadcrumbs. This applies to Ringkasan, Profil, Portfolio & Pengalaman, and Lowongan. Their existing centered main-content width and page spacing remain unchanged.
+
+The focused job workspace is the only shell that shows a breadcrumb: `← Lowongan / {Role} — {Company}`. It provides a clear return path to Lowongan, no global sidebar, and the approved job navigation directly below it.
+
+The focused breadcrumb, job navigation, and main workspace share one content grid, with restrained vertical spacing between the tabs and feature content.
+
+### Components
+
+- Buttons, inputs, dropdowns, selectors, modals, badges, and status treatments must use consistent hierarchy and interaction patterns across pages.
+- Primary buttons should be obvious without dominating an entire screen.
+- Secondary actions should remain quiet.
+- Inputs should feel like working controls rather than decorative cards.
+- Badges are only for useful state.
+- Destructive actions should not dominate default views.
+- Prefer compact rows and progressive disclosure for dense information.
+
+### General interaction principles
 
 - Prioritize hierarchy over decoration.
-- Avoid excessive nested cards.
 - Avoid turning every section into eyebrow + title + subtitle + rounded card.
-- Do not add badges unless they communicate useful state.
-- Destructive actions should not dominate default views.
-- Buttons, inputs, dropdowns, selectors, modals, badges, and status treatments should use consistent hierarchy and interaction patterns across pages.
-- Prefer compact rows and progressive disclosure for dense information.
 - Mobile should prioritize exceptions and next actions rather than reproducing all desktop detail vertically.
 - Motion should be purposeful and restrained.
 - If removing an element leaves context, state, and next action equally clear, remove it.
 
-Responsive navigation mechanics already implemented should be preserved unless a real bug requires change. IA/content changes should not casually reopen established breakpoint behavior.
+Responsive navigation mechanics already implemented should be preserved unless a real bug requires change. The visual foundation may refine sizing and styling, but it should not casually regress established breakpoint behavior.
 
 ---
 
@@ -580,6 +799,11 @@ Responsive navigation mechanics already implemented should be preserved unless a
 
 The current product refinement may include:
 
+- Visual foundation reset around the calm-workspace north star.
+- Inter typography migration.
+- Refined color, spacing, surface, border, radius, and base component tokens.
+- Compact global app shell/sidebar refinement.
+- Focused job-workspace shell that does not require the full global sidebar.
 - Global IA/sidebar restructuring.
 - Job workspace contextual navigation.
 - Copy simplification.
@@ -590,6 +814,7 @@ The current product refinement may include:
 - Fit Analysis simplification and progressive disclosure.
 - Auth and settings copy cleanup.
 - Loading-state simplification.
+- Ringkasan simplification away from widget-heavy dashboard patterns.
 - UI consistency and mobile-density improvements.
 
 The following are not required for the current refinement unless explicitly requested:

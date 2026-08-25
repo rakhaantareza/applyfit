@@ -188,7 +188,7 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
         <div className="profile-skill-heading-actions responsive-card-heading-actions">
           <p>
             Status skill di profil berbeda dari status requirement. Bukti yang
-            terhubung akan menentukan hasil pemetaan pada setiap lowongan.
+            terhubung akan menentukan hasil kecocokan pada setiap lowongan.
           </p>
           <button className="skill-add-button" type="button" onClick={openAddEditor}>
             <Plus aria-hidden="true" size={16} strokeWidth={2} />

@@ -13,6 +13,12 @@ import { EvidenceQueryError } from "../services/evidences.ts";
 
 type AuthResult<T> = { status: "unauthenticated" } | { status: "ok"; data: T };
 
+type WithoutEvidenceReview = {
+  requirementId: string;
+  reviewedWithoutEvidence: boolean;
+  status: "missing";
+};
+
 export type RequirementMappingActions = {
   create: (
     jobId: string,
@@ -27,7 +33,11 @@ export type RequirementMappingActions = {
   markWithoutEvidence: (
     jobId: string,
     requirementId: string,
-  ) => Promise<AuthResult<{ requirementId: string; status: "missing" }>>;
+  ) => Promise<AuthResult<WithoutEvidenceReview>>;
+  clearWithoutEvidence: (
+    jobId: string,
+    requirementId: string,
+  ) => Promise<AuthResult<WithoutEvidenceReview>>;
   summary: (jobId: string) => Promise<AuthResult<MappingReviewSummary>>;
 };
 
@@ -120,6 +130,15 @@ export function createRequirementMappingHandlers(actions: RequirementMappingActi
     } catch (error) { return errorResponse(error); }
   }
 
+  async function CLEAR_WITHOUT_EVIDENCE(jobId: string, requirementId: string) {
+    if (!jobId || !requirementId) return invalidResponse();
+    try {
+      const result = await actions.clearWithoutEvidence(jobId, requirementId);
+      if (result.status === "unauthenticated") return unauthenticatedResponse();
+      return Response.json({ data: result.data });
+    } catch (error) { return errorResponse(error); }
+  }
+
   async function GET_SUMMARY(jobId: string) {
     if (!jobId) return invalidResponse();
     try {
@@ -133,6 +152,7 @@ export function createRequirementMappingHandlers(actions: RequirementMappingActi
     POST,
     DELETE,
     MARK_WITHOUT_EVIDENCE,
+    CLEAR_WITHOUT_EVIDENCE,
     GET_SUMMARY,
   };
 }

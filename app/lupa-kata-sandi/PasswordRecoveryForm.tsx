@@ -79,7 +79,7 @@ export function PasswordRecoveryForm() {
           <Mail aria-hidden="true" size={18} strokeWidth={1.8} />
           <input id="recovery-email" name="email" type="email" autoComplete="email" inputMode="email" placeholder="nama@email.com" value={email} onChange={(event) => setEmail(event.target.value)} aria-describedby={error ? "recovery-error" : "recovery-hint"} required />
         </div>
-        <small id="recovery-hint">Kode 6 digit akan dikirim oleh InsForge Auth.</small>
+        <small id="recovery-hint">Kode 6 digit akan dikirim ke email akunmu.</small>
       </div>
 
       {error ? <p className="login-error" id="recovery-error" role="alert">{error}</p> : null}

@@ -13,7 +13,7 @@ export default function PasswordRecoveryPage() {
       <AuthBrandPanel
         titleId="recovery-brand-title"
         title="Kembali ke analisis tanpa kehilangan alurmu."
-        description="Pulihkan akses untuk melanjutkan profil karier, pustaka bukti, dan lowongan yang sedang kamu analisis."
+        description="Pulihkan akses untuk melanjutkan profil karier, Portfolio & Pengalaman, dan lowongan yang sedang kamu analisis."
       />
 
       <section className="auth-form-panel" aria-labelledby="recovery-title">

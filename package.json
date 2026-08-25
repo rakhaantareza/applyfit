@@ -13,6 +13,7 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "screenshots:auth": "node --env-file-if-exists=.env.local scripts/screenshots/auth.mjs",
     "screenshots": "node --env-file-if-exists=.env.local scripts/screenshots/capture.mjs",
+    "screenshots:dark": "node --env-file-if-exists=.env.local scripts/screenshots/capture-dark.mjs",
     "screenshots:portfolio": "node --env-file-if-exists=.env.local scripts/screenshots/portfolio.mjs",
     "db:migrate": "node scripts/db-ownership.mjs migrate",
     "db:ownership:check": "node scripts/db-ownership.mjs check",
@@ -28,7 +29,6 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",
     "@eslint/js": "9.39.4",
-    "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
     "@next/eslint-plugin-next": "16.2.6",
     "@tailwindcss/postcss": "4.2.1",
     "@types/node": "22.19.19",

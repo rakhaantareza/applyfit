@@ -2,6 +2,7 @@ import { createInsForgeServerClient } from "../../../../lib/insforge/server.ts";
 import type { RequirementMappingActions } from "../../../../../server/http/requirement-mappings-handler.ts";
 import {
   createManualRequirementMapping,
+  clearRequirementWithoutEvidence,
   deleteManualRequirementMapping,
   markRequirementWithoutEvidence,
   getRequirementMappingReviewSummary,
@@ -48,6 +49,19 @@ export const requirementMappingActions: RequirementMappingActions = {
     return {
       status: "ok",
       data: await markRequirementWithoutEvidence(
+        context.client,
+        context.userId,
+        jobId,
+        requirementId,
+      ),
+    };
+  },
+  async clearWithoutEvidence(jobId, requirementId) {
+    const context = await currentUserContext();
+    if (!context) return { status: "unauthenticated" };
+    return {
+      status: "ok",
+      data: await clearRequirementWithoutEvidence(
         context.client,
         context.userId,
         jobId,

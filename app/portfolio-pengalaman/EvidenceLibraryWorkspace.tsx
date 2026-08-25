@@ -55,7 +55,7 @@ export function EvidenceLibraryWorkspace() {
           throw new Error(
             evidenceResult.error?.message ??
               skillsResult.error?.message ??
-              "Pustaka bukti belum dapat dimuat.",
+              "Portfolio & Pengalaman belum dapat dimuat.",
           );
         }
 
@@ -88,7 +88,7 @@ export function EvidenceLibraryWorkspace() {
         setError(
           requestError instanceof Error
             ? requestError.message
-            : "Pustaka bukti belum dapat dimuat.",
+            : "Portfolio & Pengalaman belum dapat dimuat.",
         );
       } finally {
         if (active) setLoading(false);

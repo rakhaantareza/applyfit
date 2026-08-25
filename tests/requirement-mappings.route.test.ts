@@ -33,7 +33,19 @@ function actions(overrides: Partial<RequirementMappingActions> = {}): Requiremen
     remove: async () => ({ status: "ok", data: null }),
     markWithoutEvidence: async () => ({
       status: "ok",
-      data: { requirementId: "requirement-1", status: "missing" },
+      data: {
+        requirementId: "requirement-1",
+        reviewedWithoutEvidence: true,
+        status: "missing",
+      },
+    }),
+    clearWithoutEvidence: async () => ({
+      status: "ok",
+      data: {
+        requirementId: "requirement-1",
+        reviewedWithoutEvidence: false,
+        status: "missing",
+      },
     }),
     summary: async () => ({ status: "ok", data: summary }),
     ...overrides,
@@ -107,14 +119,18 @@ test("manual mapping endpoints expose target, duplicate, and missing-link errors
   assert.equal(missing.status, 404);
 });
 
-test("without-evidence endpoint resolves the requirement as missing without a marker row", async () => {
+test("without-evidence endpoint persists a review flag while keeping the status missing", async () => {
   let marked: unknown;
   const handlers = createRequirementMappingHandlers(actions({
     markWithoutEvidence: async (jobId, requirementId) => {
       marked = { jobId, requirementId };
       return {
         status: "ok",
-        data: { requirementId, status: "missing" },
+        data: {
+          requirementId,
+          reviewedWithoutEvidence: true,
+          status: "missing",
+        },
       };
     },
   }));
@@ -122,7 +138,34 @@ test("without-evidence endpoint resolves the requirement as missing without a ma
   assert.equal(create.status, 200);
   assert.deepEqual(marked, { jobId: "job-1", requirementId: "requirement-1" });
   assert.deepEqual(await create.json(), {
-    data: { requirementId: "requirement-1", status: "missing" },
+    data: {
+      requirementId: "requirement-1",
+      reviewedWithoutEvidence: true,
+      status: "missing",
+    },
+  });
+});
+
+test("without-evidence endpoint persists cancellation of the review flag", async () => {
+  let cleared: unknown;
+  const handlers = createRequirementMappingHandlers(actions({
+    clearWithoutEvidence: async (jobId, requirementId) => {
+      cleared = { jobId, requirementId };
+      return {
+        status: "ok",
+        data: { requirementId, reviewedWithoutEvidence: false, status: "missing" },
+      };
+    },
+  }));
+  const response = await handlers.CLEAR_WITHOUT_EVIDENCE("job-1", "requirement-1");
+  assert.equal(response.status, 200);
+  assert.deepEqual(cleared, { jobId: "job-1", requirementId: "requirement-1" });
+  assert.deepEqual(await response.json(), {
+    data: {
+      requirementId: "requirement-1",
+      reviewedWithoutEvidence: false,
+      status: "missing",
+    },
   });
 });
 

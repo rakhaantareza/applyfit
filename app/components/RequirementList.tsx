@@ -62,7 +62,7 @@ export function RequirementList({ requirements }: RequirementListProps) {
           <h3>Belum ada requirement Skill atau Tool</h3>
           <p>
             Requirement Education dan Experience tetap tersimpan untuk referensi, tetapi
-            skor MVP baru dapat dihitung setelah ada syarat berbasis Skill atau Tool.
+            Fit Score baru dapat dihitung setelah ada syarat berbasis Skill atau Tool.
           </p>
         </div>
       </div>

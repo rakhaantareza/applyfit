@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AppSidebar } from "../components/AppSidebar";
+import { AppShell } from "../components/AppShell";
 import { CareerProfileWorkspace } from "./CareerProfileWorkspace";
 import { AuthenticatedRoute } from "../components/AuthenticatedRoute";
 
@@ -11,10 +11,7 @@ export const metadata: Metadata = {
 
 export default function CareerProfilePage() {
   return (
-    <AuthenticatedRoute><div className="app-shell">
-      <AppSidebar activeItem="Profil Karier" />
-
-      <main className="main-content profile-main">
+    <AuthenticatedRoute><AppShell activeItem="Profil" mainClassName="profile-main">
         <div className="page-container career-profile-page">
           <header className="profile-page-header responsive-page-header">
             <div>
@@ -28,7 +25,6 @@ export default function CareerProfilePage() {
           </header>
           <CareerProfileWorkspace />
         </div>
-      </main>
-    </div></AuthenticatedRoute>
+    </AppShell></AuthenticatedRoute>
   );
 }

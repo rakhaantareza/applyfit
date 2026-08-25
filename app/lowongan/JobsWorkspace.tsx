@@ -174,7 +174,7 @@ function JobsEmptyWorkspace() {
         </span>
         <p className="eyebrow">Mulai dari satu lowongan</p>
         <h2 id="jobs-empty-title">Belum ada lowongan tersimpan</h2>
-        <p>Simpan lowongan yang ingin kamu pahami, lalu tinjau requirement-nya secara bertahap.</p>
+        <p>Simpan lowongan yang ingin kamu pahami, lalu periksa Persyaratan secara bertahap.</p>
         <Link className="jobs-add-button" href="/lowongan/baru">
           <Plus aria-hidden="true" size={16} strokeWidth={2} />
           Tambah lowongan

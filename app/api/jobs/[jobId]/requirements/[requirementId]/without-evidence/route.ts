@@ -8,3 +8,8 @@ export async function POST(_request: Request, context: RouteContext) {
   const { jobId, requirementId } = await context.params;
   return handlers.MARK_WITHOUT_EVIDENCE(jobId, requirementId);
 }
+
+export async function DELETE(_request: Request, context: RouteContext) {
+  const { jobId, requirementId } = await context.params;
+  return handlers.CLEAR_WITHOUT_EVIDENCE(jobId, requirementId);
+}

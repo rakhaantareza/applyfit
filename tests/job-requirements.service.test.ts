@@ -12,6 +12,7 @@ const databaseRow = {
   name: "TypeScript",
   type: "skill",
   priority: "required",
+  reviewed_without_evidence: true,
   created_at: "2026-08-09T09:00:00.000Z",
   updated_at: "2026-08-09T09:00:00.000Z",
 };
@@ -23,6 +24,7 @@ test("normalizeJobRequirement maps the persisted review contract", () => {
     name: "TypeScript",
     type: "skill",
     priority: "required",
+    reviewedWithoutEvidence: true,
     createdAt: "2026-08-09T09:00:00.000Z",
     updatedAt: "2026-08-09T09:00:00.000Z",
   });
