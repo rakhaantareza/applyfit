@@ -3,7 +3,6 @@
 /* eslint-disable @next/next/no-img-element -- Account avatars can use user-provided HTTPS hosts. */
 
 import {
-  ArrowLeft,
   LogOut,
   Monitor,
   Moon,
@@ -22,6 +21,7 @@ import {
   AppMobileMenuButton,
   AppSidebarToggle,
 } from "./AppSidebar";
+import { InlineBackLink } from "./InlineBackLink";
 import {
   type AppearancePreference,
   useAppearance,
@@ -79,10 +79,9 @@ export function AppTopBar({
                 </span>
               ) : null}
               {index === 0 && backHref ? (
-                <Link className="app-topbar-back" href={backHref}>
-                  <ArrowLeft aria-hidden="true" size={15} strokeWidth={1.8} />
+                <InlineBackLink href={backHref}>
                   {segment}
-                </Link>
+                </InlineBackLink>
               ) : (
                 <span
                   className={index === context.length - 1

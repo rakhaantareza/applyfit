@@ -11,7 +11,8 @@ import {
   Plus,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { StableLink as Link } from "../components/StableLink";
+import { ActionLink, CtaArrow } from "../components/ActionControl";
+import { PageHeader, SectionHeader } from "../components/ContentHeaders";
 
 type SavedJob = {
   id: string;
@@ -105,8 +106,8 @@ export function JobsWorkspace() {
           </span>
           <div>
             <p className="eyebrow">Ruang kerja lowongan</p>
-            <h2 id="jobs-overview-title">{jobs.length} lowongan dalam pantauanmu</h2>
-            <p>
+            <h2 className="type-section-title" id="jobs-overview-title">{jobs.length} lowongan dalam pantauanmu</h2>
+            <p className="type-helper">
               Setiap lowongan menyimpan sumber, lokasi, cara kerja, dan progres
               requirement tanpa mencampur konteks antarpekerjaan.
             </p>
@@ -119,16 +120,16 @@ export function JobsWorkspace() {
       </section>
 
       <section className="jobs-list-section" aria-labelledby="jobs-list-title">
-        <div className="jobs-section-heading responsive-card-heading">
-          <div>
-            <p className="eyebrow">Daftar lowongan</p>
-            <h2 id="jobs-list-title">Konteks pekerjaan tersimpan</h2>
-          </div>
-          <p className="responsive-card-heading-copy">
-            Status menunjukkan tahap pengolahan data, bukan rekomendasi untuk
-            melamar atau melewatkan lowongan.
-          </p>
-        </div>
+        <SectionHeader
+          title="Konteks pekerjaan tersimpan"
+          titleId="jobs-list-title"
+          description={(
+            <>
+              Status menunjukkan tahap pengolahan data, bukan rekomendasi untuk
+              melamar atau melewatkan lowongan.
+            </>
+          )}
+        />
 
         <div className="jobs-list">
           {jobs.map((job) => (
@@ -137,7 +138,7 @@ export function JobsWorkspace() {
                 {getInitials(job.company)}
               </span>
               <div className="job-library-copy">
-                <h3>{job.title}</h3>
+                <h3 className="type-primary-title">{job.title}</h3>
                 <span><Building2 aria-hidden="true" size={13} strokeWidth={1.8} />{job.company}</span>
               </div>
               <div className="job-library-context">
@@ -152,9 +153,9 @@ export function JobsWorkspace() {
                 <strong>{job.requirementCount ? `${job.requirementCount} requirement` : "Deskripsi tersimpan"}</strong>
                 <small><Clock3 aria-hidden="true" size={12} strokeWidth={1.8} />{formatRelativeDate(job.updatedAt)}</small>
               </div>
-              <Link className="job-library-detail-link" href={`/lowongan/${job.id}`}>
-                Lihat detail <span aria-hidden="true">→</span>
-              </Link>
+              <ActionLink className="job-library-detail-link" variant="text" href={`/lowongan/${job.id}`}>
+                Lihat detail <CtaArrow />
+              </ActionLink>
             </article>
           ))}
         </div>
@@ -175,10 +176,10 @@ function JobsEmptyWorkspace() {
         <p className="eyebrow">Mulai dari satu lowongan</p>
         <h2 id="jobs-empty-title">Belum ada lowongan tersimpan</h2>
         <p>Simpan lowongan yang ingin kamu pahami, lalu periksa Persyaratan secara bertahap.</p>
-        <Link className="jobs-add-button" href="/lowongan/baru">
+        <ActionLink className="jobs-add-button" href="/lowongan/baru">
           <Plus aria-hidden="true" size={16} strokeWidth={2} />
           Tambah lowongan
-        </Link>
+        </ActionLink>
       </section>
     </div>
   );
@@ -186,24 +187,21 @@ function JobsEmptyWorkspace() {
 
 function JobsPageHeader({ showAction = true }: { showAction?: boolean }) {
   return (
-    <header className="jobs-page-header responsive-page-header">
-      <div>
-        <p className="eyebrow">Lowongan tersimpan</p>
-        <h1>Pahami setiap lowongan sebelum melamar</h1>
-        <p>
+    <PageHeader
+      title="Pahami setiap lowongan sebelum melamar"
+      description={(
+        <>
           Simpan konteks pekerjaan dan pantau tahap review requirement agar
           setiap analisis tetap spesifik pada role dan perusahaan yang tepat.
-        </p>
-      </div>
-      {showAction ? (
-        <div className="jobs-page-header-actions">
-          <Link className="jobs-add-button" href="/lowongan/baru">
+        </>
+      )}
+      action={showAction ? (
+          <ActionLink className="jobs-add-button" href="/lowongan/baru">
             <Plus aria-hidden="true" size={16} strokeWidth={2} />
             Tambah lowongan
-          </Link>
-        </div>
+          </ActionLink>
       ) : null}
-    </header>
+    />
   );
 }
 

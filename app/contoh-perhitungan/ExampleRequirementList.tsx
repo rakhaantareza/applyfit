@@ -1,3 +1,5 @@
+import { requirementStatusLabels } from "../lib/fit-status-labels";
+
 export type ExampleRequirement = {
   label: string;
   name: string;
@@ -17,6 +19,10 @@ function formatContribution(value: number) {
   return new Intl.NumberFormat("id-ID", {
     maximumFractionDigits: 1,
   }).format(value);
+}
+
+function getStatusLabel(status: ExampleRequirement["status"]) {
+  return requirementStatusLabels[status];
 }
 
 export function ExampleRequirementList({
@@ -39,7 +45,7 @@ export function ExampleRequirementList({
                 {requirement.priority}
               </span>
               <span className={`status-badge ${requirement.className}`}>
-                {requirement.status}
+                {getStatusLabel(requirement.status)}
               </span>
             </div>
           </div>

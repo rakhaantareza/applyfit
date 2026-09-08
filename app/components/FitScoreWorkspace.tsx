@@ -2,8 +2,8 @@
 
 import { AlertCircle, BriefcaseBusiness, Plus } from "lucide-react";
 import { useEffect, useState, type CSSProperties } from "react";
+import { ActionButton, ActionLink, CtaArrow } from "./ActionControl";
 import { JobFocusShell } from "./JobFocusShell";
-import { StableLink as Link } from "./StableLink";
 import {
   AnalyzedJobContext,
   JobAnalysisProvider,
@@ -11,6 +11,7 @@ import {
   type JobAnalysisJob,
 } from "./JobScorePicker";
 import { RequirementList } from "./RequirementList";
+
 import type { Requirement, RequirementStatus } from "../types/fit-analysis";
 
 type SavedJob = {
@@ -31,6 +32,7 @@ type Evidence = {
 
 type MappingSkill = {
   id: string;
+  name: string;
   status: "active" | "learning";
   evidences: Evidence[];
 };
@@ -71,7 +73,11 @@ type ApiRequirementDetail = {
   points: { weight: number; multiplier: number; earned: number; maximum: number } | null;
 };
 
-type Analysis = { summary: FitSummary; requirements: Requirement[] };
+type Analysis = {
+  summary: FitSummary;
+  requirements: Requirement[];
+  supportingEvidenceCount: number;
+};
 
 export function FitScoreWorkspace({ jobId }: { jobId: string }) {
   const [jobs, setJobs] = useState<JobAnalysisJob[]>([]);
@@ -126,7 +132,20 @@ export function FitScoreWorkspace({ jobId }: { jobId: string }) {
         ]);
         if (!summaryResponse.ok || !summaryResult.data) throw new Error(summaryResult.error?.message ?? "Fit Score belum dapat dihitung.");
         if (!detailsResponse.ok || !detailsResult.data?.requirements) throw new Error(detailsResult.error?.message ?? "Detail requirement belum dapat dihitung.");
-        if (active) setAnalysis({ summary: summaryResult.data, requirements: detailsResult.data.requirements.map(toRequirement) });
+        const mappingsByRequirementId = new Map(
+          mappingResult.data.requirements.map((requirement) => [requirement.id, requirement.skills]),
+        );
+        if (active) {
+          setAnalysis({
+            summary: summaryResult.data,
+            requirements: detailsResult.data.requirements.map((requirement) =>
+              toRequirement(requirement, mappingsByRequirementId.get(requirement.id) ?? [])),
+            supportingEvidenceCount: new Set(
+              detailsResult.data.requirements.flatMap((requirement) =>
+                requirement.evidences.map((evidence) => evidence.id)),
+            ).size,
+          });
+        }
       } catch (requestError) {
         if (active) setError(requestError instanceof Error ? requestError.message : "Fit Score belum dapat dimuat.");
       } finally {
@@ -146,7 +165,7 @@ export function FitScoreWorkspace({ jobId }: { jobId: string }) {
   if (error && !jobs.length) {
     return (
       <JobFocusShell activeStep="analysis" jobId={jobId}>
-        <div className="page-container">
+        <div className="page-container analysis-page-container">
           <FitScoreErrorState error={error} />
         </div>
       </JobFocusShell>
@@ -163,9 +182,9 @@ export function FitScoreWorkspace({ jobId }: { jobId: string }) {
         jobId={selectedJobId}
         title={selectedJob?.title}
       >
-        <div className="page-container">
-          <header className="topbar">
-            <div><p className="eyebrow">Analisis kesiapan sebelum melamar</p><h1>Skor Kecocokan</h1><p className="header-copy">Pahami posisi profilmu terhadap requirement lowongan yang sedang dianalisis.</p></div>
+        <div className="page-container analysis-page-container">
+          <header className="topbar analysis-page-header">
+            <div><h1>Analisis</h1></div>
             <JobSwitcher />
           </header>
           {loadingAnalysis ? null : error || !analysis ? <FitScoreErrorState error={error || "Fit Score belum dapat dimuat."} compact /> : <FitScoreContent analysis={analysis} />}
@@ -176,17 +195,11 @@ export function FitScoreWorkspace({ jobId }: { jobId: string }) {
 }
 
 function FitScoreContent({ analysis }: { analysis: Analysis }) {
-  const { summary, requirements } = analysis;
-  const evidenceCount = new Set(requirements.flatMap((requirement) => requirement.evidence.map((evidence) => `${evidence.type}:${evidence.title}`))).size;
-  const statusSummary = [
-    { label: "Proven", value: summary.statusCounts.proven, className: "proven" },
-    { label: "Partial", value: summary.statusCounts.partial, className: "partial" },
-    { label: "Learning", value: summary.statusCounts.learning, className: "learning" },
-    { label: "Missing", value: summary.statusCounts.missing, className: "missing" },
-    { label: "Di luar skor", value: summary.excludedRequirements, className: "informational" },
-  ].filter((item) => item.value > 0);
-  const attentionAreas = requirements.filter((requirement) => requirement.score && requirement.status !== "Proven");
-  const practicalSummary = buildPracticalSummary(summary);
+  const { summary, requirements, supportingEvidenceCount } = analysis;
+  const missingRequirements = requirements.filter(
+    (requirement) => requirement.score && requirement.status === "Missing",
+  );
+  const scoreReason = buildScoreReason(summary, requirements);
 
   return (
     <>
@@ -196,44 +209,44 @@ function FitScoreContent({ analysis }: { analysis: Analysis }) {
           <div className="score-main">
             <div className="score-visual">
               <div className="score-ring" role="img" aria-label={`Skor kecocokan ${formatNumber(summary.score)} persen`} style={{ "--score-angle": `${summary.score * 3.6}deg` } as CSSProperties}><div><strong>{formatNumber(summary.score)}</strong><span>%</span></div></div>
-              <span className="score-visual-label">Fit Score saat ini</span>
+              <span className="score-visual-label">Fit Score</span>
             </div>
             <div className="score-copy">
-              <span className="fit-label">Kesiapan berbasis bukti</span>
-              <h2 id="score-title">Analisis kesiapanmu untuk role ini</h2>
-              <p className="readiness-intro">{practicalSummary}</p>
-              <div className="score-meta">
-                <span><small>Requirement dihitung</small><strong>{summary.includedRequirements} Skill &amp; Tool</strong></span>
-                <span><small>Bukti terhubung</small><strong>{evidenceCount} bukti</strong></span>
-                <span><small>Data analisis</small><strong>Terbaru dari profilmu</strong></span>
-              </div>
+              <h2 id="score-title">{scoreReason.primary}</h2>
+              {scoreReason.secondary ? <p className="readiness-intro">{scoreReason.secondary}</p> : null}
+              {supportingEvidenceCount > 0 ? (
+                <p className="analysis-evidence-context">
+                  {supportingEvidenceCount} bukti dari Portfolio &amp; Pengalaman mendukung analisis ini.
+                </p>
+              ) : null}
+              {summary.excludedRequirements > 0 ? (
+                <p className="score-context-note">
+                  {summary.excludedRequirements} persyaratan pengalaman atau pendidikan ditampilkan sebagai konteks dan tidak masuk Fit Score.
+                </p>
+              ) : null}
             </div>
           </div>
         </article>
-        <div className="status-summary" aria-label="Ringkasan status requirement">
-          <div className="status-summary-heading"><div><p className="eyebrow">Ringkasan status</p><h2>{summary.totalRequirements} requirement lowongan</h2></div><p>{summary.excludedRequirements} requirement pengalaman atau pendidikan tetap terlihat sebagai konteks dan tidak masuk Fit Score.</p></div>
-          <div className="status-list">{statusSummary.map((item) => <div className="status-item" key={item.label}><span className={`status-dot ${item.className}`} /><span>{item.label}</span><strong>{item.value}</strong></div>)}</div>
-          <div className="status-bar" aria-hidden="true">{statusSummary.map((item) => <span className={item.className} key={item.label} />)}</div>
-        </div>
       </section>
 
       <section className="attention-section" aria-labelledby="attention-title">
-        <div className="attention-heading"><div><p className="eyebrow">Perlu perhatian</p><h2 id="attention-title">{attentionAreas.length ? `${attentionAreas.length} area belum sepenuhnya terbukti` : "Semua area yang dinilai sudah memiliki bukti"}</h2></div><p>Status ini menjelaskan celah bukti dan tahap skill saat ini, bukan rekomendasi untuk melamar atau tidak.</p></div>
-        {attentionAreas.length ? <div className="attention-list">{attentionAreas.map((item) => <article className="attention-item" key={item.name}><span className={`status-dot ${item.status.toLocaleLowerCase("id-ID")}`} aria-hidden="true" /><div><span className={`status-badge ${item.status.toLocaleLowerCase("id-ID")}`}>{item.status}</span><h3>{item.name}</h3><p>{item.note}</p></div></article>)}</div> : null}
+        <div className="attention-heading"><div><h2 id="attention-title">{missingRequirements.length ? `${missingRequirements.length} persyaratan belum cocok dengan profilmu` : "Semua persyaratan sudah cocok dengan profilmu"}</h2></div></div>
+        {missingRequirements.length ? <div className="attention-list">{missingRequirements.map((item) => <article className="attention-item" key={item.name}><span className="status-dot missing" aria-hidden="true" /><div><h3>{item.name}</h3><p>Belum ada skill yang sesuai di profilmu.</p></div></article>)}</div> : null}
       </section>
 
       <section className="requirements-panel" aria-labelledby="requirements-title">
-        <div className="section-heading requirements-heading"><div><p className="eyebrow">Detail requirement</p><h2 id="requirements-title">Lihat dasar perhitungan satu per satu</h2></div><p>Setiap status berasal dari skill dan bukti yang sudah terhubung ke profilmu.</p></div>
+        <div className="section-heading requirements-heading"><div><h2 id="requirements-title">Rincian persyaratan</h2></div></div>
         <RequirementList requirements={requirements} />
       </section>
 
-      <Link
+      <ActionLink
+        variant="text"
         className="fit-score-guide-link"
         href="/contoh-perhitungan"
         aria-label="Pelajari cara Fit Score dihitung"
       >
-        Cara Fit Score dihitung <span aria-hidden="true">→</span>
-      </Link>
+        Cara Fit Score dihitung <CtaArrow />
+      </ActionLink>
     </>
   );
 }
@@ -241,9 +254,9 @@ function FitScoreContent({ analysis }: { analysis: Analysis }) {
 function FitScorePageFrame({ jobId }: { jobId: string }) {
   return (
     <JobFocusShell activeStep="analysis" jobId={jobId}>
-      <div className="page-container">
-        <header className="topbar">
-          <div><p className="eyebrow">Analisis kesiapan sebelum melamar</p><h1>Skor Kecocokan</h1><p className="header-copy">Pahami posisi profilmu terhadap requirement lowongan yang sedang dianalisis.</p></div>
+      <div className="page-container analysis-page-container">
+        <header className="topbar analysis-page-header">
+          <div><h1>Analisis</h1></div>
         </header>
       </div>
     </JobFocusShell>
@@ -251,18 +264,16 @@ function FitScorePageFrame({ jobId }: { jobId: string }) {
 }
 
 function FitScoreErrorState({ error, compact = false }: { error: string; compact?: boolean }) {
-  return <div className={`persisted-job-state error${compact ? " compact" : ""}`}><AlertCircle aria-hidden="true" size={22} /><strong>{error}</strong><button type="button" onClick={() => window.location.reload()}>Coba lagi</button></div>;
+  return <div className={`persisted-job-state error${compact ? " compact" : ""}`}><AlertCircle aria-hidden="true" size={22} /><strong>{error}</strong><ActionButton size="compact" variant="secondary" type="button" onClick={() => window.location.reload()}>Coba lagi</ActionButton></div>;
 }
 
 function EmptyJobsState({ jobId }: { jobId: string }) {
   return (
     <JobFocusShell activeStep="analysis" jobId={jobId}>
-      <div className="page-container">
-      <header className="topbar">
+      <div className="page-container analysis-page-container">
+      <header className="topbar analysis-page-header">
         <div>
-          <p className="eyebrow">Analisis kesiapan sebelum melamar</p>
-          <h1>Skor Kecocokan</h1>
-          <p className="header-copy">Pahami posisi profilmu terhadap requirement lowongan tertentu.</p>
+          <h1>Analisis</h1>
         </div>
       </header>
       <section className="page-empty-state fit-score-empty" aria-labelledby="fit-score-empty-title">
@@ -271,24 +282,58 @@ function EmptyJobsState({ jobId }: { jobId: string }) {
         </span>
         <h2 id="fit-score-empty-title">Belum ada lowongan untuk dianalisis</h2>
         <p>Simpan satu lowongan terlebih dahulu untuk mulai melihat kesiapan profilmu.</p>
-        <Link className="career-button primary" href="/lowongan/baru">
+        <ActionLink className="career-button primary" href="/lowongan/baru">
           <Plus aria-hidden="true" size={16} strokeWidth={2} />
           Tambah lowongan
-        </Link>
+        </ActionLink>
       </section>
       </div>
     </JobFocusShell>
   );
 }
 
-function buildPracticalSummary(summary: FitSummary) {
-  const parts = [
-    `${summary.statusCounts.proven} requirement Proven`,
-    `${summary.statusCounts.partial} Partial karena bukti pendukung belum terhubung`,
-    `${summary.statusCounts.learning} masih Learning`,
-    `${summary.statusCounts.missing} belum memiliki skill yang dipetakan`,
-  ];
-  return `${parts.join(", ")}. ${summary.excludedRequirements} requirement pengalaman atau pendidikan berada di luar Fit Score.`;
+function buildScoreReason(summary: FitSummary, requirements: Requirement[]) {
+  const missingRequirements = requirements.filter(
+    (requirement) => requirement.score && requirement.status === "Missing",
+  );
+  const missingRequired = missingRequirements.filter(
+    (requirement) => requirement.priority === "Wajib",
+  ).length;
+  const missingPreferred = missingRequirements.length - missingRequired;
+  const primary = `${summary.statusCounts.proven} dari ${summary.includedRequirements} persyaratan sudah didukung oleh skill dan pengalamanmu.`;
+  const remaining = [
+    summary.statusCounts.partial > 0
+      ? `${summary.statusCounts.partial} lainnya sudah punya skill yang sesuai, tapi belum didukung portfolio atau pengalaman`
+      : null,
+    summary.statusCounts.learning > 0
+      ? `${summary.statusCounts.learning} lainnya terhubung ke skill yang masih kamu pelajari`
+      : null,
+    buildMissingSummary(missingRequired, missingPreferred),
+  ].filter((part): part is string => Boolean(part));
+
+  return {
+    primary,
+    secondary: remaining.length ? `${joinIndonesianList(remaining)}.` : "",
+  };
+}
+
+function buildMissingSummary(requiredCount: number, preferredCount: number) {
+  if (requiredCount > 0 && preferredCount > 0) {
+    return `${requiredCount} persyaratan wajib dan ${preferredCount} persyaratan preferensi belum punya skill yang sesuai di profilmu`;
+  }
+  if (requiredCount > 0) {
+    return `${requiredCount} persyaratan wajib belum punya skill yang sesuai di profilmu`;
+  }
+  if (preferredCount > 0) {
+    return `${preferredCount} persyaratan preferensi belum punya skill yang sesuai di profilmu`;
+  }
+  return null;
+}
+
+function joinIndonesianList(parts: string[]) {
+  if (parts.length < 2) return parts[0] ?? "";
+  if (parts.length === 2) return `${parts[0]} dan ${parts[1]}`;
+  return `${parts.slice(0, -1).join(", ")}, dan ${parts.at(-1)}`;
 }
 
 function buildPayloadRequirements(requirements: MappingRequirement[], informational: InformationalRequirement[]) {
@@ -312,14 +357,15 @@ function buildPayloadRequirements(requirements: MappingRequirement[], informatio
   };
 }
 
-function toRequirement(requirement: ApiRequirementDetail): Requirement {
-  const status = requirement.status ? statusLabels[requirement.status] : "Missing";
+function toRequirement(requirement: ApiRequirementDetail, skills: MappingSkill[]): Requirement {
+  const status = requirement.status ? statusKeys[requirement.status] : "Missing";
   return {
     name: requirement.name,
     kind: kindLabels[requirement.type],
     priority: requirement.priority === "required" ? "Wajib" : "Preferensi",
     status,
     note: requirement.isInformational ? "Disimpan sebagai konteks dan tidak dihitung dalam Fit Score." : statusNotes[status](requirement.evidences.length),
+    skills: skills.map((skill) => ({ name: skill.name, status: skill.status })),
     evidence: requirement.evidences.map((evidence) => ({ title: evidence.title, type: evidenceTypeLabels[evidence.type] })),
     score: requirement.points,
   };
@@ -332,14 +378,14 @@ function toAnalysisJob(job: SavedJob): JobAnalysisJob {
 function getInitials(company: string) { return company.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]?.toLocaleUpperCase("id-ID")).join("") || "AF"; }
 function formatNumber(value: number) { return new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 }).format(value); }
 
-const statusLabels = { proven: "Proven", partial: "Partial", learning: "Learning", missing: "Missing" } as const;
+const statusKeys = { proven: "Proven", partial: "Partial", learning: "Learning", missing: "Missing" } as const;
 const kindLabels = { skill: "Skill", tool: "Tool", education: "Education", experience: "Experience" } as const;
 const evidenceTypeLabels = { project: "Proyek", cert: "Sertifikat", work: "Pengalaman", internship: "Pengalaman", github: "Portofolio", portfolio: "Portofolio" } as const;
 const statusNotes: Record<RequirementStatus, (count: number) => string> = {
   Proven: (count) => `Dibuktikan oleh ${count} bukti terhubung`,
-  Partial: () => "Skill aktif sudah dipetakan, tetapi bukti pendukung belum terhubung.",
+  Partial: () => "Skill aktif sudah cocok, tetapi belum punya bukti pendukung.",
   Learning: () => "Skill yang dipetakan masih berstatus dipelajari.",
-  Missing: () => "Belum ada skill yang dipetakan ke requirement ini.",
+  Missing: () => "Belum ada skill profil yang cocok dengan requirement ini.",
 };
 
 type JobsResponse = { data?: { jobs?: SavedJob[] }; error?: { message?: string } };

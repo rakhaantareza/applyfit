@@ -11,8 +11,15 @@ import { CareerProfileRequiredError } from "../services/skills.ts";
 
 type AuthResult<T> = { status: "unauthenticated" } | { status: "ok"; data: T };
 
+type EvidenceListOptions = {
+  includeSkills?: boolean;
+};
+
 export type EvidenceActions = {
-  list: (filters: EvidenceFilters) => Promise<AuthResult<Evidence[]>>;
+  list: (
+    filters: EvidenceFilters,
+    options?: EvidenceListOptions,
+  ) => Promise<AuthResult<Array<Evidence & { skillIds?: string[] }>>>;
   create: (input: CreateEvidenceInput) => Promise<AuthResult<Evidence>>;
   update: (evidenceId: string, input: UpdateEvidenceInput) => Promise<AuthResult<Evidence>>;
   remove: (evidenceId: string) => Promise<AuthResult<null>>;
@@ -130,7 +137,9 @@ export function createEvidenceHandlers(actions: EvidenceActions) {
       );
     }
     try {
-      const result = await actions.list(filters);
+      const includeSkills =
+        new URL(request.url).searchParams.get("includeSkills") === "true";
+      const result = await actions.list(filters, { includeSkills });
       if (result.status === "unauthenticated") return unauthenticatedResponse();
       return Response.json({
         data: { evidences: result.data, total: result.data.length },

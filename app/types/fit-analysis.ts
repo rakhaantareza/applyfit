@@ -6,6 +6,10 @@ export type Requirement = {
   priority: "Wajib" | "Preferensi";
   status: RequirementStatus;
   note: string;
+  skills: Array<{
+    name: string;
+    status: "active" | "learning";
+  }>;
   evidence: Array<{
     title: string;
     type: "Proyek" | "Portofolio" | "Sertifikat" | "Pengalaman";

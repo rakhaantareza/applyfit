@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { ActionButton } from "../../components/ActionControl";
 
 type JobInfoEditorProps = {
   initialJob: EditableJobInfo & { initials: string };
@@ -192,15 +193,15 @@ export function JobInfoEditor({
 
         {!isEditing && allowEditing ? (
           <div className="job-detail-actions">
-            <button className="job-info-edit-button" type="button" onClick={openEditor}>
+            <ActionButton className="job-info-edit-button" size="compact" variant="ghost" type="button" onClick={openEditor}>
               <Pencil aria-hidden="true" size={15} strokeWidth={1.9} />
               Edit info
-            </button>
+            </ActionButton>
             {jobId ? (
-              <button className="job-delete-button" type="button" onClick={openDeleteDialog}>
+              <ActionButton className="job-delete-button" size="compact" variant="destructive-ghost" type="button" onClick={openDeleteDialog}>
                 <Trash2 aria-hidden="true" size={15} strokeWidth={1.9} />
                 Hapus lowongan
-              </button>
+              </ActionButton>
             ) : null}
           </div>
         ) : null}
@@ -261,14 +262,14 @@ export function JobInfoEditor({
           <div className="job-info-editor-actions">
             {error ? <p role="alert">{error}</p> : <span />}
             <div>
-              <button className="career-button secondary" type="button" onClick={closeEditor} disabled={isSaving}>
+              <ActionButton className="career-button secondary" variant="secondary" type="button" onClick={closeEditor} disabled={isSaving}>
                 <X aria-hidden="true" size={16} strokeWidth={1.9} />
                 Batal
-              </button>
-              <button className="career-button primary" type="submit" disabled={isSaving}>
+              </ActionButton>
+              <ActionButton className="career-button primary" type="submit" disabled={isSaving}>
                 <Check aria-hidden="true" size={16} strokeWidth={2} />
                 {isSaving ? "Menyimpan…" : "Simpan perubahan"}
-              </button>
+              </ActionButton>
             </div>
           </div>
         </form>
@@ -317,7 +318,7 @@ export function JobInfoEditor({
             <div className="job-delete-dialog-actions">
               <button
                 ref={cancelDeleteRef}
-                className="career-button secondary"
+                className="ui-button ui-button--secondary ui-button--default career-button secondary"
                 type="button"
                 disabled={isDeleting}
                 onClick={closeDeleteDialog}
@@ -325,7 +326,7 @@ export function JobInfoEditor({
                 Batal
               </button>
               <button
-                className="career-button danger"
+                className="ui-button ui-button--destructive ui-button--default career-button danger"
                 type="button"
                 disabled={isDeleting}
                 onClick={deleteJob}

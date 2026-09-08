@@ -1,7 +1,9 @@
 "use client";
 
-import { AlertCircle, ArrowRight, Check } from "lucide-react";
+import { AlertCircle, Check } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { ActionButton, ActionLink, CtaArrow } from "../components/ActionControl";
+import { PageHeader, SectionHeader } from "../components/ContentHeaders";
 import { StableLink as Link } from "../components/StableLink";
 import { getAuthDisplayName, useAuthSession } from "../components/AuthSessionProvider";
 
@@ -16,6 +18,7 @@ type Requirement = {
 };
 type MappingSummary = {
   requirements: Array<Requirement & {
+    reviewedWithoutEvidence: boolean;
     skills: Array<{
       id: string;
       status: "active" | "learning";
@@ -59,6 +62,10 @@ type FoundationGap = {
   href: string;
   linkLabel: string;
 };
+type DashboardState =
+  | { kind: "onboarding" }
+  | { kind: "foundation"; profile: CareerProfile; gap: FoundationGap }
+  | { kind: "jobs"; currentWork: CurrentWork | null };
 
 const dashboardDataCache = new Map<string, DashboardData>();
 const workflowSteps: Array<{ id: WorkflowStep; label: string }> = [
@@ -125,9 +132,7 @@ export function AdaptiveHomeDashboard() {
         }));
 
         const analysisCandidates = jobContexts.filter(
-          (context) => context.mapping
-            && context.mapping.totalMappableRequirements > 0
-            && context.mapping.mappedCount === context.mapping.totalMappableRequirements,
+          (context) => context.mapping && hasCompletedRequirementReview(context.mapping),
         ).slice(0, 2);
         const recentAnalyses = (await Promise.all(
           analysisCandidates.map(calculateRecentAnalysis),
@@ -179,26 +184,66 @@ export function AdaptiveHomeDashboard() {
   }
 
   const firstName = accountName.split(/\s+/)[0] ?? accountName;
+  const intro = getDashboardIntro(dashboard);
 
   return (
     <>
-      <header className="home-header summary-greeting">
-        <h1>Halo, {firstName}.</h1>
-        <p>
-          {dashboard.currentWork?.isCompleted
-            ? "Lihat kembali hasil analisis terakhirmu atau mulai dari lowongan lain."
-            : dashboard.currentWork
-              ? "Lanjutkan lowongan terakhir dari langkah yang masih perlu kamu selesaikan."
-              : "Mulai dengan satu lowongan yang ingin kamu cek."}
-        </p>
-      </header>
-
-      <CurrentWorkSection currentWork={dashboard.currentWork} />
-      <CareerFoundationSection
-        profile={data.profile}
-        gap={dashboard.foundationGap}
+      <PageHeader
+        className="summary-greeting"
+        title={<>Halo, {firstName}.</>}
+        description={intro}
       />
+
+      {dashboard.kind === "onboarding" ? (
+        <>
+          <FirstLoginOnboarding />
+          <OnboardingFlowPreview />
+        </>
+      ) : null}
+      {dashboard.kind === "foundation" ? (
+        <>
+          <CareerFoundationSection profile={dashboard.profile} gap={dashboard.gap} />
+          <FoundationContextLink gap={dashboard.gap} />
+        </>
+      ) : null}
+      {dashboard.kind === "jobs" ? (
+        <>
+          <CurrentWorkSection currentWork={dashboard.currentWork} />
+          <JobStateSecondary currentWork={dashboard.currentWork} jobs={data.jobs} />
+        </>
+      ) : null}
     </>
+  );
+}
+
+function FirstLoginOnboarding() {
+  return (
+    <section className="summary-current-work summary-current-work-empty" aria-labelledby="first-login-title">
+      <SectionHeader
+        className="summary-work-header"
+        title="Buat profil kariermu"
+        titleId="first-login-title"
+        description="Tambahkan target role dan bidang karier sebagai dasar untuk mencocokkan lowongan."
+        action={(
+          <ActionLink className="career-button primary summary-primary-action" href="/profil-karier">
+            Buat profil karier
+            <CtaArrow />
+          </ActionLink>
+        )}
+      />
+    </section>
+  );
+}
+
+function OnboardingFlowPreview() {
+  return (
+    <section className="summary-secondary summary-flow-preview" aria-label="Alur awal ApplyFit">
+      <ol>
+        <li>Profil karier</li>
+        <li>Portfolio &amp; Pengalaman</li>
+        <li>Lowongan</li>
+      </ol>
+    </section>
   );
 }
 
@@ -206,15 +251,18 @@ function CurrentWorkSection({ currentWork }: { currentWork: CurrentWork | null }
   if (!currentWork) {
     return (
       <section className="summary-current-work summary-current-work-empty" aria-labelledby="current-work-title">
-        <div className="summary-work-copy">
-          <p className="summary-label">Mulai dari sini</p>
-          <h2 id="current-work-title">Tambahkan lowongan yang sedang kamu pertimbangkan</h2>
-          <p>Simpan deskripsinya agar persyaratan bisa diperiksa dan dicocokkan dengan profilmu.</p>
-        </div>
-        <Link className="career-button primary summary-primary-action" href="/lowongan/baru">
-          Tambah lowongan
-          <ArrowRight aria-hidden="true" size={16} strokeWidth={1.9} />
-        </Link>
+        <SectionHeader
+          className="summary-work-header"
+          title="Tambahkan lowongan pertamamu"
+          titleId="current-work-title"
+          description="Simpan deskripsinya agar persyaratan bisa diperiksa dan dicocokkan dengan profilmu."
+          action={(
+            <ActionLink className="career-button primary summary-primary-action" href="/lowongan/baru">
+              Tambah lowongan
+              <CtaArrow />
+            </ActionLink>
+          )}
+        />
       </section>
     );
   }
@@ -222,21 +270,23 @@ function CurrentWorkSection({ currentWork }: { currentWork: CurrentWork | null }
   const activeIndex = workflowSteps.findIndex((step) => step.id === currentWork.activeStep);
 
   return (
-    <section className="summary-current-work" aria-labelledby="current-work-title">
+    <section
+      className={`summary-current-work${currentWork.isCompleted ? " completed" : ""}`}
+      aria-labelledby="current-work-title"
+    >
+      <p className="summary-work-context type-metadata">
+        {currentWork.isCompleted ? "Analisis terakhir" : "Lanjutkan lowongan"}
+      </p>
       <div className="summary-work-layout">
         <div className="summary-work-copy">
-          <p className="summary-label">
-            {currentWork.isCompleted ? "Analisis terakhir" : "Lanjutkan lowongan"}
-          </p>
-          <h2 id="current-work-title">{currentWork.job.title}</h2>
-          <p className="summary-job-meta">
+          <h2 className="type-section-title" id="current-work-title">{currentWork.job.title}</h2>
+          <p className="summary-job-meta type-metadata">
             <span>{currentWork.job.company}</span>
             <span aria-hidden="true">·</span>
             <span>{formatActivityDate(currentWork.job.updatedAt)}</span>
           </p>
           <p className="summary-next-copy">{currentWork.description}</p>
         </div>
-
         <div className="summary-work-action">
           {currentWork.analysis ? (
             <div className="summary-fit-score" aria-label={`Fit Score ${formatNumber(currentWork.analysis.score)} persen`}>
@@ -244,10 +294,10 @@ function CurrentWorkSection({ currentWork }: { currentWork: CurrentWork | null }
               <span>Fit Score</span>
             </div>
           ) : null}
-          <Link className="career-button primary summary-primary-action" href={currentWork.actionHref}>
+          <ActionLink className="career-button primary summary-primary-action" href={currentWork.actionHref}>
             {currentWork.actionLabel}
-            <ArrowRight aria-hidden="true" size={16} strokeWidth={1.9} />
-          </Link>
+            <CtaArrow />
+          </ActionLink>
         </div>
       </div>
 
@@ -281,49 +331,157 @@ function CareerFoundationSection({
   profile,
   gap,
 }: {
-  profile: CareerProfile | null;
-  gap: FoundationGap | null;
+  profile: CareerProfile;
+  gap: FoundationGap;
 }) {
-  const targetRole = profile?.targetRole.trim();
-  const careerField = profile?.careerField.trim();
+  const targetRole = profile.targetRole.trim();
+  const careerField = profile.careerField.trim();
 
   return (
     <section className="summary-foundation" aria-labelledby="career-foundation-title">
       <div className="summary-foundation-heading">
-        <p className="summary-label">Dasar karier</p>
-        <h2 id="career-foundation-title">{targetRole || "Profil kariermu"}</h2>
+        <SectionHeader title="Dasar karier" titleId="career-foundation-title" />
+        <h3 className="type-primary-title">{targetRole || "Profil kariermu"}</h3>
         {careerField ? <p>{careerField}</p> : null}
       </div>
 
-      {gap ? (
-        <div className="summary-gap">
-          <AlertCircle aria-hidden="true" size={18} strokeWidth={1.8} />
-          <div>
-            <strong>{gap.title}</strong>
-            <p>{gap.description}</p>
-            <Link href={gap.href}>
-              {gap.linkLabel}
-              <ArrowRight aria-hidden="true" size={14} strokeWidth={1.9} />
-            </Link>
-          </div>
+      <div className="summary-gap">
+        <AlertCircle aria-hidden="true" size={18} strokeWidth={1.8} />
+        <div>
+          <strong>{gap.title}</strong>
+          <p>{gap.description}</p>
+          <ActionLink className="career-button primary summary-primary-action" href={gap.href}>
+            {gap.linkLabel}
+            <CtaArrow />
+          </ActionLink>
         </div>
-      ) : (
-        <p className="summary-foundation-note">
-          Profil kariermu siap dipakai untuk lowongan berikutnya.
-        </p>
-      )}
+      </div>
     </section>
   );
 }
 
-function buildDashboardState(data: DashboardData) {
+function FoundationContextLink({ gap }: { gap: FoundationGap }) {
+  if (gap.href === "/profil-karier") return null;
+
+  return (
+    <nav className="summary-secondary summary-secondary-nav" aria-label="Konteks dasar karier">
+      <ActionLink variant="text" href="/profil-karier">
+        Lihat profil karier
+        <CtaArrow />
+      </ActionLink>
+    </nav>
+  );
+}
+
+function JobStateSecondary({
+  currentWork,
+  jobs,
+}: {
+  currentWork: CurrentWork | null;
+  jobs: Job[];
+}) {
+  if (!currentWork) {
+    return (
+      <section className="summary-secondary summary-secondary-copy" aria-labelledby="profile-reuse-title">
+        <SectionHeader
+          title="Profilmu akan dipakai kembali"
+          titleId="profile-reuse-title"
+          description="Profil dan portfolio yang sudah kamu buat akan digunakan saat mencocokkan setiap lowongan."
+        />
+      </section>
+    );
+  }
+
+  if (!currentWork.isCompleted) {
+    const hasMultipleJobs = jobs.length > 1;
+    return (
+      <nav className="summary-secondary summary-secondary-nav" aria-label="Akses lowongan">
+        <ActionLink variant="text" href={hasMultipleJobs ? "/lowongan" : `/lowongan/${currentWork.job.id}`}>
+          {hasMultipleJobs ? "Lihat semua lowongan" : "Lihat detail lowongan"}
+          <CtaArrow />
+        </ActionLink>
+      </nav>
+    );
+  }
+
+  if (jobs.length === 1) {
+    return (
+      <section className="summary-secondary summary-secondary-copy" aria-labelledby="next-job-title">
+        <SectionHeader
+          title="Cek lowongan berikutnya"
+          titleId="next-job-title"
+          description="Profil dan portfolio yang sama bisa langsung dipakai untuk analisis lowongan lain."
+          action={(
+            <ActionLink className="career-button secondary" variant="secondary" href="/lowongan/baru">
+              Tambah lowongan
+              <CtaArrow />
+            </ActionLink>
+          )}
+        />
+      </section>
+    );
+  }
+
+  const recentJobs = jobs.filter((job) => job.id !== currentWork.job.id).slice(0, 3);
+  return (
+    <section className="summary-secondary summary-latest-jobs" aria-labelledby="latest-jobs-title">
+      <SectionHeader
+        title="Lowongan terbaru"
+        titleId="latest-jobs-title"
+        action={(
+          <ActionLink variant="text" href="/lowongan">
+            Lihat semua lowongan
+            <CtaArrow />
+          </ActionLink>
+        )}
+      />
+      <ul>
+        {recentJobs.map((job) => (
+          <li key={job.id}>
+            <Link href={`/lowongan/${job.id}`}>
+              <span>
+                <strong>{job.title}</strong>
+                <small>{job.company}</small>
+              </span>
+              <small>{formatActivityDate(job.updatedAt)}</small>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function buildDashboardState(data: DashboardData): DashboardState {
+  if (!data.profile) {
+    return { kind: "onboarding" };
+  }
+
+  const foundationGap = buildFoundationGap(data);
+  if (foundationGap) {
+    return { kind: "foundation", profile: data.profile, gap: foundationGap };
+  }
+
   const primaryJob = data.jobs[0] ?? null;
   const currentWork = primaryJob ? buildCurrentWork(data, primaryJob) : null;
 
-  return {
-    currentWork,
-    foundationGap: buildFoundationGap(data),
-  };
+  return { kind: "jobs", currentWork };
+}
+
+function getDashboardIntro(dashboard: DashboardState) {
+  if (dashboard.kind === "onboarding") {
+    return "Mulai dengan profil karier yang akan dipakai untuk membandingkan lowongan.";
+  }
+  if (dashboard.kind === "foundation") {
+    return "Lengkapi satu bagian dasar kariermu sebelum mencocokkan lowongan.";
+  }
+  if (dashboard.currentWork?.isCompleted) {
+    return "Lihat kembali hasil analisis terakhirmu atau mulai dari lowongan lain.";
+  }
+  if (dashboard.currentWork) {
+    return "Lanjutkan lowongan terakhir dari langkah yang masih perlu kamu selesaikan.";
+  }
+  return "Mulai dengan satu lowongan yang ingin kamu cek.";
 }
 
 function buildCurrentWork(data: DashboardData, job: Job): CurrentWork {
@@ -356,8 +514,8 @@ function buildCurrentWork(data: DashboardData, job: Job): CurrentWork {
     };
   }
 
-  if (mapping.mappedCount < mapping.totalMappableRequirements) {
-    const unresolved = mapping.totalMappableRequirements - mapping.mappedCount;
+  const unresolved = countPendingRequirementReviews(mapping);
+  if (unresolved > 0) {
     return {
       job,
       activeStep: "matching",
@@ -375,9 +533,24 @@ function buildCurrentWork(data: DashboardData, job: Job): CurrentWork {
     isCompleted: analysis !== null,
     actionHref: `${jobBase}/analisis`,
     actionLabel: analysis ? "Lihat analisis" : "Buka analisis",
-    description: analysis?.summary ?? "Profil sudah dicocokkan. Analisis siap dibuka.",
+    description: analysis?.summary ?? "Semua persyaratan sudah ditinjau. Analisis siap dibuka.",
     analysis,
   };
+}
+
+function countPendingRequirementReviews(mapping: MappingSummary) {
+  const requirementsMissingFromSummary = Math.max(
+    mapping.totalMappableRequirements - mapping.requirements.length,
+    0,
+  );
+  const requirementsNeedingReview = mapping.requirements.filter(
+    (requirement) => requirement.skills.length === 0 && !requirement.reviewedWithoutEvidence,
+  ).length;
+  return requirementsMissingFromSummary + requirementsNeedingReview;
+}
+
+function hasCompletedRequirementReview(mapping: MappingSummary) {
+  return mapping.totalMappableRequirements > 0 && countPendingRequirementReviews(mapping) === 0;
 }
 
 function buildFoundationGap(data: DashboardData): FoundationGap | null {
@@ -420,7 +593,7 @@ function DashboardErrorState({ error }: { error: string }) {
     <div className="career-profile-state error" role="alert">
       <AlertCircle aria-hidden="true" size={22} />
       <strong>{error}</strong>
-      <button type="button" onClick={() => window.location.reload()}>Coba lagi</button>
+      <ActionButton size="compact" variant="secondary" type="button" onClick={() => window.location.reload()}>Coba lagi</ActionButton>
     </div>
   );
 }
@@ -457,7 +630,7 @@ async function calculateRecentAnalysis(context: {
   const counts = result.data.statusCounts;
   const needsAttention = counts.partial + counts.learning + counts.missing;
   const summary = needsAttention > 0
-    ? `${counts.proven} persyaratan sudah terbukti · ${needsAttention} masih belum terbukti`
+    ? `${counts.proven} persyaratan sudah terbukti · ${needsAttention} lainnya belum sepenuhnya terbukti`
     : `${counts.proven} persyaratan sudah terbukti.`;
 
   return {

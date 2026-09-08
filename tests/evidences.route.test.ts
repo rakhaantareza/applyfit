@@ -60,6 +60,23 @@ test("GET passes text, type, and skill filters to the evidence service", async (
   });
 });
 
+test("GET only requests skill links when the caller opts in", async () => {
+  let receivedOptions: unknown;
+  const handlers = createEvidenceHandlers(actions({
+    list: async (_filters, options) => {
+      receivedOptions = options;
+      return { status: "ok", data: [{ ...evidence, skillIds: ["skill-1"] }] };
+    },
+  }));
+
+  const response = await handlers.GET(new Request(
+    "http://localhost/api/evidences?includeSkills=true",
+  ));
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(receivedOptions, { includeSkills: true });
+});
+
 test("GET rejects unsupported evidence type filters", async () => {
   const response = await createEvidenceHandlers(actions()).GET(
     new Request("http://localhost/api/evidences?type=course"),

@@ -2,7 +2,6 @@
 
 import {
   AlertCircle,
-  ArrowLeft,
   BriefcaseBusiness,
   ChevronDown,
   Info,
@@ -11,6 +10,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { InlineBackLink } from "../../../components/InlineBackLink";
 import { JobFocusShell } from "../../../components/JobFocusShell";
 import { StableLink as Link } from "../../../components/StableLink";
 import { EvidenceMappingWorkspace } from "./EvidenceMappingWorkspace";
@@ -167,7 +167,9 @@ export function EvidenceMappingPageWorkspace({ jobId }: { jobId: string }) {
       <div className="page-container evidence-mapping-page">
       <header className="evidence-mapping-header">
         <div>
-          <Link href={`/lowongan/${job.id}/persyaratan`}><ArrowLeft aria-hidden="true" size={15} strokeWidth={1.9} />Kembali ke review requirement</Link>
+          <InlineBackLink href={`/lowongan/${job.id}/persyaratan`}>
+            Kembali ke review requirement
+          </InlineBackLink>
           <p className="eyebrow">Cocokkan Profil</p>
           <h1>Hubungkan syarat lowongan ke profilmu</h1>
           <p>Telusuri hubungan antara requirement, skill, dan bukti sebelum ApplyFit menyusun analisis kesiapan.</p>
@@ -213,7 +215,7 @@ function MappingLoadState({ error, jobId }: { error: string; jobId: string }) {
           <div className="persisted-job-state error">
             <AlertCircle aria-hidden="true" size={22} />
             <strong>{error}</strong>
-            <Link href={`/lowongan/${jobId}/persyaratan`}>Kembali ke review requirement</Link>
+            <InlineBackLink href={`/lowongan/${jobId}/persyaratan`}>Kembali ke review requirement</InlineBackLink>
           </div>
         ) : null}
       </div>

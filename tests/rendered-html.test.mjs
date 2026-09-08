@@ -54,16 +54,20 @@ test("production worker serves the implemented calculation route", async () => {
   assert.match(html, /<h1>Cara Fit Score dihitung<\/h1>/i);
 });
 
-test("Fit Score education uses one explainer and a quiet analysis link", async () => {
-  const [response, sidebarSource, analysisSource] = await Promise.all([
+test("Fit Score education uses one explainer and consistent Indonesian result labels", async () => {
+  const [response, sidebarSource, analysisSource, matchingSource, detailSource, listSource, labelsSource] = await Promise.all([
     render("/contoh-perhitungan"),
     readFile(new URL("../app/components/AppSidebar.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/FitScoreWorkspace.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/lowongan/[id]/cocokkan-profil/EvidenceMappingWorkspace.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/components/RequirementDetail.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/components/RequirementList.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/lib/fit-status-labels.ts", import.meta.url), "utf8"),
   ]);
 
   assert.equal(response.status, 200);
   const html = await response.text();
-  for (const label of ["Proven", "Partial", "Learning", "Missing", "Wajib", "Preferensi"]) {
+  for (const label of ["Terbukti", "Belum terbukti", "Sedang dipelajari", "Belum ada kecocokan", "Wajib", "Preferensi"]) {
     assert.match(html, new RegExp(`>${label}<`, "i"));
   }
   assert.match(html, /Bobot × multiplier status/i);
@@ -79,6 +83,53 @@ test("Fit Score education uses one explainer and a quiet analysis link", async (
   assert.match(analysisSource, /className="fit-score-guide-link"/);
   assert.match(analysisSource, /Cara Fit Score dihitung/);
   assert.doesNotMatch(analysisSource, /scoring-disclosure|Transparansi skor|formula-card/);
+
+  assert.match(matchingSource, /"Perlu dicocokkan"/);
+  assert.match(matchingSource, /"Sudah ditinjau · tanpa bukti"/);
+  assert.match(matchingSource, /fitScoreStatusLabels/);
+  assert.doesNotMatch(
+    matchingSource,
+    /"Ditandai tanpa bukti"|"Dikonfirmasi tanpa bukti"|"Belum selesai dipetakan"|"Tidak ada kecocokan langsung"/,
+  );
+  assert.match(analysisSource, /<RequirementList requirements=/);
+  assert.match(detailSource, /requirementStatusLabels/);
+  for (const [key, label] of [
+    ["Proven", "Terbukti"],
+    ["Partial", "Belum terbukti"],
+    ["Learning", "Sedang dipelajari"],
+    ["Missing", "Belum ada kecocokan"],
+  ]) {
+    assert.match(labelsSource, new RegExp(`${key}: "${label}"`));
+  }
+  assert.match(listSource, /<option value="Proven">Terbukti<\/option>/);
+  assert.match(listSource, /<option value="Partial">Belum terbukti<\/option>/);
+  assert.match(listSource, /<option value="Learning">Sedang dipelajari<\/option>/);
+  assert.match(listSource, /<option value="Missing">Belum ada kecocokan<\/option>/);
+});
+
+test("Ringkasan keeps one primary focus and conditional quiet continuations", async () => {
+  const [source, css] = await Promise.all([
+    readFile(new URL("../app/beranda/AdaptiveHomeDashboard.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+  ]);
+
+  for (const copy of [
+    "Profil karier",
+    "Portfolio &amp; Pengalaman",
+    "Profilmu akan dipakai kembali",
+    "Lihat detail lowongan",
+    "Cek lowongan berikutnya",
+    "Lowongan terbaru",
+    "Lihat semua lowongan",
+  ]) {
+    assert.match(source, new RegExp(copy));
+  }
+  assert.match(source, /jobs\.length === 1/);
+  assert.match(source, /\.slice\(0, 3\)/);
+  assert.match(source, /if \(!currentWork\.isCompleted\)/);
+  assert.doesNotMatch(source, /Profil kariermu siap dipakai untuk lowongan berikutnya/);
+  assert.match(css, /\.summary-secondary\s*\{/);
+  assert.doesNotMatch(css, /\.summary-secondary\s*\{[^}]*background/s);
 });
 
 test("global navigation and job workspace use distinct scopes", async () => {
@@ -254,16 +305,19 @@ test("unauthenticated visitors can directly open login and registration", async 
   assert.match(registrationHtml, /<title>Buat Akun \| ApplyFit<\/title>/i);
 });
 
-test("internal route links preserve the root session through client navigation", async () => {
-  const [stableLink, fitScoreWorkspace] = await Promise.all([
+test("shared action links preserve the root session through client navigation", async () => {
+  const [stableLink, actionControl, fitScoreWorkspace] = await Promise.all([
     readFile(new URL("../app/components/StableLink.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/components/ActionControl.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/FitScoreWorkspace.tsx", import.meta.url), "utf8"),
   ]);
 
   assert.match(stableLink, /from ["']next\/link["']/);
   assert.match(stableLink, /<NextLink href=\{href\}/);
   assert.doesNotMatch(stableLink, /<a href=\{href\}/);
-  assert.match(fitScoreWorkspace, /StableLink as Link/);
+  assert.match(actionControl, /import \{ StableLink \} from ["']\.\/StableLink["']/);
+  assert.match(actionControl, /<StableLink/);
+  assert.match(fitScoreWorkspace, /ActionLink/);
   assert.doesNotMatch(fitScoreWorkspace, /from ["']next\/link["']/);
 });
 

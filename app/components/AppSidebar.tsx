@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowRight,
   BriefcaseBusiness,
   CircleHelp,
   House,
@@ -20,6 +19,8 @@ import {
   useEffect,
   useSyncExternalStore,
 } from "react";
+import { fitScoreStatusLabels } from "../lib/fit-status-labels";
+import { CtaArrow } from "./ActionControl";
 
 type NavigationItem = {
   label: string;
@@ -240,10 +241,10 @@ export function AppSidebar({ activeItem = null }: AppSidebarProps) {
             <p>Pahami status, bobot, dan formula yang membentuk skor.</p>
             <div className="sidebar-fit-guide-statuses" aria-label="Status Fit Score">
               {[
-                ["Proven", "proven"],
-                ["Partial", "partial"],
-                ["Learning", "learning"],
-                ["Missing", "missing"],
+                [fitScoreStatusLabels.proven, "proven"],
+                [fitScoreStatusLabels.partial, "partial"],
+                [fitScoreStatusLabels.learning, "learning"],
+                [fitScoreStatusLabels.missing, "missing"],
               ].map(([label, className]) => (
                 <span key={label}>
                   <i className={`status-dot ${className}`} aria-hidden="true" />
@@ -257,7 +258,7 @@ export function AppSidebar({ activeItem = null }: AppSidebarProps) {
               onClick={closeMobileNavigation}
             >
               Pelajari selengkapnya
-              <ArrowRight aria-hidden="true" size={14} strokeWidth={1.7} />
+              <CtaArrow />
             </Link>
           </div>
 

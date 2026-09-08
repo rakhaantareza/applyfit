@@ -1,6 +1,6 @@
 "use client";
 
-import { StableLink as Link } from "../../components/StableLink";
+import { ActionButton, ActionLink, CtaArrow } from "../../components/ActionControl";
 import {
   Check,
   FileSearch,
@@ -166,10 +166,10 @@ export function JobDescriptionEditor({
         </div>
 
         {!isEditing && allowEditing ? (
-          <button className="job-description-edit-button" type="button" onClick={openEditor}>
+          <ActionButton className="job-description-edit-button" size="compact" variant="ghost" type="button" onClick={openEditor}>
             <Pencil aria-hidden="true" size={15} strokeWidth={1.9} />
             Edit deskripsi
-          </button>
+          </ActionButton>
         ) : null}
       </div>
 
@@ -191,14 +191,14 @@ export function JobDescriptionEditor({
           <div className="job-description-editor-meta">
             {error ? <p role="alert">{error}</p> : <span>{wordCount} kata</span>}
             <div>
-              <button className="career-button secondary" type="button" onClick={closeEditor} disabled={isSaving}>
+              <ActionButton className="career-button secondary" variant="secondary" type="button" onClick={closeEditor} disabled={isSaving}>
                 <X aria-hidden="true" size={16} strokeWidth={1.9} />
                 Batal
-              </button>
-              <button className="career-button primary" type="submit" disabled={isSaving}>
+              </ActionButton>
+              <ActionButton className="career-button primary" type="submit" disabled={isSaving}>
                 <Check aria-hidden="true" size={16} strokeWidth={2} />
                 {isSaving ? "Menyimpan…" : "Simpan deskripsi"}
-              </button>
+              </ActionButton>
             </div>
           </div>
         </form>
@@ -219,7 +219,7 @@ export function JobDescriptionEditor({
               </p>
             </div>
           </div>
-          <button type="button" disabled={isExtracting} onClick={extractRequirements}>
+          <ActionButton type="button" disabled={isExtracting} onClick={extractRequirements}>
             {isExtracting ? (
               <LoaderCircle className="spin" aria-hidden="true" size={16} strokeWidth={1.9} />
             ) : (
@@ -230,7 +230,7 @@ export function JobDescriptionEditor({
               : hasExtracted
                 ? "Ekstrak ulang"
                 : "Ekstrak requirement"}
-          </button>
+          </ActionButton>
         </div>
       ) : null}
 
@@ -261,7 +261,7 @@ export function JobDescriptionEditor({
                 </span>
               </div>
               {reviewHref ? (
-                <Link href={reviewHref}>Buka Persyaratan <span aria-hidden="true">→</span></Link>
+                <ActionLink variant="text" href={reviewHref}>Buka Persyaratan <CtaArrow /></ActionLink>
               ) : null}
             </div>
           </div>
@@ -281,7 +281,7 @@ export function JobDescriptionEditor({
           </div>
 
           <p className="job-requirement-preview-note">
-            Belum ada status Proven, Partial, Learning, atau Missing pada tahap ini.
+            Belum ada status Terbukti, Belum terbukti, Sedang dipelajari, atau Belum ada kecocokan pada tahap ini.
             Status baru diturunkan setelah requirement dipetakan ke skill dan bukti.
           </p>
         </section>

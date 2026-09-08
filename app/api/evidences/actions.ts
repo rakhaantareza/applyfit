@@ -6,6 +6,7 @@ import {
   listEvidences,
   updateEvidence,
 } from "../../../server/services/evidences.ts";
+import { listVisibleEvidenceSkillLinks } from "../../../server/services/evidence-skills.ts";
 
 async function currentUserContext() {
   const client = await createInsForgeServerClient();
@@ -16,12 +17,33 @@ async function currentUserContext() {
 }
 
 export const evidenceActions: EvidenceActions = {
-  async list(filters) {
+  async list(filters, options) {
     const context = await currentUserContext();
     if (!context) return { status: "unauthenticated" };
+    if (!options?.includeSkills) {
+      return {
+        status: "ok",
+        data: await listEvidences(context.client, context.userId, filters),
+      };
+    }
+    const [evidences, visibleLinks] = await Promise.all([
+      listEvidences(context.client, context.userId, filters),
+      listVisibleEvidenceSkillLinks(context.client),
+    ]);
+    const evidenceIds = new Set(evidences.map((evidence) => evidence.id));
+    const links = visibleLinks.filter((link) => evidenceIds.has(link.evidenceId));
+    const skillIdsByEvidence = new Map<string, string[]>();
+    for (const link of links) {
+      const skillIds = skillIdsByEvidence.get(link.evidenceId) ?? [];
+      skillIds.push(link.skillId);
+      skillIdsByEvidence.set(link.evidenceId, skillIds);
+    }
     return {
       status: "ok",
-      data: await listEvidences(context.client, context.userId, filters),
+      data: evidences.map((evidence) => ({
+        ...evidence,
+        skillIds: skillIdsByEvidence.get(evidence.id) ?? [],
+      })),
     };
   },
   async create(input) {

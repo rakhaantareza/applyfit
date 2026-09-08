@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { ActionButton, IconButton } from "../../../components/ActionControl";
 
 export type RequirementPriority = "Wajib" | "Preferensi";
 export type RequirementType = "Skill" | "Tool" | "Pengalaman" | "Pendidikan";
@@ -489,23 +490,27 @@ export function RequirementReviewEditor({
                     </div>
                   ) : (
                     <>
-                      <button
+                      <IconButton
+                        size="compact"
                         className="requirement-edit-button"
                         type="button"
                         aria-label={`Edit requirement: ${requirement.text}`}
                         onClick={() => openEditEditor(requirement)}
                       >
                         <Pencil aria-hidden="true" size={14} strokeWidth={1.9} />
-                      </button>
-                      <button
+                      </IconButton>
+                      <IconButton
+                        size="compact"
                         className="requirement-split-button"
                         type="button"
                         aria-label={`Pisahkan requirement: ${requirement.text}`}
                         onClick={() => openSplitEditor(requirement)}
                       >
                         <Scissors aria-hidden="true" size={14} strokeWidth={1.9} />
-                      </button>
-                      <button
+                      </IconButton>
+                      <IconButton
+                        size="compact"
+                        tone="destructive"
                         className="requirement-delete-button"
                         type="button"
                         aria-label={`Hapus requirement: ${requirement.text}`}
@@ -515,7 +520,7 @@ export function RequirementReviewEditor({
                         }}
                       >
                         <Trash2 aria-hidden="true" size={14} strokeWidth={1.9} />
-                      </button>
+                      </IconButton>
                     </>
                   )}
                 </div> : null}
@@ -541,14 +546,14 @@ export function RequirementReviewEditor({
             <span><strong>{excludedRequirementCount}</strong> di luar Fit Score</span>
           </div>
           <div>
-            <button className="secondary" type="button" onClick={openSelectionMode}>
+            <ActionButton className="secondary" size="compact" variant="secondary" type="button" onClick={openSelectionMode}>
               <Combine aria-hidden="true" size={15} strokeWidth={1.9} />
               Pilih & gabungkan
-            </button>
-            <button type="button" onClick={openAddEditor}>
+            </ActionButton>
+            <ActionButton size="compact" type="button" onClick={openAddEditor}>
               <Plus aria-hidden="true" size={15} strokeWidth={2} />
               Tambah requirement
-            </button>
+            </ActionButton>
           </div>
         </div>
       </div>
@@ -561,16 +566,17 @@ export function RequirementReviewEditor({
           </div>
           {selectionError ? <p role="alert">{selectionError}</p> : null}
           <div>
-            <button type="button" onClick={closeSelectionMode}>Batal</button>
-            <button
+            <ActionButton size="compact" variant="secondary" type="button" onClick={closeSelectionMode}>Batal</ActionButton>
+            <ActionButton
               className="primary"
+              size="compact"
               type="button"
               disabled={selectedRequirementIds.length < 2}
               onClick={mergeSelectedRequirements}
             >
               <Combine aria-hidden="true" size={14} strokeWidth={1.9} />
               Gabungkan {selectedRequirementIds.length || ""}
-            </button>
+            </ActionButton>
           </div>
         </div>
       ) : null}
@@ -601,7 +607,9 @@ export function RequirementReviewEditor({
                     onChange={(event) => updateSplitDraft(index, event.target.value)}
                   />
                   {splitDrafts.length > 2 ? (
-                    <button
+                    <IconButton
+                      size="compact"
+                      tone="destructive"
                       type="button"
                       aria-label={`Hapus kolom requirement ${index + 1}`}
                       onClick={() =>
@@ -611,7 +619,7 @@ export function RequirementReviewEditor({
                       }
                     >
                       <X aria-hidden="true" size={14} strokeWidth={1.9} />
-                    </button>
+                    </IconButton>
                   ) : null}
                 </div>
               </label>
@@ -619,24 +627,26 @@ export function RequirementReviewEditor({
           </div>
 
           <div className="requirement-split-actions">
-            <button
+            <ActionButton
               className="add-part"
+              size="compact"
+              variant="secondary"
               type="button"
               disabled={splitDrafts.length >= 4}
               onClick={() => setSplitDrafts((current) => [...current, ""])}
             >
               <Plus aria-hidden="true" size={14} strokeWidth={2} />
               Tambah bagian
-            </button>
+            </ActionButton>
             {splitError ? <p role="alert">{splitError}</p> : <span />}
             <div>
-              <button className="career-button secondary" type="button" onClick={closeSplitEditor}>
+              <ActionButton className="career-button secondary" variant="secondary" type="button" onClick={closeSplitEditor}>
                 Batal
-              </button>
-              <button className="career-button primary" type="submit">
+              </ActionButton>
+              <ActionButton className="career-button primary" type="submit">
                 <Scissors aria-hidden="true" size={15} strokeWidth={1.9} />
                 Pisahkan requirement
-              </button>
+              </ActionButton>
             </div>
           </div>
         </form>
@@ -685,14 +695,14 @@ export function RequirementReviewEditor({
           <div className="requirement-editor-actions">
             {error ? <p role="alert">{error}</p> : <span />}
             <div>
-              <button className="career-button secondary" type="button" onClick={closeEditor}>
+              <ActionButton className="career-button secondary" variant="secondary" type="button" onClick={closeEditor}>
                 <X aria-hidden="true" size={16} strokeWidth={1.9} />
                 Batal
-              </button>
-              <button className="career-button primary" type="submit">
+              </ActionButton>
+              <ActionButton className="career-button primary" type="submit">
                 <Check aria-hidden="true" size={16} strokeWidth={2} />
                 Simpan requirement
-              </button>
+              </ActionButton>
             </div>
           </div>
         </form>
@@ -740,7 +750,8 @@ export function RequirementReviewEditor({
             </p>
           </div>
         </div>
-        <button
+        <ActionButton
+          size="compact"
           type="button"
           disabled={isSaving || hasSaved}
           onClick={saveReview}
@@ -753,7 +764,7 @@ export function RequirementReviewEditor({
             <Save aria-hidden="true" size={15} strokeWidth={1.9} />
           )}
           {isSaving ? "Menyimpan..." : hasSaved ? "Tersimpan" : "Simpan review"}
-        </button>
+        </ActionButton>
       </div>
 
       <span className="sr-only" aria-live="polite">{announcement}</span>

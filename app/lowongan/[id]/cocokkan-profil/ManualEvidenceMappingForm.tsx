@@ -10,6 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { useId, useState, type FormEvent } from "react";
+import { ActionButton } from "../../../components/ActionControl";
 
 export type MappingEvidence = {
   id: string;
@@ -168,14 +169,14 @@ export function ManualEvidenceMappingForm({
             skill tersebut akan ikut terlihat sebagai konteks pendukung.
           </p>
         </div>
-        <button type="button" onClick={isOpen ? closeForm : openForm}>
+        <ActionButton size="compact" variant="secondary" type="button" onClick={isOpen ? closeForm : openForm}>
           {isOpen ? (
             <X aria-hidden="true" size={15} strokeWidth={1.9} />
           ) : (
             <Plus aria-hidden="true" size={15} strokeWidth={2} />
           )}
           {isOpen ? "Tutup form" : "Hubungkan manual"}
-        </button>
+        </ActionButton>
       </div>
 
       {isOpen ? (
@@ -255,11 +256,11 @@ export function ManualEvidenceMappingForm({
           <div className="manual-mapping-actions">
             {error ? <p role="alert">{error}</p> : <span />}
             <div>
-              <button type="button" onClick={closeForm} disabled={isSaving}>Batal</button>
-              <button className="primary" type="submit" disabled={!availableSkills.length || isSaving}>
+              <ActionButton variant="secondary" type="button" onClick={closeForm} disabled={isSaving}>Batal</ActionButton>
+              <ActionButton className="primary" type="submit" disabled={!availableSkills.length || isSaving}>
                 <Link2 aria-hidden="true" size={14} strokeWidth={1.9} />
                 {isSaving ? "Menghubungkan…" : "Hubungkan requirement"}
-              </button>
+              </ActionButton>
             </div>
           </div>
         </form>

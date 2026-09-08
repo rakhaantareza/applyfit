@@ -3,7 +3,8 @@
 import { AlertCircle, Clock3 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { JobFocusShell } from "../../components/JobFocusShell";
-import { StableLink as Link } from "../../components/StableLink";
+import { ActionLink, CtaArrow } from "../../components/ActionControl";
+import { InlineBackLink } from "../../components/InlineBackLink";
 import { JobDescriptionEditor } from "./JobDescriptionEditor";
 import { JobInfoEditor, type EditableJobInfo } from "./JobInfoEditor";
 
@@ -88,10 +89,10 @@ export function PersistedJobDetail({ jobId }: { jobId: string }) {
               </dl>
               <p className="job-detail-source-note"><Clock3 aria-hidden="true" size={13} strokeWidth={1.8} />Konteks ini berasal dari informasi yang kamu simpan.</p>
               {requirementCount ? (
-                <Link className="career-button primary" href={`/lowongan/${job.id}/persyaratan`}>
+                <ActionLink className="career-button primary" href={`/lowongan/${job.id}/persyaratan`}>
                   Buka Persyaratan
-                  <span aria-hidden="true">→</span>
-                </Link>
+                  <CtaArrow />
+                </ActionLink>
               ) : null}
             </aside>
           </section>
@@ -108,7 +109,7 @@ function PersistedJobState({ jobId, message }: { jobId: string; message: string 
             <div className="persisted-job-state error">
               <AlertCircle aria-hidden="true" size={22} />
               <strong>{message}</strong>
-              <Link href="/lowongan">Kembali ke semua lowongan</Link>
+              <InlineBackLink href="/lowongan">Kembali ke semua lowongan</InlineBackLink>
             </div>
           ) : null}
         </div>

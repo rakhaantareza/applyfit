@@ -4,7 +4,8 @@ import {
   STATUS_MULTIPLIERS,
 } from "../../server/services/fit-score";
 import { AppShell } from "../components/AppShell";
-import { StableLink as Link } from "../components/StableLink";
+import { InlineBackLink } from "../components/InlineBackLink";
+import { fitScoreStatusLabels } from "../lib/fit-status-labels";
 import {
   ExampleRequirementList,
   type ExampleRequirement,
@@ -41,27 +42,27 @@ const exampleRequirements: ExampleRequirement[] = [
 
 const statusRules = [
   {
-    status: "Proven",
+    status: fitScoreStatusLabels.proven,
     multiplier: `${STATUS_MULTIPLIERS.proven}%`,
     className: "proven",
     description:
       "Skill aktif terhubung dan punya setidaknya satu Portfolio & Pengalaman pendukung.",
   },
   {
-    status: "Partial",
+    status: fitScoreStatusLabels.partial,
     multiplier: `${STATUS_MULTIPLIERS.partial}%`,
     className: "partial",
     description:
       "Skill aktif sudah terhubung, tetapi belum punya Portfolio & Pengalaman pendukung.",
   },
   {
-    status: "Learning",
+    status: fitScoreStatusLabels.learning,
     multiplier: `${STATUS_MULTIPLIERS.learning}%`,
     className: "learning",
     description: "Requirement terhubung ke skill yang sedang dipelajari.",
   },
   {
-    status: "Missing",
+    status: fitScoreStatusLabels.missing,
     multiplier: `${STATUS_MULTIPLIERS.missing}%`,
     className: "missing",
     description: "Belum ada skill profil yang terhubung ke requirement.",
@@ -72,9 +73,7 @@ export default function CalculationExamplePage() {
   return (
     <AppShell activeItem="Cara Fit Score dihitung" mainClassName="fit-guide-main">
       <div className="page-container fit-guide-page">
-        <Link className="back-link" href="/beranda">
-          <span aria-hidden="true">←</span> Kembali
-        </Link>
+        <InlineBackLink href="/beranda">Kembali</InlineBackLink>
 
         <header className="fit-guide-header">
           <span className="fit-guide-kicker">Fit Score</span>

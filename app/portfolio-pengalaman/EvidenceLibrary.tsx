@@ -20,6 +20,8 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { ActionButton, IconButton } from "../components/ActionControl";
+import { SectionHeader } from "../components/ContentHeaders";
 
 export type EvidenceType =
   | "Proyek"
@@ -291,10 +293,10 @@ export function EvidenceLibrary({
           </span>
           <div>
             <p className="eyebrow">Fondasi berbasis bukti</p>
-            <h2 id="evidence-overview-title">
+            <h2 className="type-section-title" id="evidence-overview-title">
               {evidences.length} bukti mendukung {linkedSkillCount} skill
             </h2>
-            <p>
+            <p className="type-helper">
               Satu bukti dapat terhubung ke beberapa skill. Hubungan inilah yang
               membantu ApplyFit menjelaskan status requirement secara transparan.
             </p>
@@ -312,22 +314,22 @@ export function EvidenceLibrary({
       </section>
 
       <section className="evidence-list-section" aria-labelledby="evidence-list-title">
-        <div className="evidence-section-heading responsive-card-heading">
-          <div>
-            <p className="eyebrow">Semua bukti</p>
-            <h2 id="evidence-list-title">Koleksi bukti profilmu</h2>
-          </div>
-          <div className="evidence-heading-actions responsive-card-heading-actions">
-            <p>
+        <SectionHeader
+          title="Koleksi bukti profilmu"
+          titleId="evidence-list-title"
+          description={(
+            <>
               Setiap item menampilkan konteks, skill yang didukung, dan sumber yang
               dapat diperiksa bila tersedia.
-            </p>
-            <button className="evidence-add-button" type="button" onClick={openForm}>
+            </>
+          )}
+          action={(
+            <ActionButton className="evidence-add-button" type="button" onClick={openForm}>
               <Plus aria-hidden="true" size={16} strokeWidth={2} />
               Tambah bukti
-            </button>
-          </div>
-        </div>
+            </ActionButton>
+          )}
+        />
 
         {editor ? (
           <form className="evidence-editor" onSubmit={handleSubmit}>
@@ -411,14 +413,14 @@ export function EvidenceLibrary({
             <div className="evidence-editor-actions">
               {error ? <p role="alert">{error}</p> : <span />}
               <div>
-                <button className="career-button secondary" type="button" onClick={closeForm} disabled={isSaving}>
+                <ActionButton className="career-button secondary" variant="secondary" type="button" onClick={closeForm} disabled={isSaving}>
                   <X aria-hidden="true" size={16} strokeWidth={1.9} />
                   Batal
-                </button>
-                <button className="career-button primary" type="submit" disabled={isSaving}>
+                </ActionButton>
+                <ActionButton className="career-button primary" type="submit" disabled={isSaving}>
                   {isSaving ? <LoaderCircle className="spin" aria-hidden="true" size={16} /> : <Check aria-hidden="true" size={16} strokeWidth={2} />}
                   {isSaving ? "Menyimpan…" : "Simpan bukti"}
-                </button>
+                </ActionButton>
               </div>
             </div>
           </form>
@@ -487,7 +489,7 @@ export function EvidenceLibrary({
 
                 <div className="evidence-row-copy">
                   <span className="evidence-type-label">{evidence.type}</span>
-                  <h3>{evidence.title}</h3>
+                  <h3 className="type-primary-title">{evidence.title}</h3>
                   <p>{evidence.description}</p>
                 </div>
 
@@ -537,14 +539,15 @@ export function EvidenceLibrary({
                     </div>
                   ) : (
                     <>
-                      <button
+                      <IconButton
                         type="button"
                         aria-label={`Edit ${evidence.title}`}
                         onClick={() => openEditForm(evidence)}
                       >
                         <Pencil aria-hidden="true" size={15} strokeWidth={1.9} />
-                      </button>
-                      <button
+                      </IconButton>
+                      <IconButton
+                        tone="destructive"
                         type="button"
                         aria-label={`Hapus ${evidence.title}`}
                         onClick={() => {
@@ -553,7 +556,7 @@ export function EvidenceLibrary({
                         }}
                       >
                         <Trash2 aria-hidden="true" size={15} strokeWidth={1.9} />
-                      </button>
+                      </IconButton>
                     </>
                   )}
                 </div>

@@ -1,5 +1,7 @@
 "use client";
 
+import { BriefcaseBusiness, ChevronDown, Laptop, MapPin, Search, X } from "lucide-react";
+import { CtaArrow, IconButton } from "./ActionControl";
 import { StableLink as Link } from "./StableLink";
 import {
   createContext,
@@ -107,16 +109,16 @@ export function JobSwitcher() {
       <button className="job-switcher" type="button" aria-expanded={isOpen} aria-haspopup="dialog" aria-controls={popoverId} onClick={() => { if (isOpen) setQuery(""); setIsOpen((current) => !current); }}>
         <span className="company-logo" aria-hidden="true">{selectedJob.initials}</span>
         <span className="job-choice"><small>Ganti lowongan</small><strong>{selectedJob.title}</strong><span>{selectedJob.company}</span></span>
-        <span className={`chevron${isOpen ? " open" : ""}`} aria-hidden="true">⌄</span>
+        <ChevronDown className={`chevron${isOpen ? " open" : ""}`} aria-hidden="true" size={16} strokeWidth={1.8} />
       </button>
 
       {isOpen ? (
         <div className="job-popover" id={popoverId} role="dialog" aria-label="Ganti lowongan yang dianalisis">
           <div className="job-popover-heading"><div><strong>Pilih lowongan</strong><span>Ubah konteks analisis Fit Score</span></div><small>{jobs.length} tersimpan</small></div>
           <label className="job-search">
-            <span aria-hidden="true">⌕</span>
+            <Search aria-hidden="true" size={16} strokeWidth={1.8} />
             <input ref={searchRef} type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari role atau perusahaan" aria-label="Cari berdasarkan role atau perusahaan" />
-            {query ? <button type="button" aria-label="Hapus pencarian" onClick={() => { setQuery(""); searchRef.current?.focus(); }}>×</button> : null}
+            {query ? <IconButton size="compact" type="button" aria-label="Hapus pencarian" onClick={() => { setQuery(""); searchRef.current?.focus(); }}><X aria-hidden="true" size={14} strokeWidth={1.8} /></IconButton> : null}
           </label>
           <div className="job-options-scroll">
             <div className="job-list-context"><span>{query ? `${visibleJobs.length} hasil ditemukan` : "Lowongan yang baru dipilih tampil paling atas"}</span></div>
@@ -138,9 +140,9 @@ export function JobSwitcher() {
                   );
                 })}
               </div>
-            ) : <div className="job-empty-state" role="status"><span aria-hidden="true">⌕</span><strong>Lowongan tidak ditemukan</strong><p>Coba nama role atau perusahaan yang berbeda.</p></div>}
+            ) : <div className="job-empty-state" role="status"><Search aria-hidden="true" size={18} strokeWidth={1.8} /><strong>Lowongan tidak ditemukan</strong><p>Coba nama role atau perusahaan yang berbeda.</p></div>}
           </div>
-          <Link className="job-popover-footer" href="/lowongan" onClick={() => { setIsOpen(false); setQuery(""); }}><span><strong>Lihat semua lowongan</strong><small>Kelola lowongan tersimpan</small></span><span aria-hidden="true">→</span></Link>
+          <Link className="job-popover-footer" href="/lowongan" onClick={() => { setIsOpen(false); setQuery(""); }}><span><strong>Lihat semua lowongan</strong><small>Kelola lowongan tersimpan</small></span><CtaArrow /></Link>
         </div>
       ) : null}
     </div>
@@ -149,18 +151,19 @@ export function JobSwitcher() {
 
 export function AnalyzedJobContext() {
   const { selectedJob } = useJobAnalysis();
+  const hasMetadata = Boolean(
+    selectedJob.source || selectedJob.location || selectedJob.arrangement,
+  );
+
   return (
     <div className="analyzed-job-context" aria-live="polite">
-      <span className="company-logo" aria-hidden="true">{selectedJob.initials}</span>
-      <span className="analyzed-job-copy">
-        <small>Lowongan yang dianalisis</small>
-        <span className="analyzed-job-heading"><strong>{selectedJob.title}</strong><span>{selectedJob.company}</span></span>
-        <span className="analyzed-job-meta">
-          <span><small>Sumber</small><strong>{selectedJob.source ?? "Belum diisi"}</strong></span>
-          <span><small>Lokasi</small><strong>{selectedJob.location ?? "Belum diisi"}</strong></span>
-          <span><small>Pengaturan kerja</small><strong>{selectedJob.arrangement ?? "Belum diisi"}</strong></span>
+      {hasMetadata ? (
+        <span className="analyzed-job-meta" aria-label="Konteks lowongan">
+          {selectedJob.source ? <span><BriefcaseBusiness aria-hidden="true" size={13} strokeWidth={1.8} />{selectedJob.source}</span> : null}
+          {selectedJob.location ? <span><MapPin aria-hidden="true" size={13} strokeWidth={1.8} />{selectedJob.location}</span> : null}
+          {selectedJob.arrangement ? <span><Laptop aria-hidden="true" size={13} strokeWidth={1.8} />{selectedJob.arrangement}</span> : null}
         </span>
-      </span>
+      ) : null}
     </div>
   );
 }

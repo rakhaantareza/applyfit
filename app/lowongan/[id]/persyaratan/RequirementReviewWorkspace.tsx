@@ -2,14 +2,13 @@
 
 import {
   AlertCircle,
-  ArrowLeft,
-  ArrowRight,
   BookOpenCheck,
   Waypoints,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { InlineBackLink } from "../../../components/InlineBackLink";
 import { JobFocusShell } from "../../../components/JobFocusShell";
-import { StableLink as Link } from "../../../components/StableLink";
+import { ActionLink, CtaArrow } from "../../../components/ActionControl";
 import {
   RequirementReviewEditor,
   type Requirement,
@@ -86,10 +85,9 @@ export function RequirementReviewWorkspace({ jobId }: { jobId: string }) {
       <div className="page-container requirement-review-page">
       <header className="requirement-review-header">
         <div>
-          <Link href={`/lowongan/${job.id}`}>
-            <ArrowLeft aria-hidden="true" size={15} strokeWidth={1.9} />
+          <InlineBackLink href={`/lowongan/${job.id}`}>
             Kembali ke detail lowongan
-          </Link>
+          </InlineBackLink>
           <p className="eyebrow">Persyaratan</p>
           <h1>Periksa requirement sebelum dianalisis</h1>
           <p>
@@ -120,7 +118,7 @@ export function RequirementReviewWorkspace({ jobId }: { jobId: string }) {
       <section className="requirement-review-next-step" aria-label="Langkah berikutnya">
         <span aria-hidden="true"><Waypoints size={19} strokeWidth={1.8} /></span>
         <div><strong>Lanjutkan ke Cocokkan Profil</strong><p>Hubungkan requirement yang sudah direview dengan skill dan bukti profilmu.</p></div>
-        <Link href={`/lowongan/${job.id}/cocokkan-profil`}>Buka Cocokkan Profil <ArrowRight aria-hidden="true" size={15} strokeWidth={1.9} /></Link>
+        <ActionLink href={`/lowongan/${job.id}/cocokkan-profil`}>Buka Cocokkan Profil <CtaArrow /></ActionLink>
       </section>
       </div>
     </JobFocusShell>
@@ -135,7 +133,7 @@ function ReviewLoadState({ error, jobId }: { error: string; jobId: string }) {
           <div className="persisted-job-state error">
             <AlertCircle aria-hidden="true" size={22} />
             <strong>{error}</strong>
-            <Link href={`/lowongan/${jobId}`}>Kembali ke detail lowongan</Link>
+            <InlineBackLink href={`/lowongan/${jobId}`}>Kembali ke detail lowongan</InlineBackLink>
           </div>
         ) : null}
       </div>

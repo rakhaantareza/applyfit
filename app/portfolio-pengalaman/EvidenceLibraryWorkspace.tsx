@@ -2,6 +2,7 @@
 
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import { ActionButton } from "../components/ActionControl";
 import {
   EvidenceLibrary,
   type EvidenceItem,
@@ -15,10 +16,10 @@ type ApiEvidence = {
   url: string | null;
   description: string;
   updatedAt: string;
+  skillIds?: string[];
 };
 
 type ApiSkill = { id: string; name: string };
-type EvidenceLink = { skillId: string };
 
 type EvidenceResponse = {
   data?: { evidences?: ApiEvidence[] };
@@ -28,10 +29,6 @@ type EvidenceResponse = {
 type SkillsResponse = {
   data?: { skills?: ApiSkill[] };
   error?: { message?: string };
-};
-
-type LinksResponse = {
-  data?: { links?: EvidenceLink[] };
 };
 
 export function EvidenceLibraryWorkspace() {
@@ -46,7 +43,7 @@ export function EvidenceLibraryWorkspace() {
     async function loadLibrary() {
       try {
         const [evidenceResponse, skillsResponse] = await Promise.all([
-          fetch("/api/evidences"),
+          fetch("/api/evidences?includeSkills=true"),
           fetch("/api/career-profile/skills"),
         ]);
         const evidenceResult = await readJson<EvidenceResponse>(evidenceResponse);
@@ -61,24 +58,19 @@ export function EvidenceLibraryWorkspace() {
 
         const apiEvidences = evidenceResult.data?.evidences ?? [];
         const profileSkills = skillsResult.data?.skills ?? [];
-        const links = await Promise.all(apiEvidences.map(async (evidence) => {
-          const response = await fetch(`/api/evidences/${encodeURIComponent(evidence.id)}/skills`);
-          if (!response.ok) return [];
-          const result = await readJson<LinksResponse>(response);
-          return result.data?.links ?? [];
-        }));
+        const skillsById = new Map(profileSkills.map((skill) => [skill.id, skill]));
 
         if (!active) return;
         setSkills(profileSkills);
-        setEvidences(apiEvidences.map((evidence, index) => ({
+        setEvidences(apiEvidences.map((evidence) => ({
           id: evidence.id,
           title: evidence.title,
           type: typeLabels[evidence.type],
           backendType: evidence.type,
           description: evidence.description,
           source: evidence.url,
-          skills: links[index]?.flatMap((link) => {
-            const skill = profileSkills.find((item) => item.id === link.skillId);
+          skills: evidence.skillIds?.flatMap((skillId) => {
+            const skill = skillsById.get(skillId);
             return skill ? [skill] : [];
           }) ?? [],
           updatedAt: formatUpdatedAt(evidence.updatedAt),
@@ -108,7 +100,7 @@ export function EvidenceLibraryWorkspace() {
       <div className="career-profile-state error" role="alert">
         <AlertCircle aria-hidden="true" size={22} />
         <strong>{error}</strong>
-        <button type="button" onClick={() => window.location.reload()}>Coba lagi</button>
+        <ActionButton size="compact" variant="secondary" type="button" onClick={() => window.location.reload()}>Coba lagi</ActionButton>
       </div>
     );
   }

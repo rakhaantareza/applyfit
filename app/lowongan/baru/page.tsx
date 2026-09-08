@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { ArrowLeft, FileSearch, Save, ScanSearch } from "lucide-react";
+import { FileSearch, Save, ScanSearch } from "lucide-react";
 import { AppShell } from "../../components/AppShell";
-import { StableLink as Link } from "../../components/StableLink";
+import { InlineBackLink } from "../../components/InlineBackLink";
 import { JobCreationForm } from "./JobCreationForm";
 import { AuthenticatedRoute } from "../../components/AuthenticatedRoute";
 
@@ -15,10 +15,9 @@ export default function NewJobPage() {
     <AuthenticatedRoute><AppShell activeItem="Lowongan" mainClassName="new-job-main">
         <div className="page-container new-job-page">
           <header className="new-job-header">
-            <Link href="/lowongan">
-              <ArrowLeft aria-hidden="true" size={15} strokeWidth={1.9} />
+            <InlineBackLink href="/lowongan">
               Kembali ke semua lowongan
-            </Link>
+            </InlineBackLink>
             <div>
               <p className="eyebrow">Lowongan baru</p>
               <h1>Simpan konteks pekerjaan</h1>

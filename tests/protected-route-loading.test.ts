@@ -31,6 +31,11 @@ test("session bootstrap is owned by the persistent root provider", async () => {
 
   assert.doesNotMatch(cssSource, /session-route-check|session-logo-flip|rotateY\(360deg\)/);
   assert.doesNotMatch(cssSource, /session-content-skeleton/);
+  assert.doesNotMatch(
+    cssSource,
+    /html\s*\{[^}]*(?:scrollbar-gutter:\s*stable|overflow-y:\s*scroll)/s,
+    "short pages should not reserve permanent root scrollbar space",
+  );
 });
 
 test("page data loading never renders page-level loaders", async () => {

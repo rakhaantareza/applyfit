@@ -1,8 +1,8 @@
 "use client";
 
-import { AlertCircle, ArrowRight, BriefcaseBusiness, CheckCircle2, LoaderCircle } from "lucide-react";
+import { AlertCircle, BriefcaseBusiness, CheckCircle2, LoaderCircle } from "lucide-react";
 import { useId, useState, type FormEvent } from "react";
-import { StableLink as Link } from "../../components/StableLink";
+import { ActionButton, ActionLink, CtaArrow } from "../../components/ActionControl";
 
 type FormStatus = "idle" | "submitting" | "success";
 
@@ -118,11 +118,11 @@ export function JobCreationForm() {
         ) : null}
 
         <div className="new-job-form-actions">
-          <Link className="career-button secondary" href="/lowongan" aria-disabled={isBusy}>Batal</Link>
-          <button className="career-button primary" type="submit" disabled={isBusy}>
-            {status === "submitting" ? <LoaderCircle className="spin" aria-hidden="true" size={16} /> : <ArrowRight aria-hidden="true" size={16} />}
+          <ActionLink className="career-button secondary" variant="secondary" href="/lowongan" aria-disabled={isBusy}>Batal</ActionLink>
+          <ActionButton className="career-button primary" type="submit" disabled={isBusy}>
             {status === "submitting" ? "Menyimpan…" : status === "success" ? "Tersimpan" : "Simpan dan lanjutkan"}
-          </button>
+            {status === "submitting" ? <LoaderCircle className="spin" aria-hidden="true" size={16} /> : <CtaArrow />}
+          </ActionButton>
         </div>
       </form>
     </section>

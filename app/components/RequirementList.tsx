@@ -59,9 +59,9 @@ export function RequirementList({ requirements }: RequirementListProps) {
         </span>
         <div>
           <p className="eyebrow">Skor belum tersedia</p>
-          <h3>Belum ada requirement Skill atau Tool</h3>
+          <h3>Belum ada persyaratan Skill atau Tool</h3>
           <p>
-            Requirement Education dan Experience tetap tersimpan untuk referensi, tetapi
+            Persyaratan Education dan Experience tetap tersimpan sebagai konteks, tetapi
             Fit Score baru dapat dihitung setelah ada syarat berbasis Skill atau Tool.
           </p>
         </div>
@@ -71,24 +71,24 @@ export function RequirementList({ requirements }: RequirementListProps) {
 
   return (
     <>
-      <div className="requirement-filters" aria-label="Filter requirement">
+      <div className="requirement-filters" aria-label="Filter persyaratan">
         <div className="filter-fields">
           <label>
-            <span>Status</span>
             <select
+              aria-label="Filter status persyaratan"
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
             >
               <option>Semua status</option>
-              <option>Proven</option>
-              <option>Partial</option>
-              <option>Learning</option>
-              <option>Missing</option>
+              <option value="Proven">Terbukti</option>
+              <option value="Partial">Belum terbukti</option>
+              <option value="Learning">Sedang dipelajari</option>
+              <option value="Missing">Belum ada kecocokan</option>
             </select>
           </label>
           <label>
-            <span>Prioritas</span>
             <select
+              aria-label="Filter prioritas persyaratan"
               value={priorityFilter}
               onChange={(event) =>
                 setPriorityFilter(event.target.value as PriorityFilter)
@@ -102,7 +102,7 @@ export function RequirementList({ requirements }: RequirementListProps) {
         </div>
         <div className="filter-result">
           <span aria-live="polite">
-            {filteredRequirements.length} dari {requirements.length} requirement
+            {filteredRequirements.length} dari {requirements.length} persyaratan
           </span>
           {hasActiveFilter && (
             <button type="button" onClick={resetFilters}>
@@ -114,13 +114,13 @@ export function RequirementList({ requirements }: RequirementListProps) {
 
       <div className="requirements-list">
         {filteredRequirements.map((requirement) => (
-          <RequirementDetail requirement={requirement} key={requirement.name} />
+          <RequirementDetail requirement={requirement} key={`${requirement.name}-${requirement.priority}`} />
         ))}
 
         {filteredRequirements.length === 0 && (
           <div className="empty-filter-state">
             <span aria-hidden="true">⌕</span>
-            <h3>Tidak ada requirement yang cocok</h3>
+            <h3>Tidak ada persyaratan yang cocok</h3>
             <p>Coba ubah status atau prioritas yang dipilih.</p>
             <button type="button" onClick={resetFilters}>
               Tampilkan semua

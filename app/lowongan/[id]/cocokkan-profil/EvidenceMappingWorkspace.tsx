@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
+import { ActionButton } from "../../../components/ActionControl";
 import {
   deriveRequirementStatus,
   type RequirementStatus,
@@ -24,6 +25,7 @@ import {
   type MappingSkill,
   type SavedManualMapping,
 } from "./ManualEvidenceMappingForm";
+import { fitScoreStatusLabels } from "../../../lib/fit-status-labels";
 
 type WorkspaceRequirement = MappingRequirement & {
   autoMatchReason: string | null;
@@ -36,24 +38,24 @@ type EvidenceMappingWorkspaceProps = {
   skills: MappingSkill[];
 };
 
-const reviewStatusMeta: Record<
+const scoringStatusMeta: Record<
   RequirementStatus,
-  { label: "Proven" | "Partial" | "Learning" | "Missing"; description: string }
+  { label: string; description: string }
 > = {
   proven: {
-    label: "Proven",
+    label: fitScoreStatusLabels.proven,
     description: "Ada skill aktif dengan bukti yang terhubung.",
   },
   partial: {
-    label: "Partial",
+    label: fitScoreStatusLabels.partial,
     description: "Skill aktif sudah terhubung, tetapi bukti masih kosong.",
   },
   learning: {
-    label: "Learning",
+    label: fitScoreStatusLabels.learning,
     description: "Skill yang terhubung masih berstatus dipelajari.",
   },
   missing: {
-    label: "Missing",
+    label: fitScoreStatusLabels.missing,
     description: "Belum ada skill dan bukti yang dapat mendukung requirement.",
   },
 };
@@ -194,7 +196,7 @@ export function EvidenceMappingWorkspace({
 
     return { requirement, mappedSkills, evidence, status };
   });
-  const reviewStatusOrder: RequirementStatus[] = [
+  const scoringStatusOrder: RequirementStatus[] = [
     "proven",
     "partial",
     "learning",
@@ -285,7 +287,7 @@ export function EvidenceMappingWorkspace({
                 : "Cocok otomatis"
               : manualSkillIds.length
                 ? "Dihubungkan manual"
-                : "Tidak ada kecocokan langsung";
+                : "Perlu dicocokkan";
 
             return (
               <article
@@ -316,7 +318,9 @@ export function EvidenceMappingWorkspace({
                       ) : (
                         <CircleDashed aria-hidden="true" size={15} strokeWidth={1.8} />
                       )}
-                      {isMarkedWithoutEvidence ? "Ditandai tanpa bukti" : mappingLabel}
+                      {isMarkedWithoutEvidence
+                        ? "Sudah ditinjau · tanpa bukti"
+                        : mappingLabel}
                     </span>
                     {isMapped ? <small>{evidenceCount} bukti terkait</small> : null}
                   </div>
@@ -347,26 +351,26 @@ export function EvidenceMappingWorkspace({
                   {!isMapped ? (
                     <div className="mapping-no-evidence-action">
                       {isMarkedWithoutEvidence ? (
-                        <button type="button" onClick={() => undoWithoutEvidence(requirement)}>
+                        <ActionButton size="compact" variant="ghost" type="button" onClick={() => undoWithoutEvidence(requirement)}>
                           Batalkan tanda
-                        </button>
+                        </ActionButton>
                       ) : isPendingNoEvidence ? (
                         <div role="group" aria-label="Konfirmasi tanpa bukti">
                           <span>Konfirmasi belum ada bukti relevan?</span>
-                          <button type="button" onClick={() => setPendingNoEvidenceId(null)}>
+                          <ActionButton size="compact" variant="secondary" type="button" onClick={() => setPendingNoEvidenceId(null)}>
                             <X aria-hidden="true" size={12} strokeWidth={2} />
                             Batal
-                          </button>
-                          <button className="confirm" type="button" onClick={() => markWithoutEvidence(requirement)}>
+                          </ActionButton>
+                          <ActionButton className="confirm" size="compact" type="button" onClick={() => markWithoutEvidence(requirement)}>
                             <Check aria-hidden="true" size={12} strokeWidth={2.1} />
                             Tandai
-                          </button>
+                          </ActionButton>
                         </div>
                       ) : (
-                        <button type="button" onClick={() => setPendingNoEvidenceId(requirement.id)}>
+                        <ActionButton size="compact" variant="ghost" type="button" onClick={() => setPendingNoEvidenceId(requirement.id)}>
                           <CircleOff aria-hidden="true" size={13} strokeWidth={1.8} />
                           Tandai tanpa bukti
-                        </button>
+                        </ActionButton>
                       )}
                     </div>
                   ) : null}
@@ -389,7 +393,9 @@ export function EvidenceMappingWorkspace({
               Ringkasan ini membantu memeriksa dasar analisis sebelum Fit Score dihitung.
             </p>
           </div>
-          <button
+          <ActionButton
+            size="compact"
+            variant="secondary"
             type="button"
             aria-expanded={isReviewOpen}
             aria-controls="mapping-review-content"
@@ -397,16 +403,16 @@ export function EvidenceMappingWorkspace({
           >
             {isReviewOpen ? "Tutup review" : "Tinjau hasil"}
             <ChevronDown aria-hidden="true" size={15} strokeWidth={1.9} />
-          </button>
+          </ActionButton>
         </div>
 
         {isReviewOpen ? (
           <div className="mapping-review-content" id="mapping-review-content">
             <div className="mapping-review-summary" aria-label="Ringkasan hasil Cocokkan Profil">
-              {reviewStatusOrder.map((status) => (
+              {scoringStatusOrder.map((status) => (
                 <span className={status} key={status}>
                   <i aria-hidden="true" />
-                  {reviewStatusMeta[status].label}
+                  {scoringStatusMeta[status].label}
                   <strong>{reviewItems.filter((item) => item.status === status).length}</strong>
                 </span>
               ))}
@@ -420,12 +426,12 @@ export function EvidenceMappingWorkspace({
                 return (
                   <article key={requirement.id}>
                     <span className={`status-badge ${status}`}>
-                      {reviewStatusMeta[status].label}
+                      {scoringStatusMeta[status].label}
                     </span>
                     <div className="mapping-review-requirement">
                       <span>{requirement.priority}</span>
                       <h3>{requirement.text}</h3>
-                      <p>{reviewStatusMeta[status].description}</p>
+                      <p>{scoringStatusMeta[status].description}</p>
                     </div>
                     <div className="mapping-review-support">
                       {mappedSkills.length ? (
@@ -441,8 +447,8 @@ export function EvidenceMappingWorkspace({
                         <>
                           <strong>
                             {isConfirmedWithoutEvidence
-                              ? "Dikonfirmasi tanpa bukti"
-                              : "Belum selesai dipetakan"}
+                              ? "Sudah ditinjau · tanpa bukti"
+                              : "Perlu dicocokkan"}
                           </strong>
                           <p>
                             {isConfirmedWithoutEvidence
