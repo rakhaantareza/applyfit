@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowRight,
   CircleCheckBig,
   Eye,
   EyeOff,
@@ -11,6 +10,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { type FormEvent, useState } from "react";
+import { ActionButton, CtaArrow } from "../components/ActionControl";
 
 type AuthResponse = {
   data?: {
@@ -27,7 +27,6 @@ export function RegistrationForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
-  const [acceptTerms, setAcceptTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -57,11 +56,6 @@ export function RegistrationForm() {
       setError("Konfirmasi kata sandi belum sama.");
       return;
     }
-    if (!acceptTerms) {
-      setError("Setujui penggunaan data untuk membuat akun ApplyFit.");
-      return;
-    }
-
     setIsSubmitting(true);
     try {
       const response = await fetch("/api/auth/sign-up", {
@@ -192,19 +186,21 @@ export function RegistrationForm() {
         {error ? <p className="login-error" id="registration-error" role="alert">{error}</p> : null}
         {resendMessage ? <p className="registration-success-message" role="status">{resendMessage}</p> : null}
 
-        <button className="login-submit" type="submit" disabled={isSubmitting}>
+        <ActionButton className="login-submit" size="auth" type="submit" disabled={isSubmitting}>
           <span>{isSubmitting ? "Memverifikasi…" : "Verifikasi dan lanjutkan"}</span>
-          <ArrowRight aria-hidden="true" size={18} strokeWidth={1.9} />
-        </button>
-        <button
+          <CtaArrow />
+        </ActionButton>
+        <ActionButton
           className="login-secondary-action"
+          size="auth"
           type="button"
+          variant="ghost"
           disabled={isSubmitting}
           onClick={resendVerification}
         >
           <RefreshCw aria-hidden="true" size={15} strokeWidth={1.8} />
           Kirim ulang kode
-        </button>
+        </ActionButton>
       </form>
     );
   }
@@ -247,18 +243,12 @@ export function RegistrationForm() {
         </div>
       </div>
 
-      <label className="login-remember registration-consent">
-        <input type="checkbox" checked={acceptTerms} onChange={(event) => setAcceptTerms(event.target.checked)} />
-        <span aria-hidden="true" />
-        Saya setuju data akun digunakan untuk menyediakan ruang kerja ApplyFit.
-      </label>
-
       {error ? <p className="login-error" id="registration-error" role="alert">{error}</p> : null}
 
-      <button className="login-submit" type="submit" disabled={isSubmitting}>
-        <span>{isSubmitting ? "Membuat akun…" : "Buat akun ApplyFit"}</span>
-        <ArrowRight aria-hidden="true" size={18} strokeWidth={1.9} />
-      </button>
+      <ActionButton className="login-submit" size="auth" type="submit" disabled={isSubmitting}>
+        <span>{isSubmitting ? "Membuat akun…" : "Buat akun"}</span>
+        <CtaArrow />
+      </ActionButton>
     </form>
   );
 }

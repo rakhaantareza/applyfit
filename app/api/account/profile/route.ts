@@ -1,5 +1,9 @@
 import { createInsForgeServerClient } from "../../../lib/insforge/server.ts";
 import {
+  isDemoSession,
+  protectDemoMutation,
+} from "../../../lib/insforge/demo-read-only.ts";
+import {
   createAccountProfileHandlers,
   type AccountIdentity,
   type AccountProfileInput,
@@ -31,7 +35,14 @@ async function currentUser() {
 async function loadAccount() {
   const context = await currentUser();
   if (context.status !== "ok") return context;
-  return { status: "ok" as const, account: toAccount(context.user) };
+  const account = toAccount(context.user);
+  return {
+    status: "ok" as const,
+    account: {
+      ...account,
+      ...(await isDemoSession() ? { isDemo: true as const } : {}),
+    },
+  };
 }
 
 async function saveAccount(input: AccountProfileInput) {
@@ -59,4 +70,7 @@ async function saveAccount(input: AccountProfileInput) {
   };
 }
 
-export const { GET, PATCH } = createAccountProfileHandlers(loadAccount, saveAccount);
+const handlers = createAccountProfileHandlers(loadAccount, saveAccount);
+
+export const GET = handlers.GET;
+export const PATCH = protectDemoMutation(handlers.PATCH);

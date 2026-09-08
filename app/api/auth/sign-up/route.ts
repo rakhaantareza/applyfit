@@ -4,6 +4,7 @@ import {
   createSignUpHandler,
   type SafeAuthUser,
 } from "../../../../server/http/auth-sign-up-handler.ts";
+import { normalizeAuthProviderError } from "../../../../server/http/auth-provider-error.ts";
 
 export async function POST(request: NextRequest) {
   const { auth, withSessionCookies } = createAuthRouteContext(request);
@@ -13,11 +14,11 @@ export async function POST(request: NextRequest) {
     if (error) {
       return {
         status: "error",
-        error: {
-          code: String(error.error || "SIGN_UP_FAILED"),
-          message: error.message || "Pendaftaran akun gagal.",
+        error: normalizeAuthProviderError({
+          error: error.error,
+          message: error.message,
           statusCode: error.statusCode,
-        },
+        }, "sign-up"),
       };
     }
 

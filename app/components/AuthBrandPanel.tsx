@@ -1,37 +1,33 @@
-import { Check, ShieldCheck } from "lucide-react";
+import { Check } from "lucide-react";
 import { StableLink as Link } from "./StableLink";
 
 const readinessFlow = [
-  "Susun skill dan bukti dalam satu profil",
-  "Periksa Persyaratan lowongan secara transparan",
-  "Pahami dasar setiap poin Fit Score",
+  "Hubungkan skill dengan pengalaman yang mendukungnya",
+  "Lihat persyaratan yang sudah dan belum cocok",
+  "Pahami alasan di balik Fit Score",
 ];
 
 type AuthBrandPanelProps = {
   titleId: string;
-  title: string;
-  description: string;
 };
 
-export function AuthBrandPanel({
-  titleId,
-  title,
-  description,
-}: AuthBrandPanelProps) {
+export function AuthBrandPanel({ titleId }: AuthBrandPanelProps) {
   return (
     <section className="auth-brand-panel" aria-labelledby={titleId}>
       <Link className="auth-brand" href="/" aria-label="ApplyFit beranda">
         <span className="brand-mark" aria-hidden="true">A</span>
-        <span>ApplyFit</span>
+        <span className="auth-wordmark">ApplyFit</span>
+        <span className="auth-beta" aria-label="Versi Beta">
+          <span aria-hidden="true">·</span> Beta
+        </span>
       </Link>
 
       <div className="auth-brand-copy">
-        <p className="auth-kicker">
-          <ShieldCheck aria-hidden="true" size={16} strokeWidth={1.9} />
-          Career readiness berbasis bukti
+        <h1 id={titleId}>Cek kesiapanmu sebelum melamar.</h1>
+        <p>
+          Bandingkan persyaratan lowongan dengan skill dan pengalaman yang sudah
+          kamu punya.
         </p>
-        <h1 id={titleId}>{title}</h1>
-        <p>{description}</p>
 
         <ul className="auth-benefits" aria-label="Manfaat utama ApplyFit">
           {readinessFlow.map((item) => (
@@ -44,7 +40,8 @@ export function AuthBrandPanel({
       </div>
 
       <p className="auth-brand-footnote">
-        Fit Score menjelaskan kondisi profilmu—bukan memutuskan apakah kamu harus melamar.
+        Fit Score membantu kamu melihat kecocokan, bukan menentukan apakah kamu
+        harus melamar.
       </p>
     </section>
   );

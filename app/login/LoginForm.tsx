@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
+import { Eye, EyeOff, LockKeyhole, Mail, Play } from "lucide-react";
 import { type FormEvent, useState } from "react";
+import { ActionButton, CtaArrow } from "../components/ActionControl";
 import { StableLink as Link } from "../components/StableLink";
 
 type AuthResponse = {
@@ -13,8 +14,30 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"account" | "demo" | null>(null);
   const [error, setError] = useState("");
+
+  async function openDemo() {
+    setError("");
+    setPendingAction("demo");
+
+    try {
+      const response = await fetch("/api/auth/demo", { method: "POST" });
+      const result = await readAuthResponse(response);
+      if (!response.ok || !result.data?.user) {
+        throw new Error(result.error?.message ?? "Demo belum dapat dibuka. Coba lagi.");
+      }
+
+      window.location.assign(getLoginDestination());
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Demo belum dapat dibuka. Coba lagi.",
+      );
+      setPendingAction(null);
+    }
+  }
 
   async function submitLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -30,7 +53,7 @@ export function LoginForm() {
       return;
     }
 
-    setIsSubmitting(true);
+    setPendingAction("account");
     try {
       const response = await fetch("/api/auth/sign-in", {
         method: "POST",
@@ -49,12 +72,26 @@ export function LoginForm() {
           ? requestError.message
           : "ApplyFit belum dapat memproses proses masuk. Coba lagi.",
       );
-      setIsSubmitting(false);
+      setPendingAction(null);
     }
   }
 
   return (
     <form className="login-form" onSubmit={submitLogin} noValidate>
+      <ActionButton
+        className="login-demo-button"
+        size="auth"
+        type="button"
+        variant="secondary"
+        disabled={pendingAction !== null}
+        onClick={openDemo}
+      >
+        <Play aria-hidden="true" size={15} strokeWidth={1.9} />
+        <span>{pendingAction === "demo" ? "Membuka demo…" : "Coba demo"}</span>
+      </ActionButton>
+
+      <div className="login-demo-divider"><span>atau masuk dengan akunmu</span></div>
+
       <div className="login-field">
         <label htmlFor="login-email">Email</label>
         <div className="login-input-wrap">
@@ -75,10 +112,7 @@ export function LoginForm() {
       </div>
 
       <div className="login-field">
-        <div className="login-field-heading">
-          <label htmlFor="login-password">Kata sandi</label>
-          <Link href="/lupa-kata-sandi">Lupa kata sandi?</Link>
-        </div>
+        <label htmlFor="login-password">Kata sandi</label>
         <div className="login-input-wrap">
           <LockKeyhole aria-hidden="true" size={18} strokeWidth={1.8} />
           <input
@@ -114,10 +148,14 @@ export function LoginForm() {
         </p>
       ) : null}
 
-      <button className="login-submit" type="submit" disabled={isSubmitting}>
-        <span>{isSubmitting ? "Memeriksa akunmu…" : "Masuk ke ApplyFit"}</span>
-        <ArrowRight aria-hidden="true" size={18} strokeWidth={1.9} />
-      </button>
+      <ActionButton className="login-submit" size="auth" type="submit" disabled={pendingAction !== null}>
+        <span>{pendingAction === "account" ? "Masuk…" : "Masuk"}</span>
+        <CtaArrow />
+      </ActionButton>
+
+      <Link className="login-forgot-link" href="/lupa-kata-sandi">
+        Lupa kata sandi?
+      </Link>
     </form>
   );
 }

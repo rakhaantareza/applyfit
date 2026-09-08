@@ -4,6 +4,7 @@ import {
   type AppSidebarActiveItem,
 } from "./AppSidebar";
 import { AppTopBar } from "./AppTopBar";
+import { DemoWorkspaceNotice } from "./DemoWorkspaceNotice";
 
 type AppShellProps = {
   activeItem: AppSidebarActiveItem;
@@ -23,6 +24,7 @@ export function AppShell({
       <AppTopBar showSidebarControls />
       <AppSidebar activeItem={activeItem} />
       <main className={mainClasses} id="top">
+        <DemoWorkspaceNotice variant="app" />
         {children}
       </main>
     </div>

@@ -11,20 +11,13 @@ export const metadata: Metadata = {
 export default function RegistrationPage() {
   return (
     <main className="auth-page">
-      <AuthBrandPanel
-        titleId="registration-brand-title"
-        title="Bangun profil yang dapat menjelaskan kesiapanmu."
-        description="Mulai dari arah karier, catat skill yang benar-benar kamu miliki, lalu hubungkan bukti yang mendukung setiap klaim."
-      />
+      <AuthBrandPanel titleId="registration-brand-title" />
 
       <section className="auth-form-panel registration-panel" aria-labelledby="registration-title">
         <div className="login-card">
           <div className="login-heading">
-            <p className="eyebrow">Mulai dengan profilmu</p>
             <h2 id="registration-title">Buat akun ApplyFit</h2>
-            <p>
-              Isi data dasar, lalu verifikasi email untuk mengamankan akunmu.
-            </p>
+            <p>Buat profilmu, tambahkan skill, lalu mulai cek lowongan yang kamu incar.</p>
           </div>
 
           <RegistrationForm />

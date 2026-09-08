@@ -13,6 +13,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { type FormEvent, useState } from "react";
+import { ActionButton } from "../components/ActionControl";
 import {
   getAccountInitials,
   getAuthDisplayName,
@@ -81,6 +82,10 @@ export function AccountSettings() {
     if (!user?.email) return;
     setSecurityError("");
     setSecurityMessage("");
+    if (user.isDemo) {
+      setSecurityError("Ruang demo hanya untuk dilihat. Perubahan tidak dapat disimpan.");
+      return;
+    }
     setIsRequestingReset(true);
     try {
       const response = await fetch("/api/auth/password-reset/request", {
@@ -142,10 +147,10 @@ export function AccountSettings() {
                 {profileError ? <em className="account-message error">{profileError}</em> : null}
                 {profileMessage ? <em className="account-message success">{profileMessage}</em> : null}
               </span>
-              <button className="career-button primary" type="submit" disabled={isSaving}>
+              <ActionButton className="career-button primary" type="submit" disabled={isSaving}>
                 {isSaving ? <LoaderCircle className="spin" aria-hidden="true" size={16} /> : <Save aria-hidden="true" size={16} strokeWidth={1.9} />}
                 {isSaving ? "Menyimpan…" : "Simpan identitas"}
-              </button>
+              </ActionButton>
             </div>
           </div>
         </form>
@@ -182,9 +187,9 @@ export function AccountSettings() {
               <strong>Ubah dengan kode email</strong>
               <p>Kode reset dikirim ke email terverifikasi agar perubahan tetap aman.</p>
             </div>
-            <button className="career-button secondary" type="button" disabled={isRequestingReset} onClick={requestPasswordReset}>
+            <ActionButton className="career-button secondary" variant="secondary" type="button" disabled={isRequestingReset} onClick={requestPasswordReset}>
               {isRequestingReset ? "Mengirim…" : "Kirim kode"}
-            </button>
+            </ActionButton>
           </div>
         </div>
 

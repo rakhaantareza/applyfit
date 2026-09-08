@@ -1,6 +1,8 @@
 import type { NextRequest } from "next/server";
 import { createAuthRouteContext } from "../../../lib/insforge/auth-route";
 import { createSignInHandler } from "../../../../server/http/auth-session-handler.ts";
+import { normalizeAuthProviderError } from "../../../../server/http/auth-provider-error.ts";
+import { withDemoSessionCookie } from "../../../../server/http/demo-read-only.ts";
 
 export async function POST(request: NextRequest) {
   const { auth, withSessionCookies } = createAuthRouteContext(request);
@@ -10,11 +12,14 @@ export async function POST(request: NextRequest) {
     if (error || !data?.user) {
       return {
         status: "error",
-        error: {
-          code: String(error?.error || "INVALID_CREDENTIALS"),
-          message: error?.message || "Email atau kata sandi tidak sesuai.",
-          statusCode: error?.statusCode ?? 401,
-        },
+        error: normalizeAuthProviderError(
+          error ? {
+            error: error.error,
+            message: error.message,
+            statusCode: error.statusCode,
+          } : { error: "INVALID_CREDENTIALS", statusCode: 401 },
+          "sign-in",
+        ),
       };
     }
 
@@ -30,5 +35,6 @@ export async function POST(request: NextRequest) {
     };
   });
 
-  return withSessionCookies(await handler(request));
+  const response = withSessionCookies(await handler(request));
+  return response.ok ? withDemoSessionCookie(response, false) : response;
 }

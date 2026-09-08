@@ -16,6 +16,7 @@ export type AuthSessionUser = {
     name?: string;
     avatar_url?: string;
   } | null;
+  isDemo: boolean;
 };
 
 type AccountProfileResponse = {
@@ -26,6 +27,7 @@ type AccountProfileResponse = {
       emailVerified: boolean;
       name: string;
       avatarUrl: string | null;
+      isDemo?: true;
     };
   };
 };
@@ -128,6 +130,7 @@ async function loadCurrentUser(): Promise<AuthSessionUser | null> {
         name: account.name,
         avatar_url: account.avatarUrl ?? undefined,
       },
+      isDemo: account.isDemo === true,
     };
   } catch {
     return null;

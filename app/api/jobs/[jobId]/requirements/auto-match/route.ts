@@ -1,4 +1,5 @@
 import { createInsForgeServerClient } from "../../../../../lib/insforge/server.ts";
+import { rejectDemoMutation } from "../../../../../lib/insforge/demo-read-only.ts";
 import { createRequirementAutoMatchHandler } from "../../../../../../server/http/requirement-auto-match-handler.ts";
 import { autoMatchJobRequirements } from "../../../../../../server/services/requirement-mappings.ts";
 
@@ -16,6 +17,8 @@ const handler = createRequirementAutoMatchHandler(async (jobId) => {
 type RouteContext = { params: Promise<{ jobId: string }> };
 
 export async function POST(_request: Request, context: RouteContext) {
+  const rejection = await rejectDemoMutation();
+  if (rejection) return rejection;
   const { jobId } = await context.params;
   return handler(jobId);
 }

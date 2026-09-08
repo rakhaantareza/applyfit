@@ -16,6 +16,7 @@ test("application APIs require authentication while auth bootstrap routes stay p
     "/api/fit-score",
   ];
   const publicRoutes = [
+    "/api/auth/demo",
     "/api/auth/sign-up",
     "/api/auth/sign-in",
     "/api/auth/sign-out",

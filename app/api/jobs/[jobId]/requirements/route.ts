@@ -1,4 +1,5 @@
 import { createJobRequirementHandlers } from "../../../../../server/http/job-requirements-handler.ts";
+import { rejectDemoMutation } from "../../../../lib/insforge/demo-read-only.ts";
 import { jobRequirementActions } from "./actions.ts";
 
 const handlers = createJobRequirementHandlers(jobRequirementActions);
@@ -10,6 +11,8 @@ export async function GET(_request: Request, context: RouteContext) {
 }
 
 export async function POST(request: Request, context: RouteContext) {
+  const rejection = await rejectDemoMutation();
+  if (rejection) return rejection;
   const { jobId } = await context.params;
   return handlers.POST(request, jobId);
 }

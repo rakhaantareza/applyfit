@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowRight,
   Check,
   CircleCheckBig,
   Eye,
@@ -11,7 +10,7 @@ import {
   Mail,
 } from "lucide-react";
 import { type FormEvent, useState } from "react";
-import { StableLink as Link } from "../components/StableLink";
+import { ActionButton, ActionLink, CtaArrow } from "../components/ActionControl";
 
 type ResetResponse = {
   data?: { updated?: boolean; message?: string };
@@ -86,12 +85,12 @@ export function PasswordResetForm({ initialEmail = "" }: { initialEmail?: string
       <div className="registration-success reset-success" role="status">
         <span className="registration-success-icon" aria-hidden="true"><CircleCheckBig size={28} strokeWidth={1.8} /></span>
         <p className="eyebrow">Kata sandi diperbarui</p>
-        <h3>Akses akunmu sudah diamankan</h3>
-        <p>Masuk kembali menggunakan kata sandi baru untuk melanjutkan ke ruang kerja ApplyFit.</p>
-        <Link className="login-submit" href="/login">
-          Masuk dengan kata sandi baru
-          <ArrowRight aria-hidden="true" size={18} strokeWidth={1.9} />
-        </Link>
+        <h3>Kata sandi baru tersimpan</h3>
+        <p>Masuk kembali ke ApplyFit menggunakan kata sandi barumu.</p>
+        <ActionLink className="login-submit" href="/login" size="auth">
+          Kembali ke Login
+          <CtaArrow />
+        </ActionLink>
       </div>
     );
   }
@@ -99,7 +98,7 @@ export function PasswordResetForm({ initialEmail = "" }: { initialEmail?: string
   return (
     <form className="login-form reset-form" onSubmit={submitReset} noValidate>
       <div className="login-field">
-        <label htmlFor="reset-email">Email akun</label>
+        <label htmlFor="reset-email">Email</label>
         <div className="login-input-wrap">
           <Mail aria-hidden="true" size={18} strokeWidth={1.8} />
           <input id="reset-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="nama@email.com" required />
@@ -107,7 +106,7 @@ export function PasswordResetForm({ initialEmail = "" }: { initialEmail?: string
       </div>
 
       <div className="login-field">
-        <label htmlFor="reset-code">Kode reset</label>
+        <label htmlFor="reset-code">Kode verifikasi</label>
         <div className="login-input-wrap">
           <KeyRound aria-hidden="true" size={18} strokeWidth={1.8} />
           <input id="reset-code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, ""))} placeholder="000000" required />
@@ -144,10 +143,10 @@ export function PasswordResetForm({ initialEmail = "" }: { initialEmail?: string
 
       {error ? <p className="login-error" id="reset-error" role="alert">{error}</p> : null}
 
-      <button className="login-submit" type="submit" disabled={isSubmitting}>
-        <span>{isSubmitting ? "Memperbarui kata sandi…" : "Simpan kata sandi baru"}</span>
-        <ArrowRight aria-hidden="true" size={18} strokeWidth={1.9} />
-      </button>
+      <ActionButton className="login-submit" size="auth" type="submit" disabled={isSubmitting}>
+        <span>{isSubmitting ? "Menyimpan kata sandi…" : "Simpan kata sandi"}</span>
+        <CtaArrow />
+      </ActionButton>
     </form>
   );
 }

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { AppTopBar } from "./AppTopBar";
+import { DemoWorkspaceNotice } from "./DemoWorkspaceNotice";
 import {
   JobWorkspaceNav,
   type JobWorkspaceStep,
@@ -38,6 +39,7 @@ export function JobFocusShell({
         <JobWorkspaceNav activeStep={activeStep} jobId={jobId} />
       </header>
       <main className={mainClasses} id="top">
+        <DemoWorkspaceNotice variant="focus" />
         {children}
       </main>
     </div>

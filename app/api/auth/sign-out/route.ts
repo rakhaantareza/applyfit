@@ -1,6 +1,8 @@
 import type { NextRequest } from "next/server";
 import { createAuthRouteContext } from "../../../lib/insforge/auth-route";
 import { createSignOutHandler } from "../../../../server/http/auth-session-handler.ts";
+import { normalizeAuthProviderError } from "../../../../server/http/auth-provider-error.ts";
+import { withDemoSessionCookie } from "../../../../server/http/demo-read-only.ts";
 
 export async function POST(request: NextRequest) {
   const { auth, withSessionCookies } = createAuthRouteContext(request);
@@ -10,16 +12,17 @@ export async function POST(request: NextRequest) {
     if (error) {
       return {
         status: "error",
-        error: {
-          code: String(error.error || "SIGN_OUT_FAILED"),
-          message: error.message || "Sesi belum dapat diakhiri.",
+        error: normalizeAuthProviderError({
+          error: error.error,
+          message: error.message,
           statusCode: error.statusCode,
-        },
+        }, "sign-out"),
       };
     }
 
     return { status: "ok" };
   });
 
-  return withSessionCookies(await handler());
+  const response = withSessionCookies(await handler());
+  return response.ok ? withDemoSessionCookie(response, false) : response;
 }

@@ -1,4 +1,5 @@
 const PUBLIC_AUTH_ROUTES = new Set([
+  "/api/auth/demo",
   "/api/auth/password-reset/confirm",
   "/api/auth/password-reset/request",
   "/api/auth/refresh",

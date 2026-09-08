@@ -1,4 +1,5 @@
 import { createInsForgeServerClient } from "../../../../lib/insforge/server.ts";
+import { rejectDemoMutation } from "../../../../lib/insforge/demo-read-only.ts";
 import { createRequirementExtractionHandler } from "../../../../../server/http/requirement-extraction-handler.ts";
 import { extractRequirementsFromDescription } from "../../../../../server/services/requirement-extraction.ts";
 import { getJobPosting } from "../../../../../server/services/saved-jobs.ts";
@@ -19,6 +20,8 @@ const handler = createRequirementExtractionHandler(async (jobId) => {
 type RouteContext = { params: Promise<{ jobId: string }> };
 
 export async function POST(_request: Request, context: RouteContext) {
+  const rejection = await rejectDemoMutation();
+  if (rejection) return rejection;
   const { jobId } = await context.params;
   return handler(jobId);
 }

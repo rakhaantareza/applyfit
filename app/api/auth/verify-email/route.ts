@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { createAuthRouteContext } from "../../../lib/insforge/auth-route";
 import { createVerifyEmailHandler } from "../../../../server/http/auth-email-verification-handler.ts";
+import { normalizeAuthProviderError } from "../../../../server/http/auth-provider-error.ts";
 
 export async function POST(request: NextRequest) {
   const { auth, withSessionCookies } = createAuthRouteContext(request);
@@ -10,11 +11,14 @@ export async function POST(request: NextRequest) {
     if (error || !data?.user) {
       return {
         status: "error",
-        error: {
-          code: String(error?.error || "INVALID_VERIFICATION"),
-          message: error?.message,
-          statusCode: error?.statusCode,
-        },
+        error: normalizeAuthProviderError(
+          error ? {
+            error: error.error,
+            message: error.message,
+            statusCode: error.statusCode,
+          } : { error: "INVALID_VERIFICATION", statusCode: 400 },
+          "verify-email",
+        ),
       };
     }
 

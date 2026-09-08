@@ -1,4 +1,5 @@
 import { createInsForgeServerClient } from "../../lib/insforge/server.ts";
+import { protectDemoMutation } from "../../lib/insforge/demo-read-only.ts";
 import {
   createCareerProfileHandlers,
   type CareerProfileResult,
@@ -54,7 +55,10 @@ async function updateCurrentCareerProfile(
   };
 }
 
-export const { GET, PATCH } = createCareerProfileHandlers(
+const handlers = createCareerProfileHandlers(
   loadCurrentCareerProfile,
   updateCurrentCareerProfile,
 );
+
+export const GET = handlers.GET;
+export const PATCH = protectDemoMutation(handlers.PATCH);

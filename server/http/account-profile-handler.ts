@@ -4,6 +4,7 @@ export type AccountIdentity = {
   emailVerified: boolean;
   name: string;
   avatarUrl: string | null;
+  isDemo?: true;
 };
 
 export type AccountProfileInput = {

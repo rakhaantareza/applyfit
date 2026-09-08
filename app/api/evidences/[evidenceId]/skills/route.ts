@@ -1,4 +1,5 @@
 import { createEvidenceSkillHandlers } from "../../../../../server/http/evidence-skills-handler.ts";
+import { rejectDemoMutation } from "../../../../lib/insforge/demo-read-only.ts";
 import { evidenceSkillActions } from "./actions.ts";
 
 const handlers = createEvidenceSkillHandlers(evidenceSkillActions);
@@ -10,6 +11,8 @@ export async function GET(_request: Request, context: RouteContext) {
 }
 
 export async function POST(request: Request, context: RouteContext) {
+  const rejection = await rejectDemoMutation();
+  if (rejection) return rejection;
   const { evidenceId } = await context.params;
   return handlers.POST(request, evidenceId);
 }

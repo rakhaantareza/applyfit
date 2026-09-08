@@ -1,8 +1,9 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, CircleCheckBig, Mail, Send } from "lucide-react";
+import { CircleCheckBig, Mail, Send } from "lucide-react";
 import { type FormEvent, useState } from "react";
-import { StableLink as Link } from "../components/StableLink";
+import { ActionButton, ActionLink, CtaArrow } from "../components/ActionControl";
+import { InlineBackLink } from "../components/InlineBackLink";
 
 type ResetResponse = {
   data?: { accepted?: boolean; message?: string };
@@ -57,13 +58,13 @@ export function PasswordRecoveryForm() {
         <p className="eyebrow">Permintaan diterima</p>
         <h3>Periksa emailmu</h3>
         <p>
-          Jika akun terdaftar, kode pengaturan ulang sudah dikirim ke
+          Jika akun terdaftar, kode untuk membuat kata sandi baru sudah dikirim ke
           <strong> {submittedEmail}</strong>.
         </p>
-        <Link className="login-submit" href={`/reset-kata-sandi?email=${encodeURIComponent(submittedEmail)}`}>
-          Masukkan kode reset
-          <ArrowRight aria-hidden="true" size={17} strokeWidth={1.9} />
-        </Link>
+        <ActionLink className="login-submit" href={`/reset-kata-sandi?email=${encodeURIComponent(submittedEmail)}`} size="auth">
+          Masukkan kode
+          <CtaArrow />
+        </ActionLink>
         <button type="button" onClick={() => setSubmittedEmail("")}>
           Gunakan email lain
         </button>
@@ -74,25 +75,24 @@ export function PasswordRecoveryForm() {
   return (
     <form className="login-form recovery-form" onSubmit={submitRecovery} noValidate>
       <div className="login-field">
-        <label htmlFor="recovery-email">Email akun</label>
+        <label htmlFor="recovery-email">Email</label>
         <div className="login-input-wrap">
           <Mail aria-hidden="true" size={18} strokeWidth={1.8} />
           <input id="recovery-email" name="email" type="email" autoComplete="email" inputMode="email" placeholder="nama@email.com" value={email} onChange={(event) => setEmail(event.target.value)} aria-describedby={error ? "recovery-error" : "recovery-hint"} required />
         </div>
-        <small id="recovery-hint">Kode 6 digit akan dikirim ke email akunmu.</small>
+        <small id="recovery-hint">Kami akan kirim kode 6 digit ke email ini.</small>
       </div>
 
       {error ? <p className="login-error" id="recovery-error" role="alert">{error}</p> : null}
 
-      <button className="login-submit" type="submit" disabled={isSubmitting}>
-        <span>{isSubmitting ? "Mengirim kode…" : "Kirim kode reset"}</span>
+      <ActionButton className="login-submit" size="auth" type="submit" disabled={isSubmitting}>
+        <span>{isSubmitting ? "Mengirim kode…" : "Kirim kode"}</span>
         <Send aria-hidden="true" size={17} strokeWidth={1.9} />
-      </button>
+      </ActionButton>
 
-      <Link className="recovery-back-link" href="/login">
-        <ArrowLeft aria-hidden="true" size={15} strokeWidth={1.9} />
-        Kembali ke halaman masuk
-      </Link>
+      <InlineBackLink href="/login">
+        Kembali ke Login
+      </InlineBackLink>
     </form>
   );
 }

@@ -11,20 +11,13 @@ export const metadata: Metadata = {
 export default function LoginPage() {
   return (
     <main className="auth-page">
-      <AuthBrandPanel
-        titleId="login-brand-title"
-        title="Kenali kesiapanmu sebelum mengirim lamaran."
-        description="Masuk untuk melanjutkan alur dari requirement lowongan menuju skill, bukti, dan analisis yang dapat kamu telusuri."
-      />
+      <AuthBrandPanel titleId="login-brand-title" />
 
       <section className="auth-form-panel" aria-labelledby="login-title">
         <div className="login-card">
           <div className="login-heading">
-            <p className="eyebrow">Selamat datang kembali</p>
-            <h2 id="login-title">Masuk ke ruang kerjamu</h2>
-            <p>
-              Masuk dengan akun yang terhubung ke ruang kerja ApplyFit milikmu.
-            </p>
+            <h2 id="login-title">Masuk ke ApplyFit</h2>
+            <p>Lanjutkan dari tempat terakhir kamu berhenti.</p>
           </div>
 
           <LoginForm />
