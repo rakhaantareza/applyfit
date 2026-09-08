@@ -54,7 +54,7 @@ try {
   }
 
   const page = await context.newPage();
-  configurePage(page);
+  await configurePage(page);
   const job = await resolveScreenshotJob(context.request, baseUrl);
   const dynamicJobRoutes = buildJobScreenshotRoutes(job.id);
   const captureRoutes = [...SCREENSHOT_ROUTES, ...dynamicJobRoutes];
@@ -112,7 +112,7 @@ try {
   );
 
   const anonymousPage = await anonymousContext.newPage();
-  configurePage(anonymousPage);
+  await configurePage(anonymousPage);
   let anonymousCaptured = 0;
   for (const route of UNAUTHENTICATED_SCREENSHOT_ROUTES) {
     const routeDirectory = path.join(SCREENSHOT_ROOT, route.slug);

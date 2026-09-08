@@ -12,6 +12,7 @@
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "screenshots:auth": "node --env-file-if-exists=.env.local scripts/screenshots/auth.mjs",
+    "qa:auth": "node --env-file-if-exists=.env.local scripts/screenshots/auth-refinement.mjs",
     "screenshots": "node --env-file-if-exists=.env.local scripts/screenshots/capture.mjs",
     "screenshots:dark": "node --env-file-if-exists=.env.local scripts/screenshots/capture-dark.mjs",
     "screenshots:portfolio": "node --env-file-if-exists=.env.local scripts/screenshots/portfolio.mjs",

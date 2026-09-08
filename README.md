@@ -72,7 +72,7 @@ Configure required service credentials in an ignored local environment file. Nev
 ApplyFit uses one manually registered and verified demo account for local authenticated screenshots. Add these values to the ignored `.env.local` file; never commit the password:
 
 ```bash
-DEMO_EMAIL=applyfit.demo@gmail.com
+DEMO_EMAIL=demo-account@example.com
 DEMO_PASSWORD=your-local-demo-password
 # Optional; defaults to http://127.0.0.1:3000
 BASE_URL=http://127.0.0.1:3000
@@ -93,13 +93,13 @@ npm run screenshots
 
 `npm run screenshots` keeps the demo-account workspace captures in their authenticated context, then uses a separate context without stored authentication to capture `/login`, `/daftar`, and `/lupa-kata-sandi`.
 
-For deterministic Dark-theme review of the authenticated Ringkasan page, run:
+For deterministic Dark-theme review of authenticated workspace pages, run:
 
 ```bash
 npm run screenshots:dark
 ```
 
-The Dark command sets ApplyFit's explicit appearance preference before application scripts run and writes its responsive captures under `screenshots/dark/ringkasan/` without changing the default screenshot folders.
+The Dark command sets ApplyFit's explicit appearance preference before application scripts run and writes responsive Ringkasan and Profil Karier captures under `screenshots/dark/` without changing the default screenshot folders.
 
 To capture the high-density portfolio job workflow, run:
 

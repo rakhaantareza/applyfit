@@ -19,12 +19,11 @@ export const DEFAULT_BASE_URL = "http://127.0.0.1:3000";
 export const SCREENSHOT_DEVICE_SCALE_FACTOR = 1;
 export const PORTFOLIO_DEVICE_SCALE_FACTOR = 2;
 
-// Playwright hides scrollbars in headless Chromium by default, changing the
-// content box compared with a normal Windows browser. Keep native scrollbar
-// geometry so responsive spacing is measured against the same layout width.
+// Keep headless Chromium's capture-only scrollbar behavior. Re-enabling the
+// native Windows scrollbar and painting it transparent reserves a 15px gutter,
+// so exported images no longer use the full requested viewport width.
 export const SCREENSHOT_BROWSER_LAUNCH_OPTIONS = {
   headless: true,
-  ignoreDefaultArgs: ["--hide-scrollbars"],
 };
 
 // These are the web-font faces declared by the application shell. Requiring a
@@ -59,7 +58,7 @@ export const SCREENSHOT_ROUTES = [
     label: "Beranda",
     slug: "beranda",
     path: "/beranda",
-    readySelector: ".home-header",
+    readySelector: ".summary-greeting",
   },
   {
     label: "Career Profile",

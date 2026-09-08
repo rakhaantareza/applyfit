@@ -60,7 +60,7 @@ try {
   await mkdir(JOB_WORKSPACE_OUTPUT_DIRECTORY, { recursive: true });
 
   const page = await context.newPage();
-  configurePage(page);
+  await configurePage(page);
 
   for (const route of workspaceRoutes) {
     await page.setViewportSize({

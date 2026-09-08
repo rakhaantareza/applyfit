@@ -26,15 +26,24 @@ import {
 
 const APPEARANCE_STORAGE_KEY = "applyfit-appearance";
 const DARK_SCREENSHOT_ROOT = path.join(SCREENSHOT_ROOT, "dark");
-const ringkasanRoute = SCREENSHOT_ROUTES.find((route) => route.path === "/beranda");
+const DARK_SCREENSHOT_TARGETS = [
+  { path: "/beranda", label: "Ringkasan", slug: "ringkasan" },
+  { path: "/profil-karier", label: "Profil Karier", slug: "profil-karier" },
+];
 
 let browser;
 let context;
 
 try {
-  if (!ringkasanRoute) {
-    throw new ScreenshotWorkflowError("The Ringkasan screenshot route is not configured.");
-  }
+  const captureRoutes = DARK_SCREENSHOT_TARGETS.map((target) => {
+    const route = SCREENSHOT_ROUTES.find((candidate) => candidate.path === target.path);
+    if (!route) {
+      throw new ScreenshotWorkflowError(
+        `The ${target.label} screenshot route is not configured.`,
+      );
+    }
+    return { ...route, label: target.label, slug: target.slug };
+  });
 
   const configuredBaseUrl = getBaseUrl(DEFAULT_BASE_URL);
   const baseUrl = await ensureDevelopmentServer(configuredBaseUrl);
@@ -68,12 +77,11 @@ try {
     document.documentElement.style.colorScheme = "dark";
   }, APPEARANCE_STORAGE_KEY);
 
-  const captureRoutes = [{ ...ringkasanRoute, label: "Ringkasan", slug: "ringkasan" }];
   await verifyScreenshotRoutes(context.request, baseUrl, captureRoutes);
-  console.log(`Verified the authenticated Dark screenshot route at ${baseUrl}.`);
+  console.log(`Verified ${captureRoutes.length} authenticated Dark screenshot routes at ${baseUrl}.`);
 
   const page = await context.newPage();
-  configurePage(page);
+  await configurePage(page);
   await mkdir(DARK_SCREENSHOT_ROOT, { recursive: true });
 
   let captured = 0;

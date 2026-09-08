@@ -45,7 +45,7 @@ try {
     viewport: { width: 1280, height: 800 },
   });
   const page = await context.newPage();
-  configurePage(page);
+  await configurePage(page);
 
   await page.goto(new URL("/login", baseUrl).href, { waitUntil: "networkidle" });
   await page.locator("#login-email").fill(email);
@@ -56,7 +56,7 @@ try {
       new URL(response.url()).pathname === "/api/auth/sign-in" &&
       response.request().method() === "POST",
   );
-  await page.getByRole("button", { name: "Masuk ke ApplyFit" }).click();
+  await page.getByRole("button", { name: "Masuk", exact: true }).click();
   const signInResponse = await signInResponsePromise;
 
   if (!signInResponse.ok()) {
