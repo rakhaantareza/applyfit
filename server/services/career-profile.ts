@@ -1,19 +1,24 @@
 import type { InsForgeClient } from "@insforge/sdk";
+import { resolveCareerDirection } from "./career-catalog.ts";
 
 const CAREER_PROFILE_COLUMNS =
-  "id,target_role,career_field,created_at,updated_at";
+  "id,target_role,target_role_id,career_field,career_field_id,created_at,updated_at";
 
 export type CareerProfile = {
   id: string;
   targetRole: string;
+  targetRoleId: string | null;
   careerField: string;
+  careerFieldId: string | null;
   createdAt: string;
   updatedAt: string;
 };
 
 export type CareerTargetInput = {
   targetRole: string;
+  targetRoleId?: string | null;
   careerField: string;
+  careerFieldId?: string | null;
 };
 
 export class CareerProfileQueryError extends Error {
@@ -34,7 +39,9 @@ export function normalizeCareerProfile(value: unknown): CareerProfile | null {
   const {
     id,
     target_role,
+    target_role_id,
     career_field,
+    career_field_id,
     created_at,
     updated_at,
   } = value;
@@ -42,7 +49,9 @@ export function normalizeCareerProfile(value: unknown): CareerProfile | null {
   if (
     typeof id !== "string" ||
     typeof target_role !== "string" ||
+    (target_role_id !== null && typeof target_role_id !== "string") ||
     typeof career_field !== "string" ||
+    (career_field_id !== null && typeof career_field_id !== "string") ||
     typeof created_at !== "string" ||
     typeof updated_at !== "string"
   ) {
@@ -52,7 +61,9 @@ export function normalizeCareerProfile(value: unknown): CareerProfile | null {
   return {
     id,
     targetRole: target_role,
+    targetRoleId: target_role_id,
     careerField: career_field,
+    careerFieldId: career_field_id,
     createdAt: created_at,
     updatedAt: updated_at,
   };
@@ -87,9 +98,15 @@ export async function saveCareerTarget(
     throw new CareerProfileQueryError();
   }
 
+  const resolved = await resolveCareerDirection(client, {
+    targetRole: { id: input.targetRoleId, name: input.targetRole },
+    careerField: { id: input.careerFieldId, name: input.careerField },
+  });
   const values = {
-    target_role: input.targetRole,
-    career_field: input.careerField,
+    target_role: resolved.targetRole,
+    target_role_id: resolved.targetRoleId,
+    career_field: resolved.careerField,
+    career_field_id: resolved.careerFieldId,
   };
 
   const result = currentProfile

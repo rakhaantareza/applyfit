@@ -64,6 +64,20 @@ function normalizeEvidenceSkillLinks(value: unknown): EvidenceSkillLink[] {
   return value.map(normalizeEvidenceSkillLink);
 }
 
+export async function listVisibleEvidenceSkillLinks(
+  client: InsForgeClient,
+): Promise<EvidenceSkillLink[]> {
+  // RLS limits these join rows to evidence and skills owned by the active user.
+  // Callers still intersect the result with their owned list response.
+  const { data, error } = await client.database
+    .from("skill_evidences")
+    .select(LINK_COLUMNS)
+    .order("created_at", { ascending: true });
+
+  if (error) throw new EvidenceSkillQueryError();
+  return normalizeEvidenceSkillLinks(data);
+}
+
 async function requireProfile(client: InsForgeClient, userId: string) {
   const profile = await getCareerProfile(client, userId);
   if (!profile) throw new CareerProfileRequiredError();

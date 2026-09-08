@@ -2,21 +2,29 @@
 
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import { ActionButton } from "../components/ActionControl";
 import { CareerDirectionEditor } from "./CareerDirectionEditor";
-import { ProfileIdentity } from "./ProfileIdentity";
 import { SkillManager, type CareerSkill } from "./SkillManager";
+import {
+  EMPTY_CAREER_CATALOG,
+  type CareerCatalog,
+} from "./catalog-types";
 
 type CareerProfile = {
   id: string;
   targetRole: string;
+  targetRoleId: string | null;
   careerField: string;
+  careerFieldId: string | null;
 };
 
 type ApiSkill = {
   id: string;
   name: string;
+  catalogSkillId: string | null;
   status: "active" | "learning";
   level: string | null;
+  evidenceCount?: number;
 };
 
 type CareerProfileResponse = {
@@ -29,13 +37,14 @@ type SkillsResponse = {
   error?: { message?: string };
 };
 
-type EvidenceResponse = {
-  data?: { total?: number };
+type CatalogResponse = {
+  data?: { catalog?: CareerCatalog };
 };
 
 export function CareerProfileWorkspace() {
   const [profile, setProfile] = useState<CareerProfile | null>(null);
   const [skills, setSkills] = useState<CareerSkill[]>([]);
+  const [catalog, setCatalog] = useState<CareerCatalog>(EMPTY_CAREER_CATALOG);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -44,12 +53,16 @@ export function CareerProfileWorkspace() {
 
     async function loadWorkspace() {
       try {
-        const [profileResponse, skillsResponse] = await Promise.all([
+        const [profileResponse, skillsResponse, catalogResponse] = await Promise.all([
           fetch("/api/career-profile"),
-          fetch("/api/career-profile/skills"),
+          fetch("/api/career-profile/skills?includeEvidenceCount=true"),
+          fetch("/api/career-catalog"),
         ]);
         const profileResult = await readJson<CareerProfileResponse>(profileResponse);
         const skillsResult = await readJson<SkillsResponse>(skillsResponse);
+        const catalogResult = catalogResponse.ok
+          ? await readJson<CatalogResponse>(catalogResponse)
+          : undefined;
         if (!profileResponse.ok || !skillsResponse.ok) {
           throw new Error(
             profileResult.error?.message ??
@@ -59,18 +72,11 @@ export function CareerProfileWorkspace() {
         }
 
         const apiSkills = skillsResult.data?.skills ?? [];
-        const evidenceCounts = await Promise.all(
-          apiSkills.map(async (skill) => {
-            const response = await fetch(`/api/evidences?skillId=${encodeURIComponent(skill.id)}`);
-            if (!response.ok) return 0;
-            const result = await readJson<EvidenceResponse>(response);
-            return result.data?.total ?? 0;
-          }),
-        );
 
         if (!active) return;
         setProfile(profileResult.data?.profile ?? null);
-        setSkills(apiSkills.map((skill, index) => toCareerSkill(skill, evidenceCounts[index] ?? 0)));
+        setSkills(apiSkills.map((skill) => toCareerSkill(skill)));
+        setCatalog(catalogResult?.data?.catalog ?? EMPTY_CAREER_CATALOG);
       } catch (requestError) {
         if (!active) return;
         setError(
@@ -96,38 +102,47 @@ export function CareerProfileWorkspace() {
       <div className="career-profile-state error" role="alert">
         <AlertCircle aria-hidden="true" size={22} />
         <strong>{error}</strong>
-        <button type="button" onClick={() => window.location.reload()}>Coba lagi</button>
+        <ActionButton size="compact" variant="secondary" type="button" onClick={() => window.location.reload()}>Coba lagi</ActionButton>
       </div>
     );
   }
 
   return (
     <>
-      <section className="career-profile-hero" aria-labelledby="profile-name">
-        <ProfileIdentity
-          fallbackName="Pengguna ApplyFit"
-          summary="Identitas akunmu dan arah karier di bawah ini menjadi konteks untuk setiap analisis kesiapan."
-        />
-        <CareerDirectionEditor
-          initialCareerField={profile?.careerField ?? ""}
-          initialTargetRole={profile?.targetRole ?? ""}
-        />
-      </section>
-      <SkillManager initialSkills={skills} />
+      <CareerDirectionEditor
+        initialCareerField={profile?.careerField ?? ""}
+        initialCareerFieldId={profile?.careerFieldId ?? null}
+        initialTargetRole={profile?.targetRole ?? ""}
+        initialTargetRoleId={profile?.targetRoleId ?? null}
+        catalog={catalog}
+        onSaved={(direction) => {
+          setProfile((current) => ({
+            id: current?.id ?? "",
+            ...direction,
+          }));
+        }}
+      />
+      <SkillManager
+        initialSkills={skills}
+        catalog={catalog}
+        careerFieldId={profile?.careerFieldId ?? null}
+        targetRoleId={profile?.targetRoleId ?? null}
+      />
     </>
   );
 }
 
-function toCareerSkill(skill: ApiSkill, evidenceCount: number): CareerSkill {
+function toCareerSkill(skill: ApiSkill): CareerSkill {
   const level = skill.level === "Mahir" || skill.level === "Menengah" || skill.level === "Dasar"
     ? skill.level
     : "Dasar";
   return {
     id: skill.id,
     name: skill.name,
+    catalogSkillId: skill.catalogSkillId,
     level,
     status: skill.status === "learning" ? "Dipelajari" : "Aktif",
-    evidenceCount,
+    evidenceCount: skill.evidenceCount ?? 0,
   };
 }
 

@@ -6,7 +6,9 @@ import { CareerProfileQueryError } from "../server/services/career-profile.ts";
 const profile = {
   id: "profile-1",
   targetRole: "Frontend Developer",
+  targetRoleId: null,
   careerField: "Software Engineering",
+  careerFieldId: null,
   createdAt: "2026-08-09T09:00:00.000Z",
   updatedAt: "2026-08-09T10:00:00.000Z",
 };
@@ -59,7 +61,9 @@ test("PATCH trims and saves a complete career target", async () => {
   assert.equal(response.status, 200);
   assert.deepEqual(receivedInput, {
     targetRole: "Frontend Developer",
+    targetRoleId: null,
     careerField: "Software Engineering",
+    careerFieldId: null,
   });
   assert.deepEqual(await response.json(), { data: { profile } });
 });

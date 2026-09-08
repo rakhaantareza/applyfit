@@ -11,8 +11,14 @@ import {
 
 type AuthResult<T> = { status: "unauthenticated" } | { status: "ok"; data: T };
 
+type SkillListOptions = {
+  includeEvidenceCount?: boolean;
+};
+
 export type SkillsActions = {
-  list: () => Promise<AuthResult<Skill[]>>;
+  list: (
+    options?: SkillListOptions,
+  ) => Promise<AuthResult<Array<Skill & { evidenceCount?: number }>>>;
   create: (input: CreateSkillInput) => Promise<AuthResult<Skill>>;
   update: (skillId: string, input: UpdateSkillInput) => Promise<AuthResult<Skill>>;
   remove: (skillId: string) => Promise<AuthResult<null>>;
@@ -37,8 +43,9 @@ function parseCreateInput(value: unknown): CreateSkillInput | null {
   if (!isRecord(value)) return null;
   const name = typeof value.name === "string" ? value.name.trim() : "";
   const level = parseLevel(value.level);
-  if (!name || !isSkillStatus(value.status) || level === undefined) return null;
-  return { name, status: value.status, level };
+  const catalogSkillId = parseOptionalId(value.catalogSkillId);
+  if (!name || !isSkillStatus(value.status) || level === undefined || catalogSkillId === undefined) return null;
+  return { name, catalogSkillId, status: value.status, level };
 }
 
 function parseUpdateInput(value: unknown): UpdateSkillInput | null {
@@ -48,6 +55,11 @@ function parseUpdateInput(value: unknown): UpdateSkillInput | null {
   if ("name" in value) {
     if (typeof value.name !== "string" || !value.name.trim()) return null;
     input.name = value.name.trim();
+  }
+  if ("catalogSkillId" in value) {
+    const catalogSkillId = parseOptionalId(value.catalogSkillId);
+    if (catalogSkillId === undefined || !("name" in value)) return null;
+    input.catalogSkillId = catalogSkillId;
   }
   if ("status" in value) {
     if (!isSkillStatus(value.status)) return null;
@@ -60,6 +72,12 @@ function parseUpdateInput(value: unknown): UpdateSkillInput | null {
   }
 
   return Object.keys(input).length > 0 ? input : null;
+}
+
+function parseOptionalId(value: unknown): string | null | undefined {
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value !== "string" || !value.trim()) return undefined;
+  return value.trim();
 }
 
 function unauthenticatedResponse() {
@@ -109,9 +127,13 @@ async function readJson(request: Request): Promise<unknown> {
 }
 
 export function createSkillsHandlers(actions: SkillsActions) {
-  async function GET() {
+  async function GET(
+    request = new Request("http://localhost/api/career-profile/skills"),
+  ) {
     try {
-      const result = await actions.list();
+      const includeEvidenceCount =
+        new URL(request.url).searchParams.get("includeEvidenceCount") === "true";
+      const result = await actions.list({ includeEvidenceCount });
       if (result.status === "unauthenticated") return unauthenticatedResponse();
       return Response.json({ data: { skills: result.data, total: result.data.length } });
     } catch (error) {

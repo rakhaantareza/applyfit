@@ -6,6 +6,7 @@ import {
   listSkills,
   updateSkill,
 } from "../../../../server/services/skills.ts";
+import { listVisibleEvidenceSkillLinks } from "../../../../server/services/evidence-skills.ts";
 
 async function currentUserContext() {
   const client = await createInsForgeServerClient();
@@ -16,10 +17,35 @@ async function currentUserContext() {
 }
 
 export const skillsActions: SkillsActions = {
-  async list() {
+  async list(options) {
     const context = await currentUserContext();
     if (!context) return { status: "unauthenticated" };
-    return { status: "ok", data: await listSkills(context.client, context.userId) };
+    if (!options?.includeEvidenceCount) {
+      return {
+        status: "ok",
+        data: await listSkills(context.client, context.userId),
+      };
+    }
+    const [skills, visibleLinks] = await Promise.all([
+      listSkills(context.client, context.userId),
+      listVisibleEvidenceSkillLinks(context.client),
+    ]);
+    const skillIds = new Set(skills.map((skill) => skill.id));
+    const links = visibleLinks.filter((link) => skillIds.has(link.skillId));
+    const evidenceCountBySkill = new Map<string, number>();
+    for (const link of links) {
+      evidenceCountBySkill.set(
+        link.skillId,
+        (evidenceCountBySkill.get(link.skillId) ?? 0) + 1,
+      );
+    }
+    return {
+      status: "ok",
+      data: skills.map((skill) => ({
+        ...skill,
+        evidenceCount: evidenceCountBySkill.get(skill.id) ?? 0,
+      })),
+    };
   },
   async create(input) {
     const context = await currentUserContext();

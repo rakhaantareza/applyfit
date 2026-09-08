@@ -7,6 +7,7 @@ const skill = {
   id: "skill-1",
   profileId: "profile-1",
   name: "TypeScript",
+  catalogSkillId: null,
   status: "active" as const,
   level: "Menengah",
   createdAt: "2026-08-09T09:00:00.000Z",
@@ -37,6 +38,23 @@ test("GET lists skills with a total", async () => {
   assert.deepEqual(await response.json(), { data: { skills: [skill], total: 1 } });
 });
 
+test("GET only requests evidence counts when the caller opts in", async () => {
+  let receivedOptions: unknown;
+  const handlers = createSkillsHandlers(actions({
+    list: async (options) => {
+      receivedOptions = options;
+      return { status: "ok", data: [{ ...skill, evidenceCount: 2 }] };
+    },
+  }));
+
+  const response = await handlers.GET(new Request(
+    "http://localhost/api/career-profile/skills?includeEvidenceCount=true",
+  ));
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(receivedOptions, { includeEvidenceCount: true });
+});
+
 test("POST validates and creates a skill", async () => {
   let received: unknown;
   const handlers = createSkillsHandlers(actions({
@@ -49,7 +67,12 @@ test("POST validates and creates a skill", async () => {
     name: " TypeScript ", status: "active", level: " Menengah ",
   }));
   assert.equal(response.status, 201);
-  assert.deepEqual(received, { name: "TypeScript", status: "active", level: "Menengah" });
+  assert.deepEqual(received, {
+    name: "TypeScript",
+    catalogSkillId: null,
+    status: "active",
+    level: "Menengah",
+  });
 });
 
 test("PATCH supports focused skill changes", async () => {

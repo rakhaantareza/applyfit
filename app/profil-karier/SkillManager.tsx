@@ -4,16 +4,30 @@ import {
   Check,
   Link2,
   LoaderCircle,
+  MoreHorizontal,
   Pencil,
   Plus,
   Trash2,
   X,
 } from "lucide-react";
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
+import { ActionButton } from "../components/ActionControl";
+import { SectionHeader } from "../components/ContentHeaders";
+import {
+  SearchableCombobox,
+  type SearchableComboboxOption,
+} from "../components/SearchableCombobox";
+import { normalizeComboboxSearch } from "../components/searchable-combobox-ranking";
+import type { CareerCatalog } from "./catalog-types";
+import {
+  buildDefaultSkillComboboxOptions,
+  buildSkillComboboxOptions,
+} from "./skill-options";
 
 export type CareerSkill = {
   id: string;
   name: string;
+  catalogSkillId: string | null;
   level: "Mahir" | "Menengah" | "Dasar";
   status: "Aktif" | "Dipelajari";
   evidenceCount: number;
@@ -21,6 +35,9 @@ export type CareerSkill = {
 
 type SkillManagerProps = {
   initialSkills: CareerSkill[];
+  catalog: CareerCatalog;
+  careerFieldId: string | null;
+  targetRoleId: string | null;
 };
 
 type EditorState =
@@ -28,10 +45,16 @@ type EditorState =
   | { mode: "edit"; skillId: string }
   | null;
 
-export function SkillManager({ initialSkills }: SkillManagerProps) {
+export function SkillManager({
+  initialSkills,
+  catalog,
+  careerFieldId,
+  targetRoleId,
+}: SkillManagerProps) {
   const [skills, setSkills] = useState(initialSkills);
   const [editor, setEditor] = useState<EditorState>(null);
   const [draftName, setDraftName] = useState("");
+  const [draftCatalogSkillId, setDraftCatalogSkillId] = useState<string | null>(null);
   const [draftStatus, setDraftStatus] = useState<CareerSkill["status"]>("Aktif");
   const [draftLevel, setDraftLevel] = useState<CareerSkill["level"]>("Dasar");
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -41,15 +64,24 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
   const [deletingSkillId, setDeletingSkillId] = useState<string | null>(null);
   const skillNameId = useId();
   const skillStatusId = useId();
-  const skillLevelId = useId();
   const skillNameRef = useRef<HTMLInputElement>(null);
-
-  const activeSkillCount = skills.filter((skill) => skill.status === "Aktif").length;
-  const learningSkillCount = skills.length - activeSkillCount;
-  const linkedEvidenceCount = skills.reduce(
-    (total, skill) => total + skill.evidenceCount,
-    0,
-  );
+  const editingSkillId = editor?.mode === "edit" ? editor.skillId : null;
+  const skillOptions = useMemo<SearchableComboboxOption[]>(() =>
+    buildSkillComboboxOptions({
+      catalog,
+      skills,
+      editingSkillId,
+      careerFieldId,
+      targetRoleId,
+    }), [careerFieldId, catalog, editingSkillId, skills, targetRoleId]);
+  const defaultSkillOptions = useMemo<SearchableComboboxOption[]>(() =>
+    buildDefaultSkillComboboxOptions({
+      catalog,
+      skills,
+      editingSkillId,
+      careerFieldId,
+      targetRoleId,
+    }), [careerFieldId, catalog, editingSkillId, skills, targetRoleId]);
 
   useEffect(() => {
     if (!editor) return;
@@ -63,6 +95,7 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
 
   function openAddEditor() {
     setDraftName("");
+    setDraftCatalogSkillId(null);
     setDraftStatus("Aktif");
     setDraftLevel("Dasar");
     setPendingDeleteId(null);
@@ -72,6 +105,7 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
 
   function openEditEditor(skill: CareerSkill) {
     setDraftName(skill.name);
+    setDraftCatalogSkillId(skill.catalogSkillId);
     setDraftStatus(skill.status);
     setDraftLevel(skill.level);
     setPendingDeleteId(null);
@@ -86,7 +120,13 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const normalizedName = draftName.trim();
+    const trimmedName = draftName.trim();
+    const normalizedDraftName = normalizeComboboxSearch(trimmedName);
+    const exactCatalogSkill = catalog.skills.find((skill) =>
+      normalizeComboboxSearch(skill.name) === normalizedDraftName ||
+      skill.aliases.some((alias) => normalizeComboboxSearch(alias) === normalizedDraftName));
+    const normalizedName = exactCatalogSkill?.name ?? trimmedName;
+    const catalogSkillId = exactCatalogSkill?.id ?? draftCatalogSkillId;
 
     if (!normalizedName) {
       setError("Nama skill perlu diisi.");
@@ -95,8 +135,10 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
 
     const duplicateSkill = skills.find(
       (skill) =>
-        skill.name.toLocaleLowerCase("id-ID") ===
-          normalizedName.toLocaleLowerCase("id-ID") &&
+        (
+          (catalogSkillId && skill.catalogSkillId === catalogSkillId) ||
+          normalizeComboboxSearch(skill.name) === normalizeComboboxSearch(normalizedName)
+        ) &&
         (editor?.mode !== "edit" || skill.id !== editor.skillId),
     );
 
@@ -117,6 +159,7 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           name: normalizedName,
+          catalogSkillId,
           status: draftStatus === "Dipelajari" ? "learning" : "active",
           level: draftLevel,
         }),
@@ -180,89 +223,61 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
 
   return (
     <section className="profile-skills-section" aria-labelledby="profile-skills-title">
-      <div className="profile-section-heading responsive-card-heading">
-        <div>
-          <p className="eyebrow">Fondasi keahlian</p>
-          <h2 id="profile-skills-title">Skill yang membentuk profilmu</h2>
-        </div>
-        <div className="profile-skill-heading-actions responsive-card-heading-actions">
-          <p>
-            Status skill di profil berbeda dari status requirement. Bukti yang
-            terhubung akan menentukan hasil kecocokan pada setiap lowongan.
-          </p>
-          <button className="skill-add-button" type="button" onClick={openAddEditor}>
+      <SectionHeader
+        title="Skill"
+        titleId="profile-skills-title"
+        description="Skill yang kamu punya atau lagi kamu pelajari."
+        action={(
+          <ActionButton className="skill-add-button" variant="secondary" type="button" onClick={openAddEditor}>
             <Plus aria-hidden="true" size={16} strokeWidth={2} />
             Tambah skill
-          </button>
-        </div>
-      </div>
-
-      <div className="skill-manager-summary" aria-label="Ringkasan skill">
-        <span><strong>{skills.length}</strong> skill</span>
-        <span><strong>{activeSkillCount}</strong> aktif</span>
-        <span><strong>{learningSkillCount}</strong> dipelajari</span>
-        <span><strong>{linkedEvidenceCount}</strong> tautan bukti</span>
-      </div>
+          </ActionButton>
+        )}
+      />
 
       {!editor && error ? <p className="skill-manager-error" role="alert">{error}</p> : null}
 
       {editor ? (
-        <form className="skill-editor" onSubmit={handleSubmit}>
-          <div className="skill-editor-heading">
-            <strong>{editor.mode === "add" ? "Tambah skill" : "Edit skill"}</strong>
-            <span>
-              Atur status dan tingkat keahlian sesuai kondisi profil saat ini.
-            </span>
-          </div>
+        <form className="profile-inline-editor skill-editor" onSubmit={handleSubmit}>
           <label htmlFor={skillNameId}>
             <span>Nama skill</span>
-            <input
+            <SearchableCombobox
               id={skillNameId}
               ref={skillNameRef}
               value={draftName}
-              onChange={(event) => setDraftName(event.target.value)}
+              onChange={(value) => {
+                setDraftName(value);
+                setDraftCatalogSkillId(null);
+              }}
+              onSelect={(option) => setDraftCatalogSkillId(option.id)}
+              options={skillOptions}
+              defaultOptions={defaultSkillOptions}
               placeholder="Contoh: Node.js"
               autoComplete="off"
             />
           </label>
-          <label htmlFor={skillStatusId}>
-            <span>Status</span>
-            <select
+          <label className="skill-learning-toggle" htmlFor={skillStatusId}>
+            <input
               id={skillStatusId}
-              value={draftStatus}
+              type="checkbox"
+              checked={draftStatus === "Dipelajari"}
               onChange={(event) =>
-                setDraftStatus(event.target.value as CareerSkill["status"])
+                setDraftStatus(event.target.checked ? "Dipelajari" : "Aktif")
               }
-            >
-              <option>Aktif</option>
-              <option>Dipelajari</option>
-            </select>
-          </label>
-          <label htmlFor={skillLevelId}>
-            <span>Tingkat keahlian</span>
-            <select
-              id={skillLevelId}
-              value={draftLevel}
-              onChange={(event) =>
-                setDraftLevel(event.target.value as CareerSkill["level"])
-              }
-            >
-              <option>Dasar</option>
-              <option>Menengah</option>
-              <option>Mahir</option>
-            </select>
+            />
+            <span>Saya masih mempelajari skill ini</span>
           </label>
           <div className="skill-editor-actions">
             {error ? <p role="alert">{error}</p> : <span />}
             <div>
-              <button className="career-button secondary" type="button" onClick={closeEditor} disabled={isSaving}>
+              <ActionButton className="career-button secondary" variant="secondary" type="button" onClick={closeEditor} disabled={isSaving}>
                 <X aria-hidden="true" size={16} strokeWidth={1.9} />
                 Batal
-              </button>
-              <button className="career-button primary" type="submit" disabled={isSaving}>
+              </ActionButton>
+              <ActionButton className="career-button primary" type="submit" disabled={isSaving}>
                 {isSaving ? <LoaderCircle className="spin" aria-hidden="true" size={16} /> : <Check aria-hidden="true" size={16} strokeWidth={2} />}
                 {isSaving ? "Menyimpan…" : "Simpan skill"}
-              </button>
+              </ActionButton>
             </div>
           </div>
         </form>
@@ -275,59 +290,54 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
           return (
             <article className="profile-skill-row responsive-list-row" key={skill.id}>
               <div className="profile-skill-name">
-                <span aria-hidden="true">{skill.name.slice(0, 2).toUpperCase()}</span>
-                <div>
-                  <h3>{skill.name}</h3>
-                  <small>Skill profil</small>
+                <h3 className="type-primary-title">{skill.name}</h3>
+                <div className="profile-skill-meta">
+                  <span className="profile-skill-evidence">
+                    <Link2 aria-hidden="true" size={14} strokeWidth={1.8} />
+                    {formatEvidenceSupport(skill.evidenceCount)}
+                  </span>
+                  {skill.status === "Dipelajari" ? (
+                    <span className="skill-state-badge learning">
+                      Sedang dipelajari
+                    </span>
+                  ) : null}
                 </div>
               </div>
 
-              <div className="profile-skill-state">
-                <span
-                  className={`skill-state-badge ${
-                    skill.status === "Aktif" ? "active" : "learning"
-                  }`}
-                >
-                  {skill.status}
-                </span>
-                <span
-                  className={`skill-level level-${skill.level.toLocaleLowerCase("id-ID")}`}
-                >
-                  Level {skill.level}
-                </span>
-              </div>
-
-              <div className="profile-skill-evidence">
-                <Link2 aria-hidden="true" size={15} strokeWidth={1.8} />
-                <span>
-                  {skill.evidenceCount > 0
-                    ? `${skill.evidenceCount} bukti terhubung`
-                    : "Belum ada bukti"}
-                </span>
-              </div>
-
               <div className="skill-row-actions">
-                {isPendingDelete ? (
-                  <div className="skill-delete-confirmation" role="group" aria-label={`Hapus ${skill.name}`}>
-                    <span>Hapus skill?</span>
-                    <button type="button" onClick={() => setPendingDeleteId(null)}>Batal</button>
-                    <button className="danger" type="button" disabled={deletingSkillId === skill.id} onClick={() => deleteSkill(skill)}>
-                      {deletingSkillId === skill.id ? "Menghapus…" : "Hapus"}
-                    </button>
+                <details className="skill-row-menu">
+                  <summary aria-label={`Tindakan untuk ${skill.name}`}>
+                    <MoreHorizontal aria-hidden="true" size={17} strokeWidth={1.9} />
+                  </summary>
+                  <div>
+                    {isPendingDelete ? (
+                      <div className="skill-delete-confirmation" role="group" aria-label={`Hapus ${skill.name}`}>
+                        <span>Hapus skill ini?</span>
+                        <button type="button" onClick={() => setPendingDeleteId(null)}>Batal</button>
+                        <button className="danger" type="button" disabled={deletingSkillId === skill.id} onClick={() => deleteSkill(skill)}>
+                          {deletingSkillId === skill.id ? "Menghapus…" : "Hapus"}
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <button type="button" onClick={(event) => {
+                          event.currentTarget.closest("details")?.removeAttribute("open");
+                          openEditEditor(skill);
+                        }}>
+                          <Pencil aria-hidden="true" size={15} strokeWidth={1.9} />
+                          Edit
+                        </button>
+                        <button className="danger" type="button" onClick={() => {
+                          setPendingDeleteId(skill.id);
+                          setEditor(null);
+                        }}>
+                          <Trash2 aria-hidden="true" size={15} strokeWidth={1.9} />
+                          Hapus
+                        </button>
+                      </>
+                    )}
                   </div>
-                ) : (
-                  <>
-                    <button type="button" aria-label={`Edit ${skill.name}`} onClick={() => openEditEditor(skill)}>
-                      <Pencil aria-hidden="true" size={15} strokeWidth={1.9} />
-                    </button>
-                    <button type="button" aria-label={`Hapus ${skill.name}`} onClick={() => {
-                      setPendingDeleteId(skill.id);
-                      setEditor(null);
-                    }}>
-                      <Trash2 aria-hidden="true" size={15} strokeWidth={1.9} />
-                    </button>
-                  </>
-                )}
+                </details>
               </div>
             </article>
           );
@@ -335,8 +345,8 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
 
         {skills.length === 0 ? (
           <div className="skill-empty-state">
-            <strong>Belum ada skill di profil</strong>
-            <p>Tambahkan skill pertama untuk membangun fondasi profil karier.</p>
+            <strong>Belum ada skill</strong>
+            <p>Tambahkan skill yang sedang kamu bangun.</p>
             <button type="button" onClick={openAddEditor}>Tambah skill</button>
           </div>
         ) : null}
@@ -350,6 +360,7 @@ export function SkillManager({ initialSkills }: SkillManagerProps) {
 type ApiSkill = {
   id: string;
   name: string;
+  catalogSkillId: string | null;
   status: "active" | "learning";
   level: string | null;
 };
@@ -366,6 +377,7 @@ function toCareerSkill(skill: ApiSkill, evidenceCount: number): CareerSkill {
   return {
     id: skill.id,
     name: skill.name,
+    catalogSkillId: skill.catalogSkillId,
     level,
     status: skill.status === "learning" ? "Dipelajari" : "Aktif",
     evidenceCount,
@@ -378,4 +390,9 @@ async function readSkillResponse(response: Response): Promise<SkillResponse> {
   } catch {
     return {};
   }
+}
+
+function formatEvidenceSupport(count: number) {
+  if (count === 0) return "Belum ada bukti pendukung";
+  return `${count} bukti pendukung`;
 }

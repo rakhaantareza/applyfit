@@ -67,7 +67,17 @@ function parseCareerTarget(value: unknown): CareerTargetInput | null {
 
   if (!targetRole || !careerField) return null;
 
-  return { targetRole, careerField };
+  const targetRoleId = parseOptionalId(value.targetRoleId);
+  const careerFieldId = parseOptionalId(value.careerFieldId);
+  if (targetRoleId === undefined || careerFieldId === undefined) return null;
+
+  return { targetRole, targetRoleId, careerField, careerFieldId };
+}
+
+function parseOptionalId(value: unknown): string | null | undefined {
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value !== "string" || !value.trim()) return undefined;
+  return value.trim();
 }
 
 export function createCareerProfileHandlers(

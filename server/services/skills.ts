@@ -1,7 +1,8 @@
 import type { InsForgeClient } from "@insforge/sdk";
 import { getCareerProfile } from "./career-profile.ts";
+import { resolveCatalogSkill } from "./career-catalog.ts";
 
-const SKILL_COLUMNS = "id,profile_id,name,status,level,created_at,updated_at";
+const SKILL_COLUMNS = "id,profile_id,name,catalog_skill_id,status,level,created_at,updated_at";
 
 export type SkillStatus = "active" | "learning";
 
@@ -9,6 +10,7 @@ export type Skill = {
   id: string;
   profileId: string;
   name: string;
+  catalogSkillId: string | null;
   status: SkillStatus;
   level: string | null;
   createdAt: string;
@@ -17,6 +19,7 @@ export type Skill = {
 
 export type CreateSkillInput = {
   name: string;
+  catalogSkillId?: string | null;
   status: SkillStatus;
   level: string | null;
 };
@@ -70,6 +73,7 @@ export function normalizeSkill(value: unknown): Skill {
     id,
     profile_id,
     name,
+    catalog_skill_id,
     status,
     level,
     created_at,
@@ -80,6 +84,7 @@ export function normalizeSkill(value: unknown): Skill {
     typeof id !== "string" ||
     typeof profile_id !== "string" ||
     typeof name !== "string" ||
+    (catalog_skill_id !== null && typeof catalog_skill_id !== "string") ||
     !isSkillStatus(status) ||
     (level !== null && typeof level !== "string") ||
     typeof created_at !== "string" ||
@@ -92,6 +97,7 @@ export function normalizeSkill(value: unknown): Skill {
     id,
     profileId: profile_id,
     name,
+    catalogSkillId: catalog_skill_id,
     status,
     level,
     createdAt: created_at,
@@ -133,12 +139,17 @@ export async function createSkill(
   input: CreateSkillInput,
 ): Promise<Skill> {
   const profile = await requireProfile(client, userId);
+  const resolved = await resolveCatalogSkill(client, {
+    id: input.catalogSkillId,
+    name: input.name,
+  });
   const { data, error } = await client.database
     .from("skills")
     .insert([
       {
         profile_id: profile.id,
-        name: input.name,
+        name: resolved.name,
+        catalog_skill_id: resolved.catalogSkillId,
         status: input.status,
         level: input.level,
       },
@@ -161,8 +172,17 @@ export async function updateSkill(
   input: UpdateSkillInput,
 ): Promise<Skill> {
   const profile = await requireProfile(client, userId);
+  const resolved = input.name === undefined
+    ? null
+    : await resolveCatalogSkill(client, {
+        id: input.catalogSkillId,
+        name: input.name,
+      });
   const values = {
-    ...(input.name === undefined ? {} : { name: input.name }),
+    ...(resolved === null ? {} : {
+      name: resolved.name,
+      catalog_skill_id: resolved.catalogSkillId,
+    }),
     ...(input.status === undefined ? {} : { status: input.status }),
     ...(input.level === undefined ? {} : { level: input.level }),
   };
