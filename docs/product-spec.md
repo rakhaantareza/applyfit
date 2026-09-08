@@ -186,18 +186,28 @@ Career information is reusable across jobs.
 
 ### Profil
 
-The profile contains:
+Profil uses this career-foundation model:
 
-- Target role.
-- Career field / area.
-- Skills.
+- **Bidang Karier → Target Role → Skill.**
 - Skill status such as active or learning when required by product logic.
+
+Bidang Karier provides context for the direction the user is exploring. Selecting a Bidang should prioritize relevant Target Role suggestions, but role search remains global because a role may belong to more than one field. Bidang Karier does not directly affect requirement matching or Fit Score.
+
+ApplyFit maintains curated canonical catalogs for roles and skills, plus deterministic aliases for common alternate names such as `JS` → `JavaScript`, `ReactJS` / `React.js` → `React`, and `TS` → `TypeScript`. Alias resolution must not use AI.
+
+Catalog relationships are many-to-many rather than rigid trees:
+
+- One role may be relevant to multiple Bidang Karier.
+- One skill may be common to multiple roles.
+- Role-to-skill relationships prioritize useful suggestions; they do not automatically add skills to a profile or change scoring.
+
+Users may keep a manual/custom Bidang, role, or skill when no catalog entry matches. A recognized canonical entry or alias should resolve to the canonical name while preserving the existing profile and scoring behavior.
 
 The profile should represent the user's career model, not their authentication identity.
 
 Account name, avatar, email, and password belong in Pengaturan.
 
-Skill proficiency labels such as beginner/intermediate/advanced should not be visually prominent unless they have a clear product purpose. They must not imply scoring significance if they do not affect Fit Score or requirement matching.
+Profil does not ask users for proficiency labels because they do not affect requirement matching or Fit Score. Existing stored proficiency values remain compatibility data and must not imply scoring significance.
 
 Avoid redundant system labels such as `Profil aktif` or repeating `Skill profil` on every row. Prefer meaningful coverage summaries over database-like counts; for example, communicate how many skills are supported by Portfolio & Pengalaman rather than raw relation counts.
 
@@ -321,6 +331,13 @@ When a requirement is linked to a skill, existing Portfolio & Pengalaman already
 
 The user should primarily review unresolved cases.
 
+Review state is separate from the scoring result:
+
+- **Perlu dicocokkan** — the requirement has not completed review because no profile skill has been connected and the user has not explicitly confirmed that no evidence is available.
+- **Sudah ditinjau · tanpa bukti** — the user has explicitly completed review without connecting a skill or supporting evidence.
+
+Completing review without evidence does not prove the requirement. It remains `missing` internally for deterministic scoring and is presented as **Belum ada kecocokan** in result and analysis contexts. For an unmapped requirement, review completion comes from the separate `reviewed_without_evidence` state rather than from its scoring status.
+
 Recommended structure:
 
 - **Perlu kamu cek** — unresolved or ambiguous requirements shown prominently.
@@ -361,7 +378,7 @@ The analysis should provide:
 - Overall Fit Score.
 - A concrete one-sentence summary of the result.
 - Clear but compact status counts.
-- Missing / unresolved requirements first.
+- **Belum ada kecocokan** requirements first.
 - An actionable `Perlu perhatian` area that can take the user back to unresolved profile connections.
 - Compact requirement rows.
 - Expandable details for linked skills, Portfolio & Pengalaman, and score contribution.
@@ -385,12 +402,14 @@ Requirement statuses are derived from the relationship between a verified requir
 
 ### Status semantics
 
-- **Proven** — mapped to an active profile skill with at least one linked supporting item.
-- **Partial** — mapped to an active profile skill with no linked supporting item.
-- **Learning** — mapped to a profile skill marked as learning.
-- **Missing** — no skill mapping exists for the requirement.
+- **Terbukti** — mapped to an active profile skill with at least one linked supporting item. The internal scoring status remains `proven`.
+- **Belum terbukti** — mapped to an active profile skill with no linked supporting item. The internal scoring status remains `partial`.
+- **Sedang dipelajari** — mapped to a profile skill marked as learning. The internal scoring status remains `learning`.
+- **Belum ada kecocokan** — no skill mapping exists for the requirement. The internal scoring status remains `missing`.
 
-A requirement cannot become Partial without first being connected to a skill.
+A requirement cannot become **Belum terbukti** (`partial`) without first being connected to a skill.
+
+Review completion and scoring status are independent. `reviewed_without_evidence = true` means the user has completed the review decision, while the requirement remains `missing` internally and **Belum ada kecocokan** to the user. It therefore receives the same score as any other `missing` requirement.
 
 ### Score scope
 
@@ -404,10 +423,10 @@ Current deterministic baseline:
 
 - Required weight: 3.
 - Preferred weight: 1.
-- Proven multiplier: 1.0.
-- Partial multiplier: 0.5.
-- Learning multiplier: 0.2.
-- Missing multiplier: 0.
+- Terbukti (`proven`) multiplier: 1.0.
+- Belum terbukti (`partial`) multiplier: 0.5.
+- Sedang dipelajari (`learning`) multiplier: 0.2.
+- Belum ada kecocokan (`missing`) multiplier: 0.
 
 Formula:
 
@@ -419,7 +438,7 @@ AI must not determine this score.
 
 The existing `/contoh-perhitungan` destination is the single `Cara Fit Score dihitung` explainer. It contains:
 
-- Proven, Partial, Learning, and Missing semantics and multipliers.
+- Terbukti, Belum terbukti, Sedang dipelajari, and Belum ada kecocokan semantics and multipliers.
 - Wajib and Preferensi weighting.
 - The deterministic Fit Score formula and score scope.
 - The concrete worked example under a `Contoh perhitungan` section.
@@ -453,6 +472,20 @@ Its main job is to answer:
 
 The default screen should remain intentionally sparse.
 
+Choose the most useful page state in this order:
+
+1. If no career profile exists, show inline first-login onboarding with the primary action `Buat profil karier` and a plain flow preview: `Profil karier → Portfolio & Pengalaman → Lowongan`.
+2. If the profile exists but the career foundation is incomplete, show its most important actionable gap. A quiet link back to existing profile context may appear when it leads somewhere different from the primary action.
+3. If the career foundation is ready but no jobs exist, use `Tambah lowongan` as the primary action and briefly explain that the existing profile and portfolio will be reused.
+4. If the current job still has requirements in `Perlu dicocokkan`, show the ongoing workflow and its actual next action. Add at most one quiet route to the job detail or the saved-jobs list.
+5. If every scoreable requirement has completed review and Analysis is available, show `Analisis terakhir` as the single primary card with Fit Score, summary, completed workflow, and `Lihat analisis`.
+
+For a completed analysis with only one saved job, a plain `Cek lowongan berikutnya` section may explain profile and portfolio reuse and offer `Tambah lowongan`. With multiple saved jobs, replace it with a plain `Lowongan terbaru` list of at most three other jobs and one `Lihat semua lowongan` link.
+
+Each state has one primary focus and, only when it helps continuation, one quiet secondary area. Secondary content stays open/plain rather than becoming another dashboard card.
+
+Workflow completion follows requirement **review state**, not scoring status. A requirement marked `Sudah ditinjau · tanpa bukti` counts as reviewed even though its analysis result remains **Belum ada kecocokan**. Ringkasan must not add a separate section for those unproven requirements.
+
 Preferred structure:
 
 1. A small greeting/orientation.
@@ -477,6 +510,8 @@ If workflow progress is shown, prefer a light inline/step treatment rather than 
 
 The workflow area owns the primary next action. Other sections must not repeat the same CTA.
 
+Show `Dasar karier` only when there is a meaningful action to take. Do not keep it on the page as a permanent completion note.
+
 Page state must be internally consistent. For example, do not show a `Simpan lowongan` empty action when the same page already knows the user has an active saved job or mapping progress.
 
 Use a number only when it materially helps orientation or the next decision.
@@ -491,6 +526,8 @@ Whitespace is intentional. Do not add content merely to make Ringkasan feel full
 
 ## 10. Authentication
 
+Authentication is a permanent, production-quality product surface. Its structure, copy hierarchy, responsive behavior, and account flows must remain coherent after Public Beta; they must not depend on Demo remaining the primary entry point.
+
 Authentication screens should remain visually simple and consistent. Preserve the current split-screen desktop structure and its compact mobile adaptation unless a real usability issue requires redesign; the current refinement is primarily a copy and hierarchy cleanup.
 
 The brand panel should use one consistent proposition across sign-in, registration, and password recovery rather than inventing a different marketing headline for every auth state.
@@ -503,6 +540,27 @@ Preferred proposition:
 Fit Score principle may be communicated concisely:
 
 > Fit Score membantu kamu melihat gap, bukan menentukan apakah kamu harus melamar.
+
+### Public Beta and Demo
+
+The quiet `Beta` indicator beside the ApplyFit wordmark is explicitly temporary. It is the only Auth refinement element that should be designed for removal after Beta.
+
+During Public Beta, Login provides a prominent `Coba demo` fast lane for recruiters and new visitors. Demo must remain a separate, optional entry action above the account form:
+
+- It authenticates in one click through the same production session architecture as normal Login.
+- Demo credentials stay server-side and are never displayed or embedded in client output.
+- It opens the existing populated ApplyFit workspace without requiring setup.
+- A session entered through `Coba demo` is view-only. The authenticated shell
+  identifies it with one concise, unobtrusive notice that changes cannot be saved.
+- Read-only behavior belongs to that demo-entry session, not permanently to the
+  underlying account identity; a successful regular Login remains a normal,
+  editable account session.
+- Mutation attempts remain blocked on the server and must resolve as clear
+  failures in the interface, never as saved or successful states.
+- The regular Login form remains complete and visually clear on its own.
+- Removing or reducing Demo prominence later must not require restructuring the Auth family.
+
+`Coba demo` and `Masuk` must not compete as identical primary actions. Demo is the visible fast lane for trying the product during Public Beta; `Masuk` remains the primary submit action for an account owner.
 
 ### Login
 
@@ -517,6 +575,15 @@ Preferred supporting copy:
 Primary action:
 
 > Masuk
+
+Preferred order:
+
+1. Heading and supporting copy.
+2. `Coba demo`.
+3. Quiet `atau masuk dengan akunmu` separator.
+4. Email and password.
+5. `Masuk`.
+6. Password recovery and registration links.
 
 ### Registration
 
@@ -549,6 +616,10 @@ Primary action:
 > Kirim kode
 
 Do not expose authentication vendors such as InsForge Auth in user-facing copy.
+
+### Verification and new password
+
+Verification screens state where the code was sent when the email can be shown safely and keep any existing resend behavior quiet. The new-password task uses `Buat kata sandi baru`, `Kata sandi baru`, `Konfirmasi kata sandi`, and `Simpan kata sandi` without provider or debug terminology.
 
 ---
 
@@ -625,30 +696,41 @@ Loading, empty, and error are distinct states. Never show an empty state before 
 
 ## 13. Product Voice and Copy Rules
 
-ApplyFit uses Indonesian as its default product language, with common English product/career terms when they are more natural, such as:
+ApplyFit's permanent product voice uses natural Indonesian as its default language. Common English product and career terms may remain when they sound more natural, such as:
 
 - role
 - skill
 - Fit Score
 - GitHub
 - portfolio
+- technology names
 
 Voice should be:
 
-- Natural.
-- Light.
-- Specific.
-- Concise.
-- Task-oriented.
-- Appropriate for Indonesian fresh grads and young jobseekers.
+- Natural Indonesian that sounds like everyday conversation.
+- Human and concise.
+- Calm and young-professional.
+- Direct without sounding cold.
+- Specific and task-oriented.
+- Appropriate for Indonesian fresh graduates, early-career jobseekers, and career switchers.
+
+Prefer everyday phrasing such as:
+
+> Skill yang kamu punya atau lagi kamu pelajari.
+
+Choose familiar phrasing over overly formal Indonesian or literal translations. Use only the words needed to help the user understand the current state, decision, or next action.
+
+Approved status taxonomy must remain consistent. Precise security and legal wording must keep its exact meaning even when surrounding copy is simplified.
 
 Avoid:
 
-- Corporate HR-system language.
-- Database language.
-- Motivational clichés.
-- Generic SaaS marketing prose.
-- Copy that explains things the UI already makes obvious.
+- Corporate or HR language.
+- Database or system language.
+- Overly formal Indonesian.
+- Motivational career clichés.
+- Generic SaaS copy.
+- Forced Gen Z slang.
+- Unnecessary explanation, including copy that repeats what the UI already makes obvious.
 - Internal architecture/vendor terms.
 - Forced variation where one consistent sentence would be clearer.
 
@@ -816,13 +898,14 @@ The current product refinement may include:
 - Loading-state simplification.
 - Ringkasan simplification away from widget-heavy dashboard patterns.
 - UI consistency and mobile-density improvements.
+- A curated, representative career catalog with deterministic role/skill aliases and contextual autocomplete.
 
 The following are not required for the current refinement unless explicitly requested:
 
 - Advanced semantic / transferable-skill matching.
 - AI-driven evidence ranking.
-- Large curated role/skill taxonomy.
-- Advanced role/industry/skill autocomplete.
+- A large external or exhaustive role/skill taxonomy.
+- AI-driven or semantic role/industry/skill suggestions.
 - Job import from LinkedIn, JobStreet, Glints, or arbitrary URLs.
 - Application tracking.
 - AI recommendations on whether to apply.
@@ -839,8 +922,8 @@ These are product-level invariants, not a complete technical architecture specif
 - Authentication identity is provided by the platform auth system; do not create a duplicate product-level user identity model without a deliberate architecture decision.
 - Fit Score is deterministic and calculated from verified requirements and profile relationships.
 - AI extraction output is a draft and remains user-reviewable.
-- A Missing requirement has no associated profile skill.
-- A mapped active skill with no supporting item is Partial, not Missing.
+- A requirement with internal status `missing` has no associated profile skill and is labeled **Belum ada kecocokan** in the UI.
+- A mapped active skill with no supporting item has internal status `partial` and is labeled **Belum terbukti**, not **Belum ada kecocokan**.
 - Portfolio & Pengalaman linked to a skill is reusable across jobs.
 - Historical documentation must not override this specification.
 
