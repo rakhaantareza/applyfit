@@ -31,7 +31,7 @@ export default defineConfig(async () => {
   const platformPlugins = process.env.VERCEL
     ? [
         (await import("@tailwindcss/vite")).default(),
-        (await import("nitro/vite")).nitro(),
+        (await import("nitro/vite")).nitro({ noExternals: true }),
       ]
     : [
         sites(),
