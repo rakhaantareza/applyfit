@@ -15690,3 +15690,39 @@ html[data-theme="dark"] .profile-skill-list {
     padding-right: 18px;
   }
 }
+
+.workspace-loading {
+  display: grid;
+  gap: 12px;
+  margin-top: clamp(28px, 5vw, 52px);
+  max-width: 760px;
+}
+
+.workspace-loading-heading,
+.workspace-loading-row {
+  animation: workspace-loading-pulse 1.4s ease-in-out infinite alternate;
+  background: var(--surface-subtle);
+  border-radius: var(--radius-sm);
+  display: block;
+}
+
+.workspace-loading-heading {
+  height: 24px;
+  width: min(280px, 62%);
+}
+
+.workspace-loading-row {
+  height: 64px;
+  width: 100%;
+}
+
+@keyframes workspace-loading-pulse {
+  to { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-loading-heading,
+  .workspace-loading-row {
+    animation: none;
+  }
+}

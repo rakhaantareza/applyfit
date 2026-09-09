@@ -166,6 +166,30 @@ export async function getCareerCatalog(client: InsForgeClient): Promise<CareerCa
   };
 }
 
+const CATALOG_CACHE_TTL_MS = 5 * 60 * 1000;
+let cachedCatalog: { data: CareerCatalog; expiresAt: number } | null = null;
+let catalogRequest: Promise<CareerCatalog> | null = null;
+
+export async function getCachedCareerCatalog(client: InsForgeClient) {
+  if (cachedCatalog && cachedCatalog.expiresAt > Date.now()) {
+    return cachedCatalog.data;
+  }
+
+  catalogRequest ??= getCareerCatalog(client)
+    .then((catalog) => {
+      cachedCatalog = {
+        data: catalog,
+        expiresAt: Date.now() + CATALOG_CACHE_TTL_MS,
+      };
+      return catalog;
+    })
+    .finally(() => {
+      catalogRequest = null;
+    });
+
+  return catalogRequest;
+}
+
 export function resolveCatalogItem<T extends { id: string; name: string; aliases?: string[] }>(
   items: T[],
   input: CatalogIdentityInput,

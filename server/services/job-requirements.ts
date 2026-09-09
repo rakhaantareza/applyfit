@@ -150,6 +150,21 @@ export async function listJobRequirements(
   return normalizeJobRequirements(data);
 }
 
+export async function listRequirementsForOwnedJobs(
+  client: InsForgeClient,
+  jobIds: readonly string[],
+): Promise<JobRequirement[]> {
+  if (!jobIds.length) return [];
+
+  const { data, error } = await client.database
+    .from("job_requirements")
+    .select(REQUIREMENT_COLUMNS)
+    .in("job_id", [...new Set(jobIds)])
+    .order("created_at", { ascending: true });
+  if (error) throw new JobRequirementsQueryError();
+  return normalizeJobRequirements(data);
+}
+
 export async function getJobRequirement(
   client: InsForgeClient,
   userId: string,

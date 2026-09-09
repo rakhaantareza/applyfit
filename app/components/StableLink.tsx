@@ -8,7 +8,7 @@ type StableLinkProps = Omit<ComponentPropsWithoutRef<"a">, "href"> & {
 /** Keeps shared internal links on the client router so the root session survives. */
 export function StableLink({ children, href, ...props }: StableLinkProps) {
   return (
-    <NextLink href={href} {...props}>
+    <NextLink href={href} prefetch={false} {...props}>
       {children}
     </NextLink>
   );

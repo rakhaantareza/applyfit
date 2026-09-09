@@ -3,6 +3,7 @@
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ActionButton } from "../components/ActionControl";
+import { WorkspaceLoadingState } from "../components/WorkspaceLoadingState";
 import { CareerDirectionEditor } from "./CareerDirectionEditor";
 import { SkillManager, type CareerSkill } from "./SkillManager";
 import {
@@ -27,18 +28,13 @@ type ApiSkill = {
   evidenceCount?: number;
 };
 
-type CareerProfileResponse = {
-  data?: { profile?: CareerProfile | null };
+type ProfileWorkspaceResponse = {
+  data?: {
+    profile: CareerProfile | null;
+    skills: ApiSkill[];
+    catalog: CareerCatalog;
+  };
   error?: { message?: string };
-};
-
-type SkillsResponse = {
-  data?: { skills?: ApiSkill[] };
-  error?: { message?: string };
-};
-
-type CatalogResponse = {
-  data?: { catalog?: CareerCatalog };
 };
 
 export function CareerProfileWorkspace() {
@@ -53,30 +49,17 @@ export function CareerProfileWorkspace() {
 
     async function loadWorkspace() {
       try {
-        const [profileResponse, skillsResponse, catalogResponse] = await Promise.all([
-          fetch("/api/career-profile"),
-          fetch("/api/career-profile/skills?includeEvidenceCount=true"),
-          fetch("/api/career-catalog"),
-        ]);
-        const profileResult = await readJson<CareerProfileResponse>(profileResponse);
-        const skillsResult = await readJson<SkillsResponse>(skillsResponse);
-        const catalogResult = catalogResponse.ok
-          ? await readJson<CatalogResponse>(catalogResponse)
-          : undefined;
-        if (!profileResponse.ok || !skillsResponse.ok) {
-          throw new Error(
-            profileResult.error?.message ??
-              skillsResult.error?.message ??
-              "Profil karier belum dapat dimuat.",
-          );
+        const response = await fetch("/api/workspace?scope=profile", { cache: "no-store" });
+        const result = await readJson<ProfileWorkspaceResponse>(response);
+        if (!response.ok || !result.data) {
+          throw new Error(result.error?.message ?? "Profil karier belum dapat dimuat.");
         }
-
-        const apiSkills = skillsResult.data?.skills ?? [];
+        const apiSkills = result.data.skills;
 
         if (!active) return;
-        setProfile(profileResult.data?.profile ?? null);
+        setProfile(result.data.profile);
         setSkills(apiSkills.map((skill) => toCareerSkill(skill)));
-        setCatalog(catalogResult?.data?.catalog ?? EMPTY_CAREER_CATALOG);
+        setCatalog(result.data.catalog ?? EMPTY_CAREER_CATALOG);
       } catch (requestError) {
         if (!active) return;
         setError(
@@ -95,7 +78,7 @@ export function CareerProfileWorkspace() {
     };
   }, []);
 
-  if (loading) return null;
+  if (loading) return <WorkspaceLoadingState />;
 
   if (error) {
     return (

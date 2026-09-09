@@ -122,12 +122,12 @@ export function normalizeRequirementMapping(value: unknown): RequirementMapping 
   };
 }
 
-function normalizeRequirementMappings(value: unknown): RequirementMapping[] {
+export function normalizeRequirementMappings(value: unknown): RequirementMapping[] {
   if (!Array.isArray(value)) throw new RequirementMappingsQueryError();
   return value.map(normalizeRequirementMapping);
 }
 
-function normalizeSkillEvidenceLinks(value: unknown): SkillEvidenceLink[] {
+export function normalizeSkillEvidenceLinks(value: unknown): SkillEvidenceLink[] {
   if (!Array.isArray(value)) throw new RequirementMappingsQueryError();
   return value.map((row) => {
     if (

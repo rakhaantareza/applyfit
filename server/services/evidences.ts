@@ -139,6 +139,15 @@ export async function listEvidences(
   const profile = await getCareerProfile(client, userId);
   if (!profile) return [];
 
+  return listEvidencesForProfile(client, profile.id, filters);
+}
+
+export async function listEvidencesForProfile(
+  client: InsForgeClient,
+  profileId: string,
+  filters: EvidenceFilters = {},
+): Promise<Evidence[]> {
+
   let evidenceIds: string[] | null = null;
   if (filters.skillId) {
     const linksResult = await client.database
@@ -160,7 +169,7 @@ export async function listEvidences(
   let query = client.database
     .from("evidences")
     .select(EVIDENCE_COLUMNS)
-    .eq("profile_id", profile.id);
+    .eq("profile_id", profileId);
 
   if (filters.type) query = query.eq("type", filters.type);
   if (evidenceIds) query = query.in("id", evidenceIds);

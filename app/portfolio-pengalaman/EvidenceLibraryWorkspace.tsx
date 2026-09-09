@@ -3,6 +3,7 @@
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ActionButton } from "../components/ActionControl";
+import { WorkspaceLoadingState } from "../components/WorkspaceLoadingState";
 import {
   EvidenceLibrary,
   type EvidenceItem,
@@ -21,13 +22,8 @@ type ApiEvidence = {
 
 type ApiSkill = { id: string; name: string };
 
-type EvidenceResponse = {
-  data?: { evidences?: ApiEvidence[] };
-  error?: { message?: string };
-};
-
-type SkillsResponse = {
-  data?: { skills?: ApiSkill[] };
+type PortfolioWorkspaceResponse = {
+  data?: { evidences: ApiEvidence[]; skills: ApiSkill[] };
   error?: { message?: string };
 };
 
@@ -42,22 +38,13 @@ export function EvidenceLibraryWorkspace() {
 
     async function loadLibrary() {
       try {
-        const [evidenceResponse, skillsResponse] = await Promise.all([
-          fetch("/api/evidences?includeSkills=true"),
-          fetch("/api/career-profile/skills"),
-        ]);
-        const evidenceResult = await readJson<EvidenceResponse>(evidenceResponse);
-        const skillsResult = await readJson<SkillsResponse>(skillsResponse);
-        if (!evidenceResponse.ok || !skillsResponse.ok) {
-          throw new Error(
-            evidenceResult.error?.message ??
-              skillsResult.error?.message ??
-              "Portfolio & Pengalaman belum dapat dimuat.",
-          );
+        const response = await fetch("/api/workspace?scope=portfolio", { cache: "no-store" });
+        const result = await readJson<PortfolioWorkspaceResponse>(response);
+        if (!response.ok || !result.data) {
+          throw new Error(result.error?.message ?? "Portfolio & Pengalaman belum dapat dimuat.");
         }
-
-        const apiEvidences = evidenceResult.data?.evidences ?? [];
-        const profileSkills = skillsResult.data?.skills ?? [];
+        const apiEvidences = result.data.evidences;
+        const profileSkills = result.data.skills;
         const skillsById = new Map(profileSkills.map((skill) => [skill.id, skill]));
 
         if (!active) return;
@@ -93,7 +80,7 @@ export function EvidenceLibraryWorkspace() {
     };
   }, []);
 
-  if (loading) return null;
+  if (loading) return <WorkspaceLoadingState rows={4} />;
 
   if (error) {
     return (

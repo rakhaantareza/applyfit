@@ -1,13 +1,8 @@
 import { createInsForgeServerClient } from "../../lib/insforge/server.ts";
 import {
-  type CareerCatalog,
   CareerCatalogQueryError,
-  getCareerCatalog,
+  getCachedCareerCatalog,
 } from "../../../server/services/career-catalog.ts";
-
-const CATALOG_CACHE_TTL_MS = 5 * 60 * 1000;
-let cachedCatalog: { data: CareerCatalog; expiresAt: number } | null = null;
-let catalogRequest: Promise<CareerCatalog> | null = null;
 
 export async function GET() {
   try {
@@ -21,7 +16,7 @@ export async function GET() {
       );
     }
 
-    return Response.json({ data: { catalog: await loadCareerCatalog(client) } });
+    return Response.json({ data: { catalog: await getCachedCareerCatalog(client) } });
   } catch (error) {
     const message = error instanceof CareerCatalogQueryError
       ? error.message
@@ -31,26 +26,4 @@ export async function GET() {
       { status: 503 },
     );
   }
-}
-
-async function loadCareerCatalog(
-  client: Awaited<ReturnType<typeof createInsForgeServerClient>>,
-) {
-  if (cachedCatalog && cachedCatalog.expiresAt > Date.now()) {
-    return cachedCatalog.data;
-  }
-
-  catalogRequest ??= getCareerCatalog(client)
-    .then((catalog) => {
-      cachedCatalog = {
-        data: catalog,
-        expiresAt: Date.now() + CATALOG_CACHE_TTL_MS,
-      };
-      return catalog;
-    })
-    .finally(() => {
-      catalogRequest = null;
-    });
-
-  return catalogRequest;
 }

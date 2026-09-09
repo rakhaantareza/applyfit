@@ -123,10 +123,18 @@ export async function listSkills(
   const profile = await getCareerProfile(client, userId);
   if (!profile) return [];
 
+  return listSkillsForProfile(client, profile.id);
+}
+
+export async function listSkillsForProfile(
+  client: InsForgeClient,
+  profileId: string,
+): Promise<Skill[]> {
+
   const { data, error } = await client.database
     .from("skills")
     .select(SKILL_COLUMNS)
-    .eq("profile_id", profile.id)
+    .eq("profile_id", profileId)
     .order("name", { ascending: true });
 
   if (error) throw new SkillQueryError();

@@ -13,6 +13,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { ActionLink, CtaArrow } from "../components/ActionControl";
 import { PageHeader, SectionHeader } from "../components/ContentHeaders";
+import { WorkspaceLoadingState } from "../components/WorkspaceLoadingState";
 
 type SavedJob = {
   id: string;
@@ -37,30 +38,13 @@ export function JobsWorkspace() {
 
     async function loadJobs() {
       try {
-        const response = await fetch("/api/jobs", { cache: "no-store" });
+        const response = await fetch("/api/workspace?scope=jobs", { cache: "no-store" });
         const result = await readJobsResponse(response);
         if (!response.ok || !result.data?.jobs) {
           throw new Error(result.error?.message ?? "Daftar lowongan belum dapat dimuat.");
         }
 
-        const withRequirementCounts = await Promise.all(
-          result.data.jobs.map(async (job) => {
-            const requirementResponse = await fetch(
-              `/api/jobs/${encodeURIComponent(job.id)}/requirements`,
-              { cache: "no-store" },
-            );
-            const requirementResult = await readRequirementsResponse(requirementResponse);
-            return {
-              ...job,
-              requirementCount:
-                requirementResponse.ok && requirementResult.data
-                  ? requirementResult.data.total
-                  : 0,
-            };
-          }),
-        );
-
-        if (active) setJobs(withRequirementCounts);
+        if (active) setJobs(result.data.jobs);
       } catch (requestError) {
         if (active) {
           setError(
@@ -88,7 +72,12 @@ export function JobsWorkspace() {
   if (error) return <JobsErrorState error={error} />;
 
   if (loading) {
-    return <div className="page-container jobs-page"><JobsPageHeader /></div>;
+    return (
+      <div className="page-container jobs-page">
+        <JobsPageHeader />
+        <WorkspaceLoadingState rows={4} />
+      </div>
+    );
   }
 
   if (!jobs.length) {
@@ -226,13 +215,8 @@ function formatRelativeDate(value: string) {
   return `Diperbarui ${new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" }).format(date)}`;
 }
 
-type JobsResponse = { data?: { jobs?: SavedJob[] }; error?: { message?: string } };
-type RequirementsResponse = { data?: { total: number }; error?: { message?: string } };
+type JobsResponse = { data?: { jobs?: JobListItem[] }; error?: { message?: string } };
 
 async function readJobsResponse(response: Response): Promise<JobsResponse> {
   try { return await response.json() as JobsResponse; } catch { return {}; }
-}
-
-async function readRequirementsResponse(response: Response): Promise<RequirementsResponse> {
-  try { return await response.json() as RequirementsResponse; } catch { return {}; }
 }

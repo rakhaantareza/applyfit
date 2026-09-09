@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ActionButton, ActionLink, CtaArrow } from "../components/ActionControl";
 import { PageHeader, SectionHeader } from "../components/ContentHeaders";
 import { StableLink as Link } from "../components/StableLink";
+import { WorkspaceLoadingState } from "../components/WorkspaceLoadingState";
 import { getAuthDisplayName, useAuthSession } from "../components/AuthSessionProvider";
 
 type CareerProfile = { targetRole: string; careerField: string };
@@ -91,66 +92,24 @@ export function AdaptiveHomeDashboard() {
 
     async function loadDashboard() {
       try {
-        const [profileResponse, skillsResponse, evidencesResponse, jobsResponse] = await Promise.all([
-          fetch("/api/career-profile", { cache: "no-store" }),
-          fetch("/api/career-profile/skills", { cache: "no-store" }),
-          fetch("/api/evidences", { cache: "no-store" }),
-          fetch("/api/jobs", { cache: "no-store" }),
-        ]);
-        const [profileResult, skillsResult, evidencesResult, jobsResult] = await Promise.all([
-          readJson<ProfileResponse>(profileResponse),
-          readJson<SkillsResponse>(skillsResponse),
-          readJson<EvidencesResponse>(evidencesResponse),
-          readJson<JobsResponse>(jobsResponse),
-        ]);
-        const failedMessage = profileResult.error?.message
-          ?? skillsResult.error?.message
-          ?? evidencesResult.error?.message
-          ?? jobsResult.error?.message;
-        if (![profileResponse, skillsResponse, evidencesResponse, jobsResponse]
-          .every((response) => response.ok)) {
-          throw new Error(failedMessage ?? "Ringkasan akun belum dapat dimuat.");
+        const response = await fetch("/api/workspace?scope=dashboard", { cache: "no-store" });
+        const result = await readJson<DashboardResponse>(response);
+        if (!response.ok || !result.data) {
+          throw new Error(result.error?.message ?? "Ringkasan akun belum dapat dimuat.");
         }
-
-        const jobs = jobsResult.data?.jobs ?? [];
-        const jobContexts = await Promise.all(jobs.map(async (job) => {
-          const [requirementsResponse, mappingResponse] = await Promise.all([
-            fetch(`/api/jobs/${encodeURIComponent(job.id)}/requirements`, { cache: "no-store" }),
-            fetch(`/api/jobs/${encodeURIComponent(job.id)}/requirements/mapping-summary`, { cache: "no-store" }),
-          ]);
-          const [requirementsResult, mappingResult] = await Promise.all([
-            readJson<RequirementsResponse>(requirementsResponse),
-            readJson<MappingResponse>(mappingResponse),
-          ]);
-          return {
-            job,
-            requirements: requirementsResponse.ok
-              ? requirementsResult.data?.requirements ?? []
-              : [],
-            mapping: mappingResponse.ok ? mappingResult.data ?? null : null,
-          };
-        }));
-
-        const analysisCandidates = jobContexts.filter(
-          (context) => context.mapping && hasCompletedRequirementReview(context.mapping),
-        ).slice(0, 2);
-        const recentAnalyses = (await Promise.all(
-          analysisCandidates.map(calculateRecentAnalysis),
-        )).filter((analysis): analysis is RecentAnalysis => analysis !== null);
+        const { profile, skills, evidences, jobs, jobContexts, recentAnalyses } = result.data;
         if (!active) return;
 
         const nextData: DashboardData = {
-          profile: profileResult.data?.profile ?? null,
-          skills: skillsResult.data?.skills ?? [],
-          evidences: evidencesResult.data?.evidences ?? [],
+          profile,
+          skills,
+          evidences,
           jobs,
           requirementsByJob: new Map(
-            jobContexts.map(({ job, requirements }) => [job.id, requirements]),
+            jobContexts.map(({ jobId, requirements }) => [jobId, requirements]),
           ),
           mappingsByJob: new Map(
-            jobContexts.flatMap(({ job, mapping }) => (
-              mapping ? [[job.id, mapping] as const] : []
-            )),
+            jobContexts.map(({ jobId, mapping }) => [jobId, mapping]),
           ),
           recentAnalyses,
         };
@@ -180,7 +139,7 @@ export function AdaptiveHomeDashboard() {
   const dashboard = useMemo(() => data ? buildDashboardState(data) : null, [data]);
 
   if (!data || !dashboard) {
-    return error ? <DashboardErrorState error={error} /> : null;
+    return error ? <DashboardErrorState error={error} /> : <WorkspaceLoadingState rows={4} />;
   }
 
   const firstName = accountName.split(/\s+/)[0] ?? accountName;
@@ -549,10 +508,6 @@ function countPendingRequirementReviews(mapping: MappingSummary) {
   return requirementsMissingFromSummary + requirementsNeedingReview;
 }
 
-function hasCompletedRequirementReview(mapping: MappingSummary) {
-  return mapping.totalMappableRequirements > 0 && countPendingRequirementReviews(mapping) === 0;
-}
-
 function buildFoundationGap(data: DashboardData): FoundationGap | null {
   const hasCareerDirection = Boolean(
     data.profile?.targetRole.trim() && data.profile?.careerField.trim(),
@@ -598,48 +553,6 @@ function DashboardErrorState({ error }: { error: string }) {
   );
 }
 
-async function calculateRecentAnalysis(context: {
-  job: Job;
-  requirements: Requirement[];
-  mapping: MappingSummary | null;
-}): Promise<RecentAnalysis | null> {
-  if (!context.mapping) return null;
-  const mappingById = new Map(
-    context.mapping.requirements.map((requirement) => [requirement.id, requirement]),
-  );
-  const payload = context.requirements.map((requirement) => {
-    const mapping = mappingById.get(requirement.id);
-    return {
-      id: requirement.id,
-      type: requirement.type,
-      priority: requirement.priority,
-      mappings: mapping?.skills.map((skill) => ({
-        skill: { id: skill.id, status: skill.status },
-        linkedEvidenceIds: skill.evidences.map((evidence) => evidence.id),
-      })) ?? [],
-    };
-  });
-  const response = await fetch("/api/fit-score/summary", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ jobId: context.job.id, requirements: payload }),
-  });
-  const result = await readJson<FitScoreResponse>(response);
-  if (!response.ok || !result.data) return null;
-
-  const counts = result.data.statusCounts;
-  const needsAttention = counts.partial + counts.learning + counts.missing;
-  const summary = needsAttention > 0
-    ? `${counts.proven} persyaratan sudah terbukti · ${needsAttention} lainnya belum sepenuhnya terbukti`
-    : `${counts.proven} persyaratan sudah terbukti.`;
-
-  return {
-    jobId: context.job.id,
-    score: result.data.score,
-    summary,
-  };
-}
-
 function formatActivityDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Aktivitas terbaru";
@@ -653,18 +566,20 @@ function formatNumber(value: number) {
   return new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 }).format(value);
 }
 
-type ProfileResponse = { data?: { profile?: CareerProfile | null }; error?: { message?: string } };
-type SkillsResponse = { data?: { skills?: Skill[] }; error?: { message?: string } };
-type EvidencesResponse = { data?: { evidences?: Evidence[] }; error?: { message?: string } };
-type JobsResponse = { data?: { jobs?: Job[] }; error?: { message?: string } };
-type RequirementsResponse = { data?: { requirements?: Requirement[] }; error?: { message?: string } };
-type MappingResponse = { data?: MappingSummary; error?: { message?: string } };
-type FitScoreResponse = {
+type DashboardResponse = {
   data?: {
-    score: number;
-    excludedRequirements: number;
-    statusCounts: Record<"proven" | "partial" | "learning" | "missing", number>;
+    profile: CareerProfile | null;
+    skills: Skill[];
+    evidences: Evidence[];
+    jobs: Job[];
+    jobContexts: Array<{
+      jobId: string;
+      requirements: Requirement[];
+      mapping: MappingSummary;
+    }>;
+    recentAnalyses: RecentAnalysis[];
   };
+  error?: { message?: string };
 };
 
 async function readJson<T>(response: Response): Promise<T> {

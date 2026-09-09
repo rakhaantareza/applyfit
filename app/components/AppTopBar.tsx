@@ -56,6 +56,7 @@ export function AppTopBar({
         <Link
           className="app-topbar-brand"
           href="/beranda"
+          prefetch={false}
           aria-label="ApplyFit beranda"
         >
           <span className="brand-mark" aria-hidden="true">A</span>
@@ -184,7 +185,7 @@ function AccountMenu() {
             </span>
           </div>
 
-          <Link href="/pengaturan" role="menuitem" onClick={() => setIsOpen(false)}>
+          <Link href="/pengaturan" prefetch={false} role="menuitem" onClick={() => setIsOpen(false)}>
             <Settings aria-hidden="true" size={16} strokeWidth={1.8} />
             Pengaturan
           </Link>

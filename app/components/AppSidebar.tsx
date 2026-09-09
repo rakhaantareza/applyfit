@@ -205,6 +205,7 @@ export function AppSidebar({ activeItem = null }: AppSidebarProps) {
                 <Link
                   className={`nav-item${isActive ? " active" : ""}`}
                   href={item.href}
+                  prefetch={false}
                   aria-current={isActive ? "page" : undefined}
                   data-tooltip={item.label}
                   onClick={closeMobileNavigation}
@@ -233,6 +234,7 @@ export function AppSidebar({ activeItem = null }: AppSidebarProps) {
             <Link
               className="sidebar-fit-guide-title"
               href="/contoh-perhitungan"
+              prefetch={false}
               aria-current={activeItem === "Cara Fit Score dihitung" ? "page" : undefined}
               onClick={closeMobileNavigation}
             >
@@ -255,6 +257,7 @@ export function AppSidebar({ activeItem = null }: AppSidebarProps) {
             <Link
               className="sidebar-fit-guide-link"
               href="/contoh-perhitungan"
+              prefetch={false}
               onClick={closeMobileNavigation}
             >
               Pelajari selengkapnya
@@ -267,6 +270,7 @@ export function AppSidebar({ activeItem = null }: AppSidebarProps) {
               activeItem === "Cara Fit Score dihitung" ? " active" : ""
             }`}
             href="/contoh-perhitungan"
+            prefetch={false}
             aria-label="Cara Fit Score dihitung"
             aria-current={activeItem === "Cara Fit Score dihitung" ? "page" : undefined}
             data-tooltip="Cara Fit Score dihitung"
@@ -282,6 +286,7 @@ export function AppSidebar({ activeItem = null }: AppSidebarProps) {
           <Link
             className={activeItem === utilityNavigation.label ? "nav-item active" : "nav-item"}
             href={utilityNavigation.href}
+            prefetch={false}
             aria-current={activeItem === utilityNavigation.label ? "page" : undefined}
             data-tooltip={utilityNavigation.label}
             onClick={closeMobileNavigation}
