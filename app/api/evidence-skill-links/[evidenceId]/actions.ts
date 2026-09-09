@@ -1,10 +1,10 @@
-import { createInsForgeServerClient } from "../../../../lib/insforge/server.ts";
-import type { EvidenceSkillActions } from "../../../../../server/http/evidence-skills-handler.ts";
+import { createInsForgeServerClient } from "../../../lib/insforge/server.ts";
+import type { EvidenceSkillActions } from "../../../../server/http/evidence-skills-handler.ts";
 import {
   linkEvidenceToSkill,
   listEvidenceSkillLinks,
   unlinkEvidenceFromSkill,
-} from "../../../../../server/services/evidence-skills.ts";
+} from "../../../../server/services/evidence-skills.ts";
 
 async function currentUserContext() {
   const client = await createInsForgeServerClient();

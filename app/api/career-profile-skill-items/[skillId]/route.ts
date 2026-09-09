@@ -1,5 +1,5 @@
-import { createSkillsHandlers } from "../../../../../server/http/skills-handler.ts";
-import { rejectDemoMutation } from "../../../../lib/insforge/demo-read-only.ts";
+import { createSkillsHandlers } from "../../../../server/http/skills-handler.ts";
+import { rejectDemoMutation } from "../../../lib/insforge/demo-read-only.ts";
 import { skillsActions } from "../actions.ts";
 
 const handlers = createSkillsHandlers(skillsActions);

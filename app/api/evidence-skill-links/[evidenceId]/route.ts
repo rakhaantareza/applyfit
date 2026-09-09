@@ -1,5 +1,5 @@
-import { createEvidenceSkillHandlers } from "../../../../../server/http/evidence-skills-handler.ts";
-import { rejectDemoMutation } from "../../../../lib/insforge/demo-read-only.ts";
+import { createEvidenceSkillHandlers } from "../../../../server/http/evidence-skills-handler.ts";
+import { rejectDemoMutation } from "../../../lib/insforge/demo-read-only.ts";
 import { evidenceSkillActions } from "./actions.ts";
 
 const handlers = createEvidenceSkillHandlers(evidenceSkillActions);

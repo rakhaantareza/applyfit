@@ -1,12 +1,12 @@
-import { createInsForgeServerClient } from "../../../lib/insforge/server.ts";
-import type { SkillsActions } from "../../../../server/http/skills-handler.ts";
+import { createInsForgeServerClient } from "../../lib/insforge/server.ts";
+import type { SkillsActions } from "../../../server/http/skills-handler.ts";
 import {
   createSkill,
   deleteSkill,
   listSkills,
   updateSkill,
-} from "../../../../server/services/skills.ts";
-import { listVisibleEvidenceSkillLinks } from "../../../../server/services/evidence-skills.ts";
+} from "../../../server/services/skills.ts";
+import { listVisibleEvidenceSkillLinks } from "../../../server/services/evidence-skills.ts";
 
 async function currentUserContext() {
   const client = await createInsForgeServerClient();
