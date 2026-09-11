@@ -117,9 +117,15 @@ The authenticated state is stored at `.playwright/auth/demo.json`; screenshots a
 
 ```bash
 npm run lint
+npm run typecheck
 npm test
 npm run build
 ```
+
+The typecheck command checks the full repository without incremental-cache reuse.
+It emits no files; strict checking includes application code, route handlers, tests,
+and the worker entry point. `npm test` builds the production output and runs all
+TypeScript and JavaScript test files in `tests/`.
 
 ## Future Improvements
 

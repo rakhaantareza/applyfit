@@ -42,7 +42,7 @@ function parseFilters(request: Request): EvidenceFilters | null {
   const query = url.searchParams.get("q")?.trim() || undefined;
   const typeValue = url.searchParams.get("type")?.trim() || undefined;
   const skillId = url.searchParams.get("skillId")?.trim() || undefined;
-  if (typeValue && !isEvidenceType(typeValue)) return null;
+  if (typeValue !== undefined && !isEvidenceType(typeValue)) return null;
   return { query, type: typeValue, skillId };
 }
 

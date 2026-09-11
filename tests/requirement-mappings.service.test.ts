@@ -17,6 +17,7 @@ const baseRequirement = {
   updatedAt: "2026-08-09T09:00:00.000Z",
 };
 const baseSkill = {
+  catalogSkillId: null,
   profileId: "profile-1",
   status: "active" as const,
   level: null,

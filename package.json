@@ -9,7 +9,7 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "start": "vinext start",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs",
+    "test": "npm run build && node --test tests/*.test.ts tests/*.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "screenshots:auth": "node --env-file-if-exists=.env.local scripts/screenshots/auth.mjs",
     "qa:auth": "node --env-file-if-exists=.env.local scripts/screenshots/auth-refinement.mjs",
@@ -22,7 +22,8 @@
     "format:ui:check": "prettier --check \"app/**/*.tsx\" \"app/**/*.css\" \"app/lib/i18n/**/*.ts\" \"scripts/screenshots/*.mjs\" docs/visual-system.md docs/product-spec.md",
     "qa:ui": "node scripts/screenshots/ui-qa.mjs",
     "qa:buttons": "node scripts/screenshots/button-qa.mjs",
-    "qa:source": "node scripts/screenshots/source-qa.mjs"
+    "qa:source": "node scripts/screenshots/source-qa.mjs",
+    "typecheck": "tsc --noEmit --incremental false"
   },
   "dependencies": {
     "@insforge/sdk": "^1.5.2",

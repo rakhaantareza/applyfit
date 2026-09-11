@@ -60,6 +60,27 @@ test("GET passes text, type, and skill filters to the evidence service", async (
   });
 });
 
+test("GET normalizes blank and supported evidence type filters", async () => {
+  for (const type of ["", "   ", "project", "cert", "work", "internship", "github", "portfolio"]) {
+    let received: unknown;
+    const handlers = createEvidenceHandlers(actions({
+      list: async (filters) => {
+        received = filters;
+        return { status: "ok", data: [] };
+      },
+    }));
+    const url = new URL("http://localhost/api/evidences");
+    url.searchParams.set("type", type);
+    const response = await handlers.GET(new Request(url));
+    assert.equal(response.status, 200);
+    assert.deepEqual(received, {
+      query: undefined,
+      type: type.trim() || undefined,
+      skillId: undefined,
+    });
+  }
+});
+
 test("GET only requests skill links when the caller opts in", async () => {
   let receivedOptions: unknown;
   const handlers = createEvidenceHandlers(actions({

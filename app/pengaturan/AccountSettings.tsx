@@ -89,9 +89,9 @@ export function AccountSettings() {
     setSecurityError("");
     setSecurityMessage("");
     if (user.isDemo) {
-      setSecurityError(
-        "Ruang demo hanya untuk dilihat. Perubahan tidak dapat disimpan.",
-      );
+      // Preserve the source contract for the demo write guard.
+      // prettier-ignore
+      setSecurityError("Ruang demo hanya untuk dilihat. Perubahan tidak dapat disimpan.");
       return;
     }
     setIsRequestingReset(true);
