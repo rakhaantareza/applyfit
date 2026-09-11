@@ -1,4 +1,5 @@
 "use client";
+import { useI18n } from "../components/LanguageProvider";
 
 import {
   Check,
@@ -10,14 +11,23 @@ import {
   Mail,
 } from "lucide-react";
 import { type FormEvent, useState } from "react";
-import { ActionButton, ActionLink, CtaArrow } from "../components/ActionControl";
+import {
+  ActionButton,
+  ActionLink,
+  CtaArrow,
+} from "../components/ActionControl";
 
 type ResetResponse = {
   data?: { updated?: boolean; message?: string };
   error?: { message?: string };
 };
 
-export function PasswordResetForm({ initialEmail = "" }: { initialEmail?: string }) {
+export function PasswordResetForm({
+  initialEmail = "",
+}: {
+  initialEmail?: string;
+}) {
+  const { t } = useI18n();
   const [email, setEmail] = useState(initialEmail);
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
@@ -66,7 +76,10 @@ export function PasswordResetForm({ initialEmail = "" }: { initialEmail?: string
       });
       const result = await readResetResponse(response);
       if (!response.ok || !result.data?.updated) {
-        throw new Error(result.error?.message ?? "Kode reset tidak valid atau sudah kedaluwarsa.");
+        throw new Error(
+          result.error?.message ??
+            "Kode reset tidak valid atau sudah kedaluwarsa.",
+        );
       }
       setIsComplete(true);
     } catch (requestError) {
@@ -83,12 +96,14 @@ export function PasswordResetForm({ initialEmail = "" }: { initialEmail?: string
   if (isComplete) {
     return (
       <div className="registration-success reset-success" role="status">
-        <span className="registration-success-icon" aria-hidden="true"><CircleCheckBig size={28} strokeWidth={1.8} /></span>
-        <p className="eyebrow">Kata sandi diperbarui</p>
-        <h3>Kata sandi baru tersimpan</h3>
-        <p>Masuk kembali ke ApplyFit menggunakan kata sandi barumu.</p>
+        <span className="registration-success-icon" aria-hidden="true">
+          <CircleCheckBig size={28} strokeWidth={1.8} />
+        </span>
+        <p className="eyebrow">{t("Kata sandi diperbarui")}</p>
+        <h3>{t("Kata sandi baru tersimpan")}</h3>
+        <p>{t("Masuk kembali ke ApplyFit menggunakan kata sandi barumu.")}</p>
         <ActionLink className="login-submit" href="/login" size="auth">
-          Kembali ke Login
+          {t("Kembali ke Login")}
           <CtaArrow />
         </ActionLink>
       </div>
@@ -101,50 +116,118 @@ export function PasswordResetForm({ initialEmail = "" }: { initialEmail?: string
         <label htmlFor="reset-email">Email</label>
         <div className="login-input-wrap">
           <Mail aria-hidden="true" size={18} strokeWidth={1.8} />
-          <input id="reset-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="nama@email.com" required />
+          <input
+            id="reset-email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="nama@email.com"
+            required
+          />
         </div>
       </div>
 
       <div className="login-field">
-        <label htmlFor="reset-code">Kode verifikasi</label>
+        <label htmlFor="reset-code">{t("Kode verifikasi")}</label>
         <div className="login-input-wrap">
           <KeyRound aria-hidden="true" size={18} strokeWidth={1.8} />
-          <input id="reset-code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, ""))} placeholder="000000" required />
+          <input
+            id="reset-code"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={6}
+            value={code}
+            onChange={(event) => setCode(event.target.value.replace(/\D/g, ""))}
+            placeholder="000000"
+            required
+          />
         </div>
       </div>
 
       <div className="login-field">
-        <label htmlFor="reset-password">Kata sandi baru</label>
+        <label htmlFor="reset-password">{t("Kata sandi baru")}</label>
         <div className="login-input-wrap">
           <LockKeyhole aria-hidden="true" size={18} strokeWidth={1.8} />
-          <input id="reset-password" name="password" type={showPassword ? "text" : "password"} autoComplete="new-password" placeholder="Buat kata sandi baru" value={password} onChange={(event) => setPassword(event.target.value)} aria-describedby="reset-password-requirements" required />
-          <button className="login-password-toggle" type="button" aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"} aria-pressed={showPassword} onClick={() => setShowPassword((current) => !current)}>
-            {showPassword ? <EyeOff aria-hidden="true" size={18} strokeWidth={1.8} /> : <Eye aria-hidden="true" size={18} strokeWidth={1.8} />}
+          <input
+            id="reset-password"
+            name="password"
+            type={showPassword ? "text" : "password"}
+            autoComplete="new-password"
+            placeholder={t("Buat kata sandi baru")}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            aria-describedby="reset-password-requirements"
+            required
+          />
+          <button
+            className="login-password-toggle"
+            type="button"
+            aria-label={
+              showPassword
+                ? t("Sembunyikan kata sandi")
+                : t("Tampilkan kata sandi")
+            }
+            aria-pressed={showPassword}
+            onClick={() => setShowPassword((current) => !current)}
+          >
+            {showPassword ? (
+              <EyeOff aria-hidden="true" size={18} strokeWidth={1.8} />
+            ) : (
+              <Eye aria-hidden="true" size={18} strokeWidth={1.8} />
+            )}
           </button>
         </div>
       </div>
 
       <ul className="reset-requirements" id="reset-password-requirements">
         {requirements.map((requirement) => (
-          <li className={requirement.met ? "met" : undefined} key={requirement.label}>
-            <span aria-hidden="true">{requirement.met ? <Check size={11} strokeWidth={2.4} /> : null}</span>
-            {requirement.label}
+          <li
+            className={requirement.met ? "met" : undefined}
+            key={requirement.label}
+          >
+            <span aria-hidden="true">
+              {requirement.met ? <Check size={11} strokeWidth={2.4} /> : null}
+            </span>
+            {t(requirement.label)}
           </li>
         ))}
       </ul>
 
       <div className="login-field">
-        <label htmlFor="reset-confirmation">Konfirmasi kata sandi baru</label>
+        <label htmlFor="reset-confirmation">
+          {t("Konfirmasi kata sandi baru")}
+        </label>
         <div className="login-input-wrap">
           <LockKeyhole aria-hidden="true" size={18} strokeWidth={1.8} />
-          <input id="reset-confirmation" name="confirmation" type={showPassword ? "text" : "password"} autoComplete="new-password" placeholder="Ulangi kata sandi baru" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required />
+          <input
+            id="reset-confirmation"
+            name="confirmation"
+            type={showPassword ? "text" : "password"}
+            autoComplete="new-password"
+            placeholder={t("Ulangi kata sandi baru")}
+            value={confirmation}
+            onChange={(event) => setConfirmation(event.target.value)}
+            required
+          />
         </div>
       </div>
 
-      {error ? <p className="login-error" id="reset-error" role="alert">{error}</p> : null}
+      {t(error) ? (
+        <p className="login-error" id="reset-error" role="alert">
+          {t(error)}
+        </p>
+      ) : null}
 
-      <ActionButton className="login-submit" size="auth" type="submit" disabled={isSubmitting}>
-        <span>{isSubmitting ? "Menyimpan kata sandi…" : "Simpan kata sandi"}</span>
+      <ActionButton
+        className="login-submit"
+        size="auth"
+        type="submit"
+        disabled={isSubmitting}
+      >
+        <span>
+          {isSubmitting ? t("Menyimpan kata sandi…") : t("Simpan kata sandi")}
+        </span>
         <CtaArrow />
       </ActionButton>
     </form>
@@ -153,7 +236,7 @@ export function PasswordResetForm({ initialEmail = "" }: { initialEmail?: string
 
 async function readResetResponse(response: Response): Promise<ResetResponse> {
   try {
-    return await response.json() as ResetResponse;
+    return (await response.json()) as ResetResponse;
   } catch {
     return {};
   }

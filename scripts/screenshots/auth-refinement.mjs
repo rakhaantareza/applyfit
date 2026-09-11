@@ -19,42 +19,30 @@ import {
   settleResponsiveLayout,
 } from "./workflow.mjs";
 
-const APPEARANCE_STORAGE_KEY = "applyfit-appearance";
 const OUTPUT_ROOT = path.join(SCREENSHOT_ROOT, "auth-refinement");
 const desktop = { width: 1440, height: 900 };
 const mobile = { width: 390, height: 844 };
 
 const captures = [
   {
-    appearance: "dark",
-    file: "login-desktop-dark-1440x900.png",
-    label: "Login Desktop Dark",
-    route: { path: "/login", readySelector: "#login-title" },
-    viewport: desktop,
-  },
-  {
-    appearance: "light",
     file: "login-desktop-light-1440x900.png",
     label: "Login Desktop Light",
     route: { path: "/login", readySelector: "#login-title" },
     viewport: desktop,
   },
   {
-    appearance: "light",
     file: "login-mobile-390x844.png",
     label: "Login Mobile",
     route: { path: "/login", readySelector: "#login-title" },
     viewport: mobile,
   },
   {
-    appearance: "dark",
-    file: "register-desktop-dark-1440x900.png",
-    label: "Register Desktop Dark",
+    file: "register-desktop-light-1440x900.png",
+    label: "Register Desktop Light",
     route: { path: "/daftar", readySelector: "#registration-title" },
     viewport: desktop,
   },
   {
-    appearance: "light",
     file: "register-mobile-390x844.png",
     label: "Register Mobile",
     route: { path: "/daftar", readySelector: "#registration-title" },
@@ -70,7 +58,7 @@ try {
   await mkdir(OUTPUT_ROOT, { recursive: true });
 
   for (const capture of captures) {
-    const context = await createContext(browser, capture.appearance, capture.viewport);
+    const context = await createContext(browser, capture.viewport);
     try {
       const page = await context.newPage();
       await configurePage(page);
@@ -78,7 +66,7 @@ try {
         ...capture.route,
         label: capture.label,
       });
-      await assertAuthLayout(page, capture.label, capture.appearance);
+      await assertAuthLayout(page, capture.label);
       await page.screenshot({
         animations: "disabled",
         caret: "hide",
@@ -86,7 +74,9 @@ try {
         path: path.join(OUTPUT_ROOT, capture.file),
         scale: "device",
       });
-      console.log(`${capture.label}: ${capture.viewport.width}x${capture.viewport.height}`);
+      console.log(
+        `${capture.label}: ${capture.viewport.width}x${capture.viewport.height}`,
+      );
     } finally {
       await context.close();
     }
@@ -96,7 +86,9 @@ try {
   await verifyRegistration(browser, baseUrl);
   await verifyRecoveryAndReset(browser, baseUrl);
 
-  console.log(`Auth QA passed. Screenshots: ${path.relative(process.cwd(), OUTPUT_ROOT)}.`);
+  console.log(
+    `Auth QA passed. Screenshots: ${path.relative(process.cwd(), OUTPUT_ROOT)}.`,
+  );
 } catch (error) {
   console.error(errorMessage(error));
   process.exitCode = 1;
@@ -104,48 +96,42 @@ try {
   await browser?.close().catch(() => {});
 }
 
-async function createContext(browserInstance, appearance, viewport) {
+async function createContext(browserInstance, viewport) {
   const context = await browserInstance.newContext({
-    colorScheme: appearance,
+    colorScheme: "light",
     deviceScaleFactor: SCREENSHOT_DEVICE_SCALE_FACTOR,
     viewport,
   });
-  await context.addInitScript(({ appearanceValue, storageKey }) => {
-    try {
-      window.localStorage.setItem(storageKey, appearanceValue);
-    } catch {
-      // The script runs again for the ApplyFit origin.
-    }
-    document.documentElement.dataset.appearance = appearanceValue;
-    document.documentElement.dataset.theme = appearanceValue;
-    document.documentElement.style.colorScheme = appearanceValue;
-  }, { appearanceValue: appearance, storageKey: APPEARANCE_STORAGE_KEY });
   return context;
 }
 
-async function assertAuthLayout(page, label, appearance) {
+async function assertAuthLayout(page, label) {
   const layout = await page.evaluate(() => ({
-    appearance: document.documentElement.dataset.appearance,
+    appearance: getComputedStyle(document.documentElement).colorScheme,
     clientWidth: document.documentElement.clientWidth,
     scrollWidth: document.documentElement.scrollWidth,
-    theme: document.documentElement.dataset.theme,
-    betaCount: [...document.querySelectorAll(".auth-beta")]
-      .filter((element) => element.getClientRects().length > 0).length,
+    betaCount: [...document.querySelectorAll(".auth-beta")].filter(
+      (element) => element.getClientRects().length > 0,
+    ).length,
   }));
 
-  if (layout.appearance !== appearance || layout.theme !== appearance) {
-    throw new ScreenshotWorkflowError(`${label} did not retain the ${appearance} appearance.`);
+  if (layout.appearance !== "light") {
+    throw new ScreenshotWorkflowError(
+      `${label} did not retain the light appearance.`,
+    );
   }
   if (layout.scrollWidth > layout.clientWidth) {
     throw new ScreenshotWorkflowError(`${label} has horizontal overflow.`);
   }
   if (layout.betaCount !== 1) {
-    throw new ScreenshotWorkflowError(`${label} must show one quiet Beta indicator.`);
+    throw new ScreenshotWorkflowError(
+      `${label} must show one quiet Beta indicator.`,
+    );
   }
 }
 
 async function verifyLoginAndDemo(browserInstance, baseUrl) {
-  const validationContext = await createContext(browserInstance, "light", desktop);
+  const validationContext = await createContext(browserInstance, desktop);
   try {
     const page = await validationContext.newPage();
     await configurePage(page);
@@ -162,7 +148,7 @@ async function verifyLoginAndDemo(browserInstance, baseUrl) {
     await validationContext.close();
   }
 
-  const demoContext = await createContext(browserInstance, "light", desktop);
+  const demoContext = await createContext(browserInstance, desktop);
   try {
     const page = await demoContext.newPage();
     await configurePage(page);
@@ -187,7 +173,7 @@ async function verifyLoginAndDemo(browserInstance, baseUrl) {
 }
 
 async function verifyRegistration(browserInstance, baseUrl) {
-  const context = await createContext(browserInstance, "light", mobile);
+  const context = await createContext(browserInstance, mobile);
   try {
     const page = await context.newPage();
     await configurePage(page);
@@ -197,7 +183,9 @@ async function verifyRegistration(browserInstance, baseUrl) {
       readySelector: "#registration-title",
     });
     if (await page.locator("input[type=checkbox]").count()) {
-      throw new ScreenshotWorkflowError("Register still exposes a pseudo-legal checkbox.");
+      throw new ScreenshotWorkflowError(
+        "Register still exposes a pseudo-legal checkbox.",
+      );
     }
     await page.getByRole("button", { name: "Buat akun", exact: true }).click();
     await page.locator("#registration-error").waitFor({ state: "visible" });
@@ -207,7 +195,7 @@ async function verifyRegistration(browserInstance, baseUrl) {
 }
 
 async function verifyRecoveryAndReset(browserInstance, baseUrl) {
-  const context = await createContext(browserInstance, "dark", mobile);
+  const context = await createContext(browserInstance, mobile);
   try {
     const page = await context.newPage();
     await configurePage(page);
@@ -220,17 +208,22 @@ async function verifyRecoveryAndReset(browserInstance, baseUrl) {
     await page.getByRole("button", { name: "Kirim kode", exact: true }).click();
     await page.locator("#recovery-error").waitFor({ state: "visible" });
 
-    await page.goto(new URL("/reset-kata-sandi?email=demo%40example.com", baseUrl).href, {
-      waitUntil: "domcontentloaded",
-    });
+    await page.goto(
+      new URL("/reset-kata-sandi?email=demo%40example.com", baseUrl).href,
+      {
+        waitUntil: "domcontentloaded",
+      },
+    );
     await page.locator("#reset-title").waitFor({ state: "visible" });
     await page.locator("#reset-code").fill("123");
     await page.locator("#reset-password").fill("baru123");
     await page.locator("#reset-confirmation").fill("baru123");
-    await page.getByRole("button", { name: "Simpan kata sandi", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Simpan kata sandi", exact: true })
+      .click();
     await page.locator("#reset-error").waitFor({ state: "visible" });
-    await settleResponsiveLayout(page, "Reset Password mobile dark");
-    await assertAuthLayout(page, "Reset Password mobile dark", "dark");
+    await settleResponsiveLayout(page, "Reset Password mobile");
+    await assertAuthLayout(page, "Reset Password mobile");
   } finally {
     await context.close();
   }

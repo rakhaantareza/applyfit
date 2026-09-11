@@ -1,4 +1,5 @@
 "use client";
+import { useI18n } from "../../../components/LanguageProvider";
 
 import {
   Check,
@@ -51,16 +52,22 @@ export function RequirementReviewEditor({
   jobId: string;
   initialRequirements: Requirement[];
 }) {
+  const { t } = useI18n();
   const [requirements, setRequirements] = useState(initialRequirements);
   const [editor, setEditor] = useState<EditorState>(null);
   const [draftText, setDraftText] = useState("");
-  const [draftPriority, setDraftPriority] = useState<RequirementPriority>("Wajib");
+  const [draftPriority, setDraftPriority] =
+    useState<RequirementPriority>("Wajib");
   const [draftType, setDraftType] = useState<RequirementType>("Skill");
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
-  const [selectedRequirementIds, setSelectedRequirementIds] = useState<string[]>([]);
+  const [selectedRequirementIds, setSelectedRequirementIds] = useState<
+    string[]
+  >([]);
   const [selectionError, setSelectionError] = useState("");
-  const [splitRequirementId, setSplitRequirementId] = useState<string | null>(null);
+  const [splitRequirementId, setSplitRequirementId] = useState<string | null>(
+    null,
+  );
   const [splitDrafts, setSplitDrafts] = useState<string[]>([]);
   const [splitError, setSplitError] = useState("");
   const [isDirty, setIsDirty] = useState(false);
@@ -73,8 +80,12 @@ export function RequirementReviewEditor({
   const typeId = useId();
   const textRef = useRef<HTMLTextAreaElement>(null);
 
-  const requiredRequirements = requirements.filter((item) => item.priority === "Wajib");
-  const preferredRequirements = requirements.filter((item) => item.priority === "Preferensi");
+  const requiredRequirements = requirements.filter(
+    (item) => item.priority === "Wajib",
+  );
+  const preferredRequirements = requirements.filter(
+    (item) => item.priority === "Preferensi",
+  );
   const excludedRequirementCount = requirements.filter(
     (item) => item.type === "Pengalaman" || item.type === "Pendidikan",
   ).length;
@@ -89,7 +100,9 @@ export function RequirementReviewEditor({
   useEffect(() => {
     if (!editor) return;
 
-    const focusFrame = window.requestAnimationFrame(() => textRef.current?.focus());
+    const focusFrame = window.requestAnimationFrame(() =>
+      textRef.current?.focus(),
+    );
     return () => window.cancelAnimationFrame(focusFrame);
   }, [editor]);
 
@@ -264,7 +277,9 @@ export function RequirementReviewEditor({
     setSelectedRequirementIds([]);
     setSelectionError("");
     setIsSelectionMode(false);
-    setAnnouncement(`${selectedRequirements.length} requirement berhasil digabungkan.`);
+    setAnnouncement(
+      `${selectedRequirements.length} requirement berhasil digabungkan.`,
+    );
   }
 
   function openSplitEditor(requirement: Requirement) {
@@ -287,7 +302,9 @@ export function RequirementReviewEditor({
 
   function updateSplitDraft(index: number, value: string) {
     setSplitDrafts((current) =>
-      current.map((draft, draftIndex) => draftIndex === index ? value : draft),
+      current.map((draft, draftIndex) =>
+        draftIndex === index ? value : draft,
+      ),
     );
     setSplitError("");
   }
@@ -311,7 +328,9 @@ export function RequirementReviewEditor({
     }
 
     setRequirements((current) => {
-      const sourceIndex = current.findIndex((item) => item.id === splitRequirement.id);
+      const sourceIndex = current.findIndex(
+        (item) => item.id === splitRequirement.id,
+      );
       if (sourceIndex < 0) return current;
 
       const splitItems: Requirement[] = parts.map((text, index) => ({
@@ -346,7 +365,7 @@ export function RequirementReviewEditor({
         item.id === requirement.id
           ? { ...item, priority, reviewed: true }
           : item,
-        ),
+      ),
     );
     markUnsaved();
     setPendingDeleteId(null);
@@ -368,28 +387,39 @@ export function RequirementReviewEditor({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             requirements: requirements.map((requirement) => ({
-              ...(requirement.persistedId ? { id: requirement.persistedId } : {}),
+              ...(requirement.persistedId
+                ? { id: requirement.persistedId }
+                : {}),
               name: requirement.text,
               type: toApiType(requirement.type),
-              priority: requirement.priority === "Wajib" ? "required" : "preferred",
+              priority:
+                requirement.priority === "Wajib" ? "required" : "preferred",
             })),
           }),
         },
       );
       const result = await readReviewResponse(response);
       if (!response.ok || !result.data?.requirements) {
-        throw new Error(result.error?.message ?? "Review requirement belum dapat disimpan.");
+        throw new Error(
+          result.error?.message ?? "Review requirement belum dapat disimpan.",
+        );
       }
 
       setRequirements(result.data.requirements.map(fromApiRequirement));
       setIsSaving(false);
       setIsDirty(false);
       setHasSaved(true);
-      window.sessionStorage.removeItem(`applyfit:extracted-requirements:${jobId}`);
+      window.sessionStorage.removeItem(
+        `applyfit:extracted-requirements:${jobId}`,
+      );
       setAnnouncement("Review requirement berhasil disimpan.");
     } catch (requestError) {
       setIsSaving(false);
-      setError(requestError instanceof Error ? requestError.message : "Review requirement belum dapat disimpan.");
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Review requirement belum dapat disimpan.",
+      );
     }
   }
 
@@ -399,12 +429,16 @@ export function RequirementReviewEditor({
     items: Requirement[],
   ) {
     return (
-      <div className={`requirement-review-group${title === "Preferensi" ? " preferred" : ""}`}>
+      <div
+        className={`requirement-review-group${title === "Preferensi" ? " preferred" : ""}`}
+      >
         <div className="requirement-review-group-heading">
-          <span aria-hidden="true"><ListChecks size={16} strokeWidth={1.8} /></span>
+          <span aria-hidden="true">
+            <ListChecks size={16} strokeWidth={1.8} />
+          </span>
           <div>
-            <h3>{title}</h3>
-            <p>{description}</p>
+            <h3>{t(title)}</h3>
+            <p>{t(description)}</p>
           </div>
         </div>
         <div className="requirement-review-list">
@@ -415,7 +449,9 @@ export function RequirementReviewEditor({
             return (
               <article
                 className={`${isSelectionMode ? "selection-mode" : ""}${
-                  selectedRequirementIds.includes(requirement.id) ? " selected" : ""
+                  selectedRequirementIds.includes(requirement.id)
+                    ? " selected"
+                    : ""
                 }`}
                 key={requirement.id}
               >
@@ -424,14 +460,18 @@ export function RequirementReviewEditor({
                     <input
                       type="checkbox"
                       checked={selectedRequirementIds.includes(requirement.id)}
-                      onChange={() => toggleRequirementSelection(requirement.id)}
+                      onChange={() =>
+                        toggleRequirementSelection(requirement.id)
+                      }
                     />
                     <span aria-hidden="true">
                       {selectedRequirementIds.includes(requirement.id) ? (
                         <Check size={12} strokeWidth={2.3} />
                       ) : null}
                     </span>
-                    <span className="sr-only">Pilih requirement: {requirement.text}</span>
+                    <span className="sr-only">
+                      {t("Pilih requirement:")} {requirement.text}
+                    </span>
                   </label>
                 ) : null}
                 <span className="requirement-review-number">{index + 1}</span>
@@ -446,84 +486,121 @@ export function RequirementReviewEditor({
                   <div
                     className="requirement-priority-control"
                     role="group"
-                    aria-label={`Prioritas requirement: ${requirement.text}`}
+                    aria-label={t(`Prioritas requirement: ${requirement.text}`)}
                   >
-                    {(["Wajib", "Preferensi"] as const).map((priority) => (
-                      <button
-                        className={requirement.priority === priority ? "active" : undefined}
-                        type="button"
-                        aria-pressed={requirement.priority === priority}
-                        key={priority}
-                        onClick={() => updateRequirementPriority(requirement, priority)}
-                      >
-                        {priority}
-                      </button>
-                    ))}
+                    {([t("Wajib"), t("Preferensi")] as const).map(
+                      (priority) => (
+                        <button
+                          className={
+                            requirement.priority === priority
+                              ? "active"
+                              : undefined
+                          }
+                          type="button"
+                          aria-pressed={requirement.priority === priority}
+                          key={priority}
+                          onClick={() =>
+                            updateRequirementPriority(requirement, priority)
+                          }
+                        >
+                          {priority}
+                        </button>
+                      ),
+                    )}
                   </div>
                 ) : null}
-                <span className={`requirement-review-state${requirement.reviewed ? " reviewed" : ""}`}>
+                <span
+                  className={`requirement-review-state${requirement.reviewed ? " reviewed" : ""}`}
+                >
                   {requirement.reviewed ? (
-                    <UserRoundCheck aria-hidden="true" size={12} strokeWidth={1.8} />
+                    <UserRoundCheck
+                      aria-hidden="true"
+                      size={12}
+                      strokeWidth={1.8}
+                    />
                   ) : (
                     <Sparkles aria-hidden="true" size={12} strokeWidth={1.8} />
                   )}
-                  {requirement.reviewed ? "Diedit pengguna" : "Hasil AI"}
+                  {requirement.reviewed ? t("Diedit pengguna") : t("Hasil AI")}
                 </span>
-                {!isSelectionMode ? <div className="requirement-row-actions">
-                  {isPendingDelete ? (
-                    <div
-                      className="requirement-delete-confirmation"
-                      role="group"
-                      aria-label={`Hapus requirement: ${requirement.text}`}
-                    >
-                      <span>Hapus requirement?</span>
-                      <button type="button" onClick={() => setPendingDeleteId(null)}>
-                        Batal
-                      </button>
-                      <button
-                        className="danger"
-                        type="button"
-                        onClick={() => deleteRequirement(requirement)}
+                {!isSelectionMode ? (
+                  <div className="requirement-row-actions">
+                    {isPendingDelete ? (
+                      <div
+                        className="requirement-delete-confirmation"
+                        role="group"
+                        aria-label={t(`Hapus requirement: ${requirement.text}`)}
                       >
-                        Hapus
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <IconButton
-                        size="compact"
-                        className="requirement-edit-button"
-                        type="button"
-                        aria-label={`Edit requirement: ${requirement.text}`}
-                        onClick={() => openEditEditor(requirement)}
-                      >
-                        <Pencil aria-hidden="true" size={14} strokeWidth={1.9} />
-                      </IconButton>
-                      <IconButton
-                        size="compact"
-                        className="requirement-split-button"
-                        type="button"
-                        aria-label={`Pisahkan requirement: ${requirement.text}`}
-                        onClick={() => openSplitEditor(requirement)}
-                      >
-                        <Scissors aria-hidden="true" size={14} strokeWidth={1.9} />
-                      </IconButton>
-                      <IconButton
-                        size="compact"
-                        tone="destructive"
-                        className="requirement-delete-button"
-                        type="button"
-                        aria-label={`Hapus requirement: ${requirement.text}`}
-                        onClick={() => {
-                          setPendingDeleteId(requirement.id);
-                          setEditor(null);
-                        }}
-                      >
-                        <Trash2 aria-hidden="true" size={14} strokeWidth={1.9} />
-                      </IconButton>
-                    </>
-                  )}
-                </div> : null}
+                        <span>{t("Hapus requirement?")}</span>
+                        <button
+                          type="button"
+                          onClick={() => setPendingDeleteId(null)}
+                        >
+                          {t("Batal")}
+                        </button>
+                        <button
+                          className="danger ui-record-action ui-record-action--delete"
+                          type="button"
+                          onClick={() => deleteRequirement(requirement)}
+                        >
+                          {t("Hapus")}
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <IconButton
+                          size="compact"
+                          className="requirement-edit-button ui-record-action ui-record-action--edit"
+                          type="button"
+                          aria-label={t(
+                            `Edit requirement: ${requirement.text}`,
+                          )}
+                          onClick={() => openEditEditor(requirement)}
+                        >
+                          <Pencil
+                            aria-hidden="true"
+                            size={14}
+                            strokeWidth={1.9}
+                          />
+                        </IconButton>
+                        <IconButton
+                          size="compact"
+                          className="requirement-split-button ui-record-action ui-record-action--edit"
+                          type="button"
+                          aria-label={t(
+                            `Pisahkan requirement: ${requirement.text}`,
+                          )}
+                          onClick={() => openSplitEditor(requirement)}
+                        >
+                          <Scissors
+                            aria-hidden="true"
+                            size={14}
+                            strokeWidth={1.9}
+                          />
+                        </IconButton>
+                        <IconButton
+                          size="compact"
+                          tone="destructive"
+                          className="requirement-delete-button ui-record-action ui-record-action--delete"
+                          type="button"
+                          aria-label={t(
+                            `Hapus requirement: ${requirement.text}`,
+                          )}
+                          onClick={() => {
+                            setPendingDeleteId(requirement.id);
+                            setEditor(null);
+                          }}
+                        >
+                          <Trash2
+                            aria-hidden="true"
+                            size={14}
+                            strokeWidth={1.9}
+                          />
+                        </IconButton>
+                      </>
+                    )}
+                  </div>
+                ) : null}
               </article>
             );
           })}
@@ -533,26 +610,44 @@ export function RequirementReviewEditor({
   }
 
   return (
-    <section className="requirement-review-list-section" aria-labelledby="review-list-title">
+    <section
+      className="requirement-review-list-section"
+      aria-labelledby="review-list-title"
+    >
       <div className="requirement-review-section-heading">
         <div>
-          <p className="eyebrow">Draft requirement</p>
-          <h2 id="review-list-title">Hasil yang perlu diperiksa</h2>
+          <h2 id="review-list-title">{t("Hasil yang perlu diperiksa")}</h2>
         </div>
         <div className="requirement-review-heading-actions">
-          <div className="requirement-review-counts" aria-label="Ringkasan hasil ekstraksi">
-            <span><strong>{requiredRequirements.length}</strong> wajib</span>
-            <span><strong>{preferredRequirements.length}</strong> preferensi</span>
-            <span><strong>{excludedRequirementCount}</strong> di luar Fit Score</span>
+          <div
+            className="requirement-review-counts"
+            aria-label={t("Ringkasan hasil ekstraksi")}
+          >
+            <span>
+              <strong>{requiredRequirements.length}</strong> {t("wajib")}
+            </span>
+            <span>
+              <strong>{preferredRequirements.length}</strong> {t("preferensi")}
+            </span>
+            <span>
+              <strong>{excludedRequirementCount}</strong>{" "}
+              {t("di luar Fit Score")}
+            </span>
           </div>
           <div>
-            <ActionButton className="secondary" size="compact" variant="secondary" type="button" onClick={openSelectionMode}>
+            <ActionButton
+              className="secondary"
+              size="compact"
+              variant="secondary"
+              type="button"
+              onClick={openSelectionMode}
+            >
               <Combine aria-hidden="true" size={15} strokeWidth={1.9} />
-              Pilih & gabungkan
+              {t("Pilih & gabungkan")}
             </ActionButton>
             <ActionButton size="compact" type="button" onClick={openAddEditor}>
               <Plus aria-hidden="true" size={15} strokeWidth={2} />
-              Tambah requirement
+              {t("Tambah persyaratan")}
             </ActionButton>
           </div>
         </div>
@@ -561,12 +656,23 @@ export function RequirementReviewEditor({
       {isSelectionMode ? (
         <div className="requirement-selection-toolbar" role="status">
           <div>
-            <strong>{selectedRequirementIds.length} dipilih</strong>
-            <span>Pilih requirement dengan tipe dan prioritas yang sama.</span>
+            <strong>
+              {selectedRequirementIds.length} {t("dipilih")}
+            </strong>
+            <span>
+              {t("Pilih requirement dengan tipe dan prioritas yang sama.")}
+            </span>
           </div>
           {selectionError ? <p role="alert">{selectionError}</p> : null}
           <div>
-            <ActionButton size="compact" variant="secondary" type="button" onClick={closeSelectionMode}>Batal</ActionButton>
+            <ActionButton
+              size="compact"
+              variant="secondary"
+              type="button"
+              onClick={closeSelectionMode}
+            >
+              {t("Batal")}
+            </ActionButton>
             <ActionButton
               className="primary"
               size="compact"
@@ -575,21 +681,27 @@ export function RequirementReviewEditor({
               onClick={mergeSelectedRequirements}
             >
               <Combine aria-hidden="true" size={14} strokeWidth={1.9} />
-              Gabungkan {selectedRequirementIds.length || ""}
+              {t("Gabungkan")} {selectedRequirementIds.length || ""}
             </ActionButton>
           </div>
         </div>
       ) : null}
 
       {splitRequirement ? (
-        <form className="requirement-split-editor" onSubmit={splitSelectedRequirement}>
+        <form
+          className="requirement-split-editor"
+          onSubmit={splitSelectedRequirement}
+        >
           <div className="requirement-split-heading">
-            <span aria-hidden="true"><Scissors size={17} strokeWidth={1.9} /></span>
+            <span aria-hidden="true">
+              <Scissors size={17} strokeWidth={1.9} />
+            </span>
             <div>
-              <strong>Pisahkan menjadi requirement spesifik</strong>
+              <strong>{t("Pisahkan menjadi requirement spesifik")}</strong>
               <p>
-                Tipe <b>{splitRequirement.type}</b> dan prioritas <b>{splitRequirement.priority}</b>
-                {" "}akan dipertahankan untuk semua hasil.
+                {t("Tipe")} <b>{t(splitRequirement.type)}</b>{" "}
+                {t("dan prioritas")} <b>{t(splitRequirement.priority)}</b>{" "}
+                {t("akan dipertahankan untuk semua hasil.")}
               </p>
             </div>
           </div>
@@ -598,23 +710,31 @@ export function RequirementReviewEditor({
 
           <div className="requirement-split-fields">
             {splitDrafts.map((draft, index) => (
-              <label htmlFor={`${splitFieldBaseId}-${index}`} key={`${splitFieldBaseId}-${index}`}>
+              <label
+                htmlFor={`${splitFieldBaseId}-${index}`}
+                key={`${splitFieldBaseId}-${index}`}
+              >
                 <span>Requirement {index + 1}</span>
                 <div>
                   <input
                     id={`${splitFieldBaseId}-${index}`}
                     value={draft}
-                    onChange={(event) => updateSplitDraft(index, event.target.value)}
+                    onChange={(event) =>
+                      updateSplitDraft(index, event.target.value)
+                    }
                   />
                   {splitDrafts.length > 2 ? (
                     <IconButton
                       size="compact"
                       tone="destructive"
+                      className="ui-record-action ui-record-action--delete"
                       type="button"
-                      aria-label={`Hapus kolom requirement ${index + 1}`}
+                      aria-label={t(`Hapus kolom requirement ${index + 1}`)}
                       onClick={() =>
                         setSplitDrafts((current) =>
-                          current.filter((_, draftIndex) => draftIndex !== index),
+                          current.filter(
+                            (_, draftIndex) => draftIndex !== index,
+                          ),
                         )
                       }
                     >
@@ -636,16 +756,21 @@ export function RequirementReviewEditor({
               onClick={() => setSplitDrafts((current) => [...current, ""])}
             >
               <Plus aria-hidden="true" size={14} strokeWidth={2} />
-              Tambah bagian
+              {t("Tambah bagian")}
             </ActionButton>
             {splitError ? <p role="alert">{splitError}</p> : <span />}
             <div>
-              <ActionButton className="career-button secondary" variant="secondary" type="button" onClick={closeSplitEditor}>
-                Batal
+              <ActionButton
+                className="career-button secondary"
+                variant="secondary"
+                type="button"
+                onClick={closeSplitEditor}
+              >
+                {t("Batal")}
               </ActionButton>
               <ActionButton className="career-button primary" type="submit">
                 <Scissors aria-hidden="true" size={15} strokeWidth={1.9} />
-                Pisahkan requirement
+                {t("Pisahkan requirement")}
               </ActionButton>
             </div>
           </div>
@@ -655,11 +780,19 @@ export function RequirementReviewEditor({
       {editor ? (
         <form className="requirement-editor" onSubmit={handleSubmit}>
           <div className="requirement-editor-heading">
-            <strong>{editor.mode === "add" ? "Tambah requirement" : "Edit requirement"}</strong>
-            <span>Gunakan satu kalimat yang menjelaskan satu requirement dengan jelas.</span>
+            <strong>
+              {editor.mode === "add"
+                ? t("Tambah requirement")
+                : t("Edit requirement")}
+            </strong>
+            <span>
+              {t(
+                "Gunakan satu kalimat yang menjelaskan satu requirement dengan jelas.",
+              )}
+            </span>
           </div>
           <label className="requirement-editor-text" htmlFor={textId}>
-            <span>Isi requirement</span>
+            <span>{t("Isi requirement")}</span>
             <textarea
               id={textId}
               ref={textRef}
@@ -669,39 +802,48 @@ export function RequirementReviewEditor({
             />
           </label>
           <label htmlFor={priorityId}>
-            <span>Prioritas</span>
+            <span>{t("Prioritas")}</span>
             <select
               id={priorityId}
               value={draftPriority}
-              onChange={(event) => setDraftPriority(event.target.value as RequirementPriority)}
+              onChange={(event) =>
+                setDraftPriority(event.target.value as RequirementPriority)
+              }
             >
-              <option>Wajib</option>
-              <option>Preferensi</option>
+              <option value={"Wajib"}>{t("Wajib")}</option>
+              <option value={"Preferensi"}>{t("Preferensi")}</option>
             </select>
           </label>
           <label htmlFor={typeId}>
-            <span>Tipe</span>
+            <span>{t("Tipe")}</span>
             <select
               id={typeId}
               value={draftType}
-              onChange={(event) => setDraftType(event.target.value as RequirementType)}
+              onChange={(event) =>
+                setDraftType(event.target.value as RequirementType)
+              }
             >
               <option>Skill</option>
               <option>Tool</option>
-              <option>Pengalaman</option>
-              <option>Pendidikan</option>
+              <option value={"Pengalaman"}>{t("Pengalaman")}</option>
+              <option value={"Pendidikan"}>{t("Pendidikan")}</option>
             </select>
           </label>
           <div className="requirement-editor-actions">
-            {error ? <p role="alert">{error}</p> : <span />}
+            {t(error) ? <p role="alert">{t(error)}</p> : <span />}
             <div>
-              <ActionButton className="career-button secondary" variant="secondary" type="button" onClick={closeEditor}>
+              <ActionButton
+                className="career-button secondary"
+                variant="secondary"
+                type="button"
+                onClick={closeEditor}
+              >
                 <X aria-hidden="true" size={16} strokeWidth={1.9} />
-                Batal
+                {t("Batal")}
               </ActionButton>
               <ActionButton className="career-button primary" type="submit">
                 <Check aria-hidden="true" size={16} strokeWidth={2} />
-                Simpan requirement
+                {t("Simpan requirement")}
               </ActionButton>
             </div>
           </div>
@@ -709,26 +851,32 @@ export function RequirementReviewEditor({
       ) : null}
 
       {renderRequirementGroup(
-        "Wajib",
-        "Requirement utama yang dinyatakan perlu dipenuhi pada lowongan.",
+        t("Wajib"),
+        t("Requirement utama yang dinyatakan perlu dipenuhi pada lowongan."),
         requiredRequirements,
       )}
       {renderRequirementGroup(
-        "Preferensi",
-        "Kualifikasi tambahan yang memberi konteks, dengan bobot lebih rendah.",
+        t("Preferensi"),
+        t(
+          "Kualifikasi tambahan yang memberi konteks, dengan bobot lebih rendah.",
+        ),
         preferredRequirements,
       )}
 
       <div className="requirement-review-note">
         <CircleAlert aria-hidden="true" size={17} strokeWidth={1.8} />
         <p>
-          Requirement pengalaman dan pendidikan tetap disimpan sebagai konteks,
-          tetapi tidak dihitung dalam Fit Score. Halaman ini belum menampilkan
-          status kesiapan profil.
+          {t(
+            "Requirement pengalaman dan pendidikan tetap disimpan sebagai konteks, tetapi tidak dihitung dalam Fit Score. Halaman ini belum menampilkan status kesiapan profil.",
+          )}
         </p>
       </div>
 
-      {!editor && error ? <p className="job-extraction-error" role="alert">{error}</p> : null}
+      {!editor && t(error) ? (
+        <p className="job-extraction-error" role="alert">
+          {t(error)}
+        </p>
+      ) : null}
 
       <div className={`requirement-review-savebar${hasSaved ? " saved" : ""}`}>
         <div>
@@ -740,13 +888,19 @@ export function RequirementReviewEditor({
             )}
           </span>
           <div>
-            <strong>{hasSaved ? "Review tersimpan" : "Simpan hasil review"}</strong>
+            <strong>
+              {hasSaved ? t("Review tersimpan") : t("Simpan hasil review")}
+            </strong>
             <p>
               {hasSaved
-                ? "Persyaratan yang sudah diperiksa tersimpan untuk lowongan ini."
+                ? t(
+                    "Persyaratan yang sudah diperiksa tersimpan untuk lowongan ini.",
+                  )
                 : isDirty
-                  ? "Ada perubahan pada requirement yang belum disimpan."
-                  : "Simpan daftar ini setelah kamu selesai memeriksa hasil ekstraksi."}
+                  ? t("Ada perubahan pada requirement yang belum disimpan.")
+                  : t(
+                      "Simpan daftar ini setelah kamu selesai memeriksa hasil ekstraksi.",
+                    )}
             </p>
           </div>
         </div>
@@ -757,17 +911,28 @@ export function RequirementReviewEditor({
           onClick={saveReview}
         >
           {isSaving ? (
-            <LoaderCircle className="spin" aria-hidden="true" size={15} strokeWidth={1.9} />
+            <LoaderCircle
+              className="spin"
+              aria-hidden="true"
+              size={15}
+              strokeWidth={1.9}
+            />
           ) : hasSaved ? (
             <Check aria-hidden="true" size={15} strokeWidth={2} />
           ) : (
             <Save aria-hidden="true" size={15} strokeWidth={1.9} />
           )}
-          {isSaving ? "Menyimpan..." : hasSaved ? "Tersimpan" : "Simpan review"}
+          {isSaving
+            ? t("Menyimpan...")
+            : hasSaved
+              ? t("Tersimpan")
+              : t("Simpan review")}
         </ActionButton>
       </div>
 
-      <span className="sr-only" aria-live="polite">{announcement}</span>
+      <span className="sr-only" aria-live="polite">
+        {t(announcement)}
+      </span>
     </section>
   );
 }
@@ -785,7 +950,12 @@ type ReviewResponse = {
 };
 
 function toApiType(type: RequirementType): ApiRequirement["type"] {
-  return { Skill: "skill", Tool: "tool", Pendidikan: "education", Pengalaman: "experience" }[type] as ApiRequirement["type"];
+  return {
+    Skill: "skill",
+    Tool: "tool",
+    Pendidikan: "education",
+    Pengalaman: "experience",
+  }[type] as ApiRequirement["type"];
 }
 
 function fromApiRequirement(requirement: ApiRequirement): Requirement {
@@ -793,12 +963,21 @@ function fromApiRequirement(requirement: ApiRequirement): Requirement {
     id: requirement.id,
     persistedId: requirement.id,
     text: requirement.name,
-    type: { skill: "Skill", tool: "Tool", education: "Pendidikan", experience: "Pengalaman" }[requirement.type] as RequirementType,
+    type: {
+      skill: "Skill",
+      tool: "Tool",
+      education: "Pendidikan",
+      experience: "Pengalaman",
+    }[requirement.type] as RequirementType,
     priority: requirement.priority === "required" ? "Wajib" : "Preferensi",
     reviewed: true,
   };
 }
 
 async function readReviewResponse(response: Response): Promise<ReviewResponse> {
-  try { return await response.json() as ReviewResponse; } catch { return {}; }
+  try {
+    return (await response.json()) as ReviewResponse;
+  } catch {
+    return {};
+  }
 }

@@ -6,10 +6,17 @@ type EvidenceMappingPageProps = { params: Promise<{ id: string }> };
 
 export const metadata: Metadata = {
   title: "Cocokkan Profil",
-  description: "Hubungkan requirement lowongan dengan skill dan bukti profil secara transparan.",
+  description:
+    "Hubungkan requirement lowongan dengan skill dan bukti profil secara transparan.",
 };
 
-export default async function EvidenceMappingPage({ params }: EvidenceMappingPageProps) {
+export default async function EvidenceMappingPage({
+  params,
+}: EvidenceMappingPageProps) {
   const { id } = await params;
-  return <AuthenticatedRoute><EvidenceMappingPageWorkspace jobId={id} /></AuthenticatedRoute>;
+  return (
+    <AuthenticatedRoute>
+      <EvidenceMappingPageWorkspace jobId={id} />
+    </AuthenticatedRoute>
+  );
 }

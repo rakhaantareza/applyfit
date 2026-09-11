@@ -1,4 +1,5 @@
 "use client";
+import { useI18n } from "../components/LanguageProvider";
 
 import {
   CircleCheckBig,
@@ -23,6 +24,7 @@ type AuthResponse = {
 };
 
 export function RegistrationForm() {
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -69,7 +71,9 @@ export function RegistrationForm() {
       });
       const result = await readAuthResponse(response);
       if (!response.ok) {
-        throw new Error(result.error?.message ?? "Akun belum dapat dibuat. Coba lagi.");
+        throw new Error(
+          result.error?.message ?? "Akun belum dapat dibuat. Coba lagi.",
+        );
       }
 
       if (result.data?.requireEmailVerification) {
@@ -79,7 +83,9 @@ export function RegistrationForm() {
       }
 
       if (!result.data?.user) {
-        throw new Error("Akun dibuat, tetapi sesi belum dapat disiapkan. Silakan masuk.");
+        throw new Error(
+          "Akun dibuat, tetapi sesi belum dapat disiapkan. Silakan masuk.",
+        );
       }
       window.location.assign("/beranda");
     } catch (requestError) {
@@ -111,7 +117,9 @@ export function RegistrationForm() {
       });
       const result = await readAuthResponse(response);
       if (!response.ok || !result.data?.verified) {
-        throw new Error(result.error?.message ?? "Kode verifikasi tidak valid.");
+        throw new Error(
+          result.error?.message ?? "Kode verifikasi tidak valid.",
+        );
       }
       window.location.assign("/beranda");
     } catch (requestError) {
@@ -136,7 +144,9 @@ export function RegistrationForm() {
       });
       const result = await readAuthResponse(response);
       if (!response.ok) {
-        throw new Error(result.error?.message ?? "Kode belum dapat dikirim ulang.");
+        throw new Error(
+          result.error?.message ?? "Kode belum dapat dikirim ulang.",
+        );
       }
       setResendMessage("Kode verifikasi baru sudah dikirim ke emailmu.");
     } catch (requestError) {
@@ -152,20 +162,27 @@ export function RegistrationForm() {
 
   if (verificationEmail) {
     return (
-      <form className="login-form registration-verification" onSubmit={submitVerification} noValidate>
+      <form
+        className="login-form registration-verification"
+        onSubmit={submitVerification}
+        noValidate
+      >
         <span className="registration-success-icon" aria-hidden="true">
           <CircleCheckBig size={26} strokeWidth={1.8} />
         </span>
         <div className="registration-verification-copy">
-          <p className="eyebrow">Satu langkah lagi</p>
-          <h3>Verifikasi emailmu</h3>
+          <p className="eyebrow">{t("Satu langkah lagi")}</p>
+          <h3>{t("Verifikasi emailmu")}</h3>
           <p>
-            Masukkan kode 6 digit yang dikirim ke <strong>{verificationEmail}</strong>.
+            {t("Masukkan kode 6 digit yang dikirim ke")}{" "}
+            <strong>{verificationEmail}</strong>.
           </p>
         </div>
 
         <div className="login-field">
-          <label htmlFor="registration-verification-code">Kode verifikasi</label>
+          <label htmlFor="registration-verification-code">
+            {t("Kode verifikasi")}
+          </label>
           <div className="login-input-wrap">
             <Mail aria-hidden="true" size={18} strokeWidth={1.8} />
             <input
@@ -176,18 +193,35 @@ export function RegistrationForm() {
               maxLength={6}
               placeholder="000000"
               value={verificationCode}
-              onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, ""))}
+              onChange={(event) =>
+                setVerificationCode(event.target.value.replace(/\D/g, ""))
+              }
               aria-describedby={error ? "registration-error" : undefined}
               required
             />
           </div>
         </div>
 
-        {error ? <p className="login-error" id="registration-error" role="alert">{error}</p> : null}
-        {resendMessage ? <p className="registration-success-message" role="status">{resendMessage}</p> : null}
+        {t(error) ? (
+          <p className="login-error" id="registration-error" role="alert">
+            {t(error)}
+          </p>
+        ) : null}
+        {resendMessage ? (
+          <p className="registration-success-message" role="status">
+            {resendMessage}
+          </p>
+        ) : null}
 
-        <ActionButton className="login-submit" size="auth" type="submit" disabled={isSubmitting}>
-          <span>{isSubmitting ? "Memverifikasi…" : "Verifikasi dan lanjutkan"}</span>
+        <ActionButton
+          className="login-submit"
+          size="auth"
+          type="submit"
+          disabled={isSubmitting}
+        >
+          <span>
+            {isSubmitting ? t("Memverifikasi…") : t("Verifikasi dan lanjutkan")}
+          </span>
           <CtaArrow />
         </ActionButton>
         <ActionButton
@@ -199,19 +233,31 @@ export function RegistrationForm() {
           onClick={resendVerification}
         >
           <RefreshCw aria-hidden="true" size={15} strokeWidth={1.8} />
-          Kirim ulang kode
+          {t("Kirim ulang kode")}
         </ActionButton>
       </form>
     );
   }
 
   return (
-    <form className="login-form registration-form" onSubmit={submitRegistration} noValidate>
+    <form
+      className="login-form registration-form"
+      onSubmit={submitRegistration}
+      noValidate
+    >
       <div className="login-field">
-        <label htmlFor="register-name">Nama lengkap</label>
+        <label htmlFor="register-name">{t("Nama lengkap")}</label>
         <div className="login-input-wrap">
           <UserRound aria-hidden="true" size={18} strokeWidth={1.8} />
-          <input id="register-name" name="name" autoComplete="name" placeholder="Nama lengkapmu" value={name} onChange={(event) => setName(event.target.value)} required />
+          <input
+            id="register-name"
+            name="name"
+            autoComplete="name"
+            placeholder={t("Nama lengkapmu")}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            required
+          />
         </div>
       </div>
 
@@ -219,34 +265,87 @@ export function RegistrationForm() {
         <label htmlFor="register-email">Email</label>
         <div className="login-input-wrap">
           <Mail aria-hidden="true" size={18} strokeWidth={1.8} />
-          <input id="register-email" name="email" type="email" autoComplete="email" inputMode="email" placeholder="nama@email.com" value={email} onChange={(event) => setEmail(event.target.value)} required />
+          <input
+            id="register-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            inputMode="email"
+            placeholder="nama@email.com"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
         </div>
       </div>
 
       <div className="login-field">
-        <label htmlFor="register-password">Kata sandi</label>
+        <label htmlFor="register-password">{t("Kata sandi")}</label>
         <div className="login-input-wrap">
           <LockKeyhole aria-hidden="true" size={18} strokeWidth={1.8} />
-          <input id="register-password" name="password" type={showPassword ? "text" : "password"} autoComplete="new-password" placeholder="Minimal 6 karakter" value={password} onChange={(event) => setPassword(event.target.value)} required />
-          <button className="login-password-toggle" type="button" aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"} aria-pressed={showPassword} onClick={() => setShowPassword((current) => !current)}>
-            {showPassword ? <EyeOff aria-hidden="true" size={18} strokeWidth={1.8} /> : <Eye aria-hidden="true" size={18} strokeWidth={1.8} />}
+          <input
+            id="register-password"
+            name="password"
+            type={showPassword ? "text" : "password"}
+            autoComplete="new-password"
+            placeholder={t("Minimal 6 karakter")}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+          />
+          <button
+            className="login-password-toggle"
+            type="button"
+            aria-label={
+              showPassword
+                ? t("Sembunyikan kata sandi")
+                : t("Tampilkan kata sandi")
+            }
+            aria-pressed={showPassword}
+            onClick={() => setShowPassword((current) => !current)}
+          >
+            {showPassword ? (
+              <EyeOff aria-hidden="true" size={18} strokeWidth={1.8} />
+            ) : (
+              <Eye aria-hidden="true" size={18} strokeWidth={1.8} />
+            )}
           </button>
         </div>
-        <small>Gunakan minimal 6 karakter.</small>
+        <small>{t("Gunakan minimal 6 karakter.")}</small>
       </div>
 
       <div className="login-field">
-        <label htmlFor="register-confirmation">Konfirmasi kata sandi</label>
+        <label htmlFor="register-confirmation">
+          {t("Konfirmasi kata sandi")}
+        </label>
         <div className="login-input-wrap">
           <LockKeyhole aria-hidden="true" size={18} strokeWidth={1.8} />
-          <input id="register-confirmation" name="confirmation" type={showPassword ? "text" : "password"} autoComplete="new-password" placeholder="Ulangi kata sandi" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required />
+          <input
+            id="register-confirmation"
+            name="confirmation"
+            type={showPassword ? "text" : "password"}
+            autoComplete="new-password"
+            placeholder={t("Ulangi kata sandi")}
+            value={confirmation}
+            onChange={(event) => setConfirmation(event.target.value)}
+            required
+          />
         </div>
       </div>
 
-      {error ? <p className="login-error" id="registration-error" role="alert">{error}</p> : null}
+      {t(error) ? (
+        <p className="login-error" id="registration-error" role="alert">
+          {t(error)}
+        </p>
+      ) : null}
 
-      <ActionButton className="login-submit" size="auth" type="submit" disabled={isSubmitting}>
-        <span>{isSubmitting ? "Membuat akun…" : "Buat akun"}</span>
+      <ActionButton
+        className="login-submit"
+        size="auth"
+        type="submit"
+        disabled={isSubmitting}
+      >
+        <span>{isSubmitting ? t("Membuat akun…") : t("Buat akun")}</span>
         <CtaArrow />
       </ActionButton>
     </form>
@@ -255,7 +354,7 @@ export function RegistrationForm() {
 
 async function readAuthResponse(response: Response): Promise<AuthResponse> {
   try {
-    return await response.json() as AuthResponse;
+    return (await response.json()) as AuthResponse;
   } catch {
     return {};
   }

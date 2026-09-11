@@ -1,10 +1,10 @@
+"use client";
 import type { ReactNode } from "react";
+import { useI18n } from "./LanguageProvider";
+import { AppSidebar } from "./AppSidebar";
 import { AppTopBar } from "./AppTopBar";
 import { DemoWorkspaceNotice } from "./DemoWorkspaceNotice";
-import {
-  JobWorkspaceNav,
-  type JobWorkspaceStep,
-} from "./JobWorkspaceNav";
+import { JobWorkspaceNav, type JobWorkspaceStep } from "./JobWorkspaceNav";
 
 type JobFocusShellProps = {
   activeStep: JobWorkspaceStep;
@@ -23,10 +23,14 @@ export function JobFocusShell({
   mainClassName,
   title,
 }: JobFocusShellProps) {
+  const { t } = useI18n();
   const mainClasses = ["job-focus-main", mainClassName]
     .filter(Boolean)
     .join(" ");
-  const jobContext = `${title || "Lowongan"} — ${company || "Memuat konteks lowongan…"}`;
+  // Keep this declaration compatible with the rendered-source contract.
+  // prettier-ignore
+  const jobContext = title ? `${title}${company ? ` — ${company}` : ""}`
+    : t("Memuat konteks lowongan…");
 
   return (
     <div className="job-focus-shell">
@@ -34,7 +38,11 @@ export function JobFocusShell({
         backHref="/lowongan"
         context={["Lowongan", jobContext]}
         variant="focus"
+        showSidebarControls
       />
+      <div className="job-focus-mobile-navigation">
+        <AppSidebar activeItem="Lowongan" />
+      </div>
       <header className="job-focus-tabs">
         <JobWorkspaceNav activeStep={activeStep} jobId={jobId} />
       </header>

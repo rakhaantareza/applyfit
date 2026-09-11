@@ -50,7 +50,9 @@ try {
       },
     });
   } catch (error) {
-    throw new ScreenshotWorkflowError(expiredStateError().message, { cause: error });
+    throw new ScreenshotWorkflowError(expiredStateError().message, {
+      cause: error,
+    });
   }
 
   const page = await context.newPage();
@@ -59,7 +61,9 @@ try {
   const dynamicJobRoutes = buildJobScreenshotRoutes(job.id);
   const captureRoutes = [...SCREENSHOT_ROUTES, ...dynamicJobRoutes];
   await verifyScreenshotRoutes(context.request, baseUrl, captureRoutes);
-  console.log(`Verified ${captureRoutes.length} screenshot routes at ${baseUrl}.`);
+  console.log(
+    `Verified ${captureRoutes.length} screenshot routes at ${baseUrl}.`,
+  );
   console.log(`Resolved dynamic job pages for ${job.title} at ${job.company}.`);
   await mkdir(SCREENSHOT_ROOT, { recursive: true });
 
@@ -74,8 +78,14 @@ try {
     await openAuthenticatedRoute(page, baseUrl, route);
 
     for (const viewport of VIEWPORTS) {
-      await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      await settleResponsiveLayout(page, `${route.label} at ${viewport.width}x${viewport.height}`);
+      await page.setViewportSize({
+        width: viewport.width,
+        height: viewport.height,
+      });
+      await settleResponsiveLayout(
+        page,
+        `${route.label} at ${viewport.width}x${viewport.height}`,
+      );
       assertExpectedPath(page.url(), route);
 
       const screenshotPath = path.join(routeDirectory, `${viewport.name}.png`);
@@ -124,7 +134,10 @@ try {
     await openUnauthenticatedRoute(anonymousPage, baseUrl, route);
 
     for (const viewport of VIEWPORTS) {
-      await anonymousPage.setViewportSize({ width: viewport.width, height: viewport.height });
+      await anonymousPage.setViewportSize({
+        width: viewport.width,
+        height: viewport.height,
+      });
       await settleResponsiveLayout(
         anonymousPage,
         `${route.label} at ${viewport.width}x${viewport.height}`,

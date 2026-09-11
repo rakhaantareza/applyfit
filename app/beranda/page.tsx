@@ -5,7 +5,8 @@ import { AdaptiveHomeDashboard } from "./AdaptiveHomeDashboard";
 
 export const metadata: Metadata = {
   title: "Ringkasan",
-  description: "Lanjutkan lowongan terakhir dan lihat langkah berikutnya di ApplyFit.",
+  description:
+    "Lanjutkan lowongan terakhir dan lihat langkah berikutnya di ApplyFit.",
 };
 
 export default function HomeDashboardPage() {

@@ -26,14 +26,19 @@ let context;
 
 try {
   const configuredBaseUrl = getBaseUrl(DEFAULT_BASE_URL);
-  const email = requireEnvironmentVariable("DEMO_EMAIL").toLocaleLowerCase("id-ID");
+  const email =
+    requireEnvironmentVariable("DEMO_EMAIL").toLocaleLowerCase("id-ID");
   const password = requireEnvironmentVariable("DEMO_PASSWORD", { trim: false });
 
   if (!/^\S+@\S+\.\S+$/.test(email)) {
-    throw new ScreenshotWorkflowError("DEMO_EMAIL must be a valid email address.");
+    throw new ScreenshotWorkflowError(
+      "DEMO_EMAIL must be a valid email address.",
+    );
   }
   if (password.length < 6) {
-    throw new ScreenshotWorkflowError("DEMO_PASSWORD must contain at least 6 characters.");
+    throw new ScreenshotWorkflowError(
+      "DEMO_PASSWORD must contain at least 6 characters.",
+    );
   }
 
   const baseUrl = await ensureDevelopmentServer(configuredBaseUrl);
@@ -47,7 +52,9 @@ try {
   const page = await context.newPage();
   await configurePage(page);
 
-  await page.goto(new URL("/login", baseUrl).href, { waitUntil: "networkidle" });
+  await page.goto(new URL("/login", baseUrl).href, {
+    waitUntil: "networkidle",
+  });
   await page.locator("#login-email").fill(email);
   await page.locator("#login-password").fill(password);
 
@@ -72,7 +79,9 @@ try {
   }
 
   await page.waitForURL((url) => url.pathname !== "/login");
-  const accountResponse = await page.request.get(new URL("/api/account/profile", baseUrl).href);
+  const accountResponse = await page.request.get(
+    new URL("/api/account/profile", baseUrl).href,
+  );
   const accountBody = await readJsonResponse(accountResponse);
   const account = accountBody?.data?.account;
   if (!accountResponse.ok() || !account) {
@@ -91,13 +100,20 @@ try {
     );
   }
 
-  const homeRoute = SCREENSHOT_ROUTES.find((route) => route.path === "/beranda");
-  if (!homeRoute) throw new ScreenshotWorkflowError("The Beranda screenshot route is not configured.");
+  const homeRoute = SCREENSHOT_ROUTES.find(
+    (route) => route.path === "/beranda",
+  );
+  if (!homeRoute)
+    throw new ScreenshotWorkflowError(
+      "The Beranda screenshot route is not configured.",
+    );
   await openAuthenticatedRoute(page, baseUrl, homeRoute);
   await context.storageState({ path: AUTH_STATE_PATH });
 
   console.log("Authenticated demo state refreshed successfully.");
-  console.log(`Saved locally to ${path.relative(process.cwd(), AUTH_STATE_PATH)}.`);
+  console.log(
+    `Saved locally to ${path.relative(process.cwd(), AUTH_STATE_PATH)}.`,
+  );
 } catch (error) {
   const message = errorMessage(error);
   if (/executable.*doesn.t exist|browser.*not found/i.test(message)) {

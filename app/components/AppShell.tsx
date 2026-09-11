@@ -1,8 +1,5 @@
 import type { ReactNode } from "react";
-import {
-  AppSidebar,
-  type AppSidebarActiveItem,
-} from "./AppSidebar";
+import { AppSidebar, type AppSidebarActiveItem } from "./AppSidebar";
 import { AppTopBar } from "./AppTopBar";
 import { DemoWorkspaceNotice } from "./DemoWorkspaceNotice";
 
@@ -21,7 +18,7 @@ export function AppShell({
 
   return (
     <div className="app-shell">
-      <AppTopBar showSidebarControls />
+      <AppTopBar activeItem={activeItem} showSidebarControls />
       <AppSidebar activeItem={activeItem} />
       <main className={mainClasses} id="top">
         <DemoWorkspaceNotice variant="app" />

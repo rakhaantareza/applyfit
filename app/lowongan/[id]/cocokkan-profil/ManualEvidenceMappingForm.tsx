@@ -1,4 +1,5 @@
 "use client";
+import { useI18n } from "../../../components/LanguageProvider";
 
 import {
   Check,
@@ -49,6 +50,7 @@ export function ManualEvidenceMappingForm({
   savedMappings,
   onSave,
 }: ManualEvidenceMappingFormProps) {
+  const { t } = useI18n();
   const firstUnmappedRequirement =
     requirements.find((requirement) => requirement.skillIds.length === 0) ??
     requirements[0];
@@ -144,38 +146,56 @@ export function ManualEvidenceMappingForm({
 
     setIsSaving(true);
     try {
-      await onSave({ requirementId: selectedRequirement.id, skillId: selectedSkill.id });
-      setAnnouncement(`${selectedSkill.name} berhasil dihubungkan ke requirement.`);
+      await onSave({
+        requirementId: selectedRequirement.id,
+        skillId: selectedSkill.id,
+      });
+      setAnnouncement(
+        `${selectedSkill.name} berhasil dihubungkan ke requirement.`,
+      );
       setError("");
       setIsOpen(false);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Skill belum dapat dihubungkan.");
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Skill belum dapat dihubungkan.",
+      );
     } finally {
       setIsSaving(false);
     }
   }
 
   return (
-    <section className="manual-mapping-panel" aria-labelledby="manual-mapping-title">
+    <section
+      className="manual-mapping-panel"
+      aria-labelledby="manual-mapping-title"
+    >
       <div className="manual-mapping-intro">
         <span aria-hidden="true">
           <Waypoints size={19} strokeWidth={1.8} />
         </span>
         <div>
-          <p className="eyebrow">Hubungan manual</p>
-          <h2 id="manual-mapping-title">Tidak menemukan kecocokan yang tepat?</h2>
+          <p className="eyebrow">{t("Hubungkan skill")}</p>
+          <h2 id="manual-mapping-title">{t("Sesuaikan hubungan skill")}</h2>
           <p>
-            Pilih skill profil yang benar-benar relevan. Bukti yang sudah tertaut ke
-            skill tersebut akan ikut terlihat sebagai konteks pendukung.
+            {t(
+              "Pilih persyaratan dan skill yang sesuai. Pengalaman pendukung akan ikut terhubung.",
+            )}
           </p>
         </div>
-        <ActionButton size="compact" variant="secondary" type="button" onClick={isOpen ? closeForm : openForm}>
+        <ActionButton
+          size="compact"
+          variant="secondary"
+          type="button"
+          onClick={isOpen ? closeForm : openForm}
+        >
           {isOpen ? (
             <X aria-hidden="true" size={15} strokeWidth={1.9} />
           ) : (
             <Plus aria-hidden="true" size={15} strokeWidth={2} />
           )}
-          {isOpen ? "Tutup form" : "Hubungkan manual"}
+          {isOpen ? t("Tutup form") : t("Hubungkan skill")}
         </ActionButton>
       </div>
 
@@ -191,14 +211,14 @@ export function ManualEvidenceMappingForm({
               >
                 {requirements.map((requirement) => (
                   <option key={requirement.id} value={requirement.id}>
-                    {requirement.priority} — {requirement.text}
+                    {t(requirement.priority)} — {requirement.text}
                   </option>
                 ))}
               </select>
             </label>
 
             <label htmlFor={skillFieldId}>
-              <span>Skill profil</span>
+              <span>{t("Skill profil")}</span>
               <select
                 id={skillFieldId}
                 value={skillId}
@@ -211,11 +231,11 @@ export function ManualEvidenceMappingForm({
                 {availableSkills.length ? (
                   availableSkills.map((skill) => (
                     <option key={skill.id} value={skill.id}>
-                      {skill.name} — {skill.status}
+                      {skill.name} — {t(skill.status)}
                     </option>
                   ))
                 ) : (
-                  <option value="">Semua skill sudah terhubung</option>
+                  <option value="">{t("Semua skill sudah terhubung")}</option>
                 )}
               </select>
             </label>
@@ -227,11 +247,13 @@ export function ManualEvidenceMappingForm({
                 <LibraryBig size={16} strokeWidth={1.8} />
               </span>
               <div>
-                <strong>Bukti yang mengikuti skill</strong>
+                <strong>{t("Bukti yang mengikuti skill")}</strong>
                 <p>
                   {selectedSkill?.evidence.length
-                    ? `${selectedSkill.evidence.length} bukti di profil akan mendukung hubungan ini.`
-                    : "Skill ini belum memiliki bukti terhubung di profil."}
+                    ? t(
+                        `${selectedSkill.evidence.length} bukti di profil akan mendukung hubungan ini.`,
+                      )
+                    : t("Skill ini belum memiliki bukti terhubung di profil.")}
                 </p>
               </div>
             </div>
@@ -247,19 +269,31 @@ export function ManualEvidenceMappingForm({
             ) : (
               <div className="manual-evidence-warning">
                 <CircleAlert aria-hidden="true" size={14} strokeWidth={1.8} />
-                Hubungan tetap dapat dibuat, tetapi skill tanpa bukti tidak dianggap
-                sepenuhnya terbukti.
+                {t(
+                  "Hubungan tetap dapat dibuat, tetapi skill tanpa bukti tidak dianggap sepenuhnya terbukti.",
+                )}
               </div>
             )}
           </div>
 
           <div className="manual-mapping-actions">
-            {error ? <p role="alert">{error}</p> : <span />}
+            {t(error) ? <p role="alert">{t(error)}</p> : <span />}
             <div>
-              <ActionButton variant="secondary" type="button" onClick={closeForm} disabled={isSaving}>Batal</ActionButton>
-              <ActionButton className="primary" type="submit" disabled={!availableSkills.length || isSaving}>
+              <ActionButton
+                variant="secondary"
+                type="button"
+                onClick={closeForm}
+                disabled={isSaving}
+              >
+                {t("Batal")}
+              </ActionButton>
+              <ActionButton
+                className="primary"
+                type="submit"
+                disabled={!availableSkills.length || isSaving}
+              >
                 <Link2 aria-hidden="true" size={14} strokeWidth={1.9} />
-                {isSaving ? "Menghubungkan…" : "Hubungkan requirement"}
+                {isSaving ? t("Menghubungkan…") : t("Hubungkan requirement")}
               </ActionButton>
             </div>
           </div>
@@ -267,7 +301,10 @@ export function ManualEvidenceMappingForm({
       ) : null}
 
       {savedMappings.length ? (
-        <div className="manual-mapping-results" aria-label="Hubungan manual">
+        <div
+          className="manual-mapping-results"
+          aria-label={t("Hubungkan skill")}
+        >
           {savedMappings.map((mapping) => {
             const requirement = requirements.find(
               (item) => item.id === mapping.requirementId,
@@ -277,19 +314,27 @@ export function ManualEvidenceMappingForm({
 
             return (
               <article key={`${mapping.requirementId}-${mapping.skillId}`}>
-                <span aria-hidden="true"><Check size={13} strokeWidth={2.1} /></span>
+                <span aria-hidden="true">
+                  <Check size={13} strokeWidth={2.1} />
+                </span>
                 <div>
-                  <strong>{skill.name} dihubungkan manual</strong>
+                  <strong>
+                    {skill.name} {t("dihubungkan manual")}
+                  </strong>
                   <p>{requirement.text}</p>
                 </div>
-                <small>{skill.evidence.length} bukti terkait</small>
+                <small>
+                  {skill.evidence.length} {t("bukti terkait")}
+                </small>
               </article>
             );
           })}
         </div>
       ) : null}
 
-      <span className="sr-only" aria-live="polite">{announcement}</span>
+      <span className="sr-only" aria-live="polite">
+        {t(announcement)}
+      </span>
     </section>
   );
 }

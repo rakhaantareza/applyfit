@@ -1,4 +1,5 @@
 "use client";
+import { useI18n } from "../../components/LanguageProvider";
 
 import {
   Building2,
@@ -13,10 +14,14 @@ import {
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { ActionButton } from "../../components/ActionControl";
 
+import { JobSourceField } from "../../components/JobSourceField";
+
 type JobInfoEditorProps = {
   initialJob: EditableJobInfo & { initials: string };
   jobId?: string;
   allowEditing?: boolean;
+  presentation?: "detail" | "card";
+  onDeleted?: () => void;
   onUpdated?: (job: EditableJobInfo) => void;
 };
 
@@ -32,8 +37,11 @@ export function JobInfoEditor({
   initialJob,
   jobId,
   allowEditing = true,
+  presentation = "detail",
+  onDeleted,
   onUpdated,
 }: JobInfoEditorProps) {
+  const { t } = useI18n();
   const initialInfo: EditableJobInfo = {
     title: initialJob.title,
     company: initialJob.company,
@@ -52,7 +60,7 @@ export function JobInfoEditor({
   const [deleteError, setDeleteError] = useState("");
   const titleId = useId();
   const companyId = useId();
-  const sourceId = useId();
+
   const locationId = useId();
   const arrangementId = useId();
   const titleRef = useRef<HTMLInputElement>(null);
@@ -61,7 +69,9 @@ export function JobInfoEditor({
   useEffect(() => {
     if (!isEditing) return;
 
-    const focusFrame = window.requestAnimationFrame(() => titleRef.current?.focus());
+    const focusFrame = window.requestAnimationFrame(() =>
+      titleRef.current?.focus(),
+    );
     return () => window.cancelAnimationFrame(focusFrame);
   }, [isEditing]);
 
@@ -114,10 +124,13 @@ export function JobInfoEditor({
       });
       if (!response.ok) {
         const result = await readDeleteResponse(response);
-        throw new Error(result.error?.message ?? "Lowongan belum dapat dihapus.");
+        throw new Error(
+          result.error?.message ?? "Lowongan belum dapat dihapus.",
+        );
       }
 
-      window.location.assign("/lowongan");
+      if (onDeleted) onDeleted();
+      else window.location.assign("/lowongan");
     } catch (requestError) {
       setDeleteError(
         requestError instanceof Error
@@ -160,7 +173,9 @@ export function JobInfoEditor({
         });
         const result = await readUpdateResponse(response);
         if (!response.ok || !result.data?.job) {
-          throw new Error(result.error?.message ?? "Informasi lowongan belum dapat disimpan.");
+          throw new Error(
+            result.error?.message ?? "Informasi lowongan belum dapat disimpan.",
+          );
         }
       }
 
@@ -170,37 +185,73 @@ export function JobInfoEditor({
       setAnnouncement("Informasi lowongan berhasil diperbarui.");
       onUpdated?.(normalizedDraft);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Informasi lowongan belum dapat disimpan.");
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Informasi lowongan belum dapat disimpan.",
+      );
     } finally {
       setIsSaving(false);
     }
   }
 
   return (
-    <section className="job-detail-hero" aria-labelledby="job-detail-title">
-      <div className="job-detail-identity-row">
-        <div className="job-detail-identity">
-          <span className="job-detail-logo" aria-hidden="true">{initialJob.initials}</span>
-          <div>
-            <p className="eyebrow">Lowongan tersimpan</p>
-            <h1 id="job-detail-title">{jobInfo.title}</h1>
-            <span className="job-detail-company">
-              <Building2 aria-hidden="true" size={15} strokeWidth={1.8} />
-              {jobInfo.company}
+    <section
+      className={
+        presentation === "card" ? "job-card-controls" : "job-detail-hero"
+      }
+      aria-label={presentation === "card" ? jobInfo.title : undefined}
+      aria-labelledby={
+        presentation === "detail" ? "job-detail-title" : undefined
+      }
+    >
+      <div
+        className={
+          presentation === "card"
+            ? "job-card-control-row"
+            : "job-detail-identity-row"
+        }
+      >
+        {presentation === "detail" ? (
+          <div className="job-detail-identity">
+            <span className="job-detail-logo" aria-hidden="true">
+              {initialJob.initials}
             </span>
+            <div>
+              <p className="eyebrow">{t("Lowongan tersimpan")}</p>
+              <h1 id="job-detail-title">{jobInfo.title}</h1>
+              <span className="job-detail-company">
+                <Building2 aria-hidden="true" size={15} strokeWidth={1.8} />
+                {jobInfo.company}
+              </span>
+            </div>
           </div>
-        </div>
+        ) : null}
 
         {!isEditing && allowEditing ? (
           <div className="job-detail-actions">
-            <ActionButton className="job-info-edit-button" size="compact" variant="ghost" type="button" onClick={openEditor}>
+            <ActionButton
+              className="job-info-edit-button ui-record-action ui-record-action--edit"
+              size="compact"
+              variant="ghost"
+              type="button"
+              title={t("Edit info")}
+              onClick={openEditor}
+            >
               <Pencil aria-hidden="true" size={15} strokeWidth={1.9} />
-              Edit info
+              <span className="sr-only">{t("Edit info")}</span>
             </ActionButton>
             {jobId ? (
-              <ActionButton className="job-delete-button" size="compact" variant="destructive-ghost" type="button" onClick={openDeleteDialog}>
+              <ActionButton
+                className="job-delete-button ui-record-action ui-record-action--delete"
+                size="compact"
+                variant="destructive-ghost"
+                type="button"
+                title={t("Hapus lowongan")}
+                onClick={openDeleteDialog}
+              >
                 <Trash2 aria-hidden="true" size={15} strokeWidth={1.9} />
-                Hapus lowongan
+                <span className="sr-only">{t("Hapus lowongan")}</span>
               </ActionButton>
             ) : null}
           </div>
@@ -210,8 +261,12 @@ export function JobInfoEditor({
       {isEditing ? (
         <form className="job-info-editor" onSubmit={handleSubmit}>
           <div className="job-info-editor-heading">
-            <strong>Edit informasi lowongan</strong>
-            <span>Sesuaikan konteks pekerjaan tanpa mengubah status pengolahannya.</span>
+            <strong>{t("Edit informasi lowongan")}</strong>
+            <span>
+              {t(
+                "Sesuaikan konteks pekerjaan tanpa mengubah status pengolahannya.",
+              )}
+            </span>
           </div>
 
           <label htmlFor={titleId}>
@@ -224,23 +279,20 @@ export function JobInfoEditor({
             />
           </label>
           <label htmlFor={companyId}>
-            <span>Perusahaan</span>
+            <span>{t("Perusahaan")}</span>
             <input
               id={companyId}
               value={draft.company}
               onChange={(event) => updateDraft("company", event.target.value)}
             />
           </label>
-          <label htmlFor={sourceId}>
-            <span>Sumber</span>
-            <input
-              id={sourceId}
-              value={draft.source}
-              onChange={(event) => updateDraft("source", event.target.value)}
-            />
-          </label>
+          <JobSourceField
+            value={draft.source}
+            onChange={(value) => updateDraft("source", value)}
+            disabled={isSaving}
+          />
           <label htmlFor={locationId}>
-            <span>Lokasi</span>
+            <span>{t("Lokasi")}</span>
             <input
               id={locationId}
               value={draft.location}
@@ -248,52 +300,69 @@ export function JobInfoEditor({
             />
           </label>
           <label htmlFor={arrangementId}>
-            <span>Cara kerja</span>
+            <span>{t("Cara kerja")}</span>
             <select
               id={arrangementId}
               value={draft.arrangement}
-              onChange={(event) => updateDraft("arrangement", event.target.value)}
+              onChange={(event) =>
+                updateDraft("arrangement", event.target.value)
+              }
             >
+              <option value="">{t("Belum disebutkan")}</option>
               <option>On-site</option>
               <option>Hybrid</option>
               <option>Remote</option>
             </select>
           </label>
           <div className="job-info-editor-actions">
-            {error ? <p role="alert">{error}</p> : <span />}
+            {t(error) ? <p role="alert">{t(error)}</p> : <span />}
             <div>
-              <ActionButton className="career-button secondary" variant="secondary" type="button" onClick={closeEditor} disabled={isSaving}>
+              <ActionButton
+                className="career-button secondary"
+                variant="secondary"
+                type="button"
+                onClick={closeEditor}
+                disabled={isSaving}
+              >
                 <X aria-hidden="true" size={16} strokeWidth={1.9} />
-                Batal
+                {t("Batal")}
               </ActionButton>
-              <ActionButton className="career-button primary" type="submit" disabled={isSaving}>
+              <ActionButton
+                className="career-button primary"
+                type="submit"
+                disabled={isSaving}
+              >
                 <Check aria-hidden="true" size={16} strokeWidth={2} />
-                {isSaving ? "Menyimpan…" : "Simpan perubahan"}
+                {isSaving ? t("Menyimpan…") : t("Simpan perubahan")}
               </ActionButton>
             </div>
           </div>
         </form>
       ) : null}
 
-      <div className="job-detail-meta" aria-label="Konteks lowongan">
-        <span>
-          <ExternalLink aria-hidden="true" size={14} strokeWidth={1.8} />
-          <small>Sumber</small>
-          <strong>{jobInfo.source || "Belum diisi"}</strong>
-        </span>
-        <span>
-          <MapPin aria-hidden="true" size={14} strokeWidth={1.8} />
-          <small>Lokasi</small>
-          <strong>{jobInfo.location || "Belum diisi"}</strong>
-        </span>
-        <span>
-          <Monitor aria-hidden="true" size={14} strokeWidth={1.8} />
-          <small>Cara kerja</small>
-          <strong>{jobInfo.arrangement || "Belum diisi"}</strong>
-        </span>
-      </div>
+      {presentation === "detail" ? (
+        <div className="job-detail-meta" aria-label={t("Konteks lowongan")}>
+          <span>
+            <ExternalLink aria-hidden="true" size={14} strokeWidth={1.8} />
+            <small>{t("Sumber")}</small>
+            <strong>{jobInfo.source || t("Belum diisi")}</strong>
+          </span>
+          <span>
+            <MapPin aria-hidden="true" size={14} strokeWidth={1.8} />
+            <small>{t("Lokasi")}</small>
+            <strong>{jobInfo.location || t("Belum diisi")}</strong>
+          </span>
+          <span>
+            <Monitor aria-hidden="true" size={14} strokeWidth={1.8} />
+            <small>{t("Cara kerja")}</small>
+            <strong>{jobInfo.arrangement || t("Belum diisi")}</strong>
+          </span>
+        </div>
+      ) : null}
 
-      <span className="sr-only" aria-live="polite">{announcement}</span>
+      <span className="sr-only" aria-live="polite">
+        {t(announcement)}
+      </span>
 
       {isDeleteDialogOpen ? (
         <div className="job-delete-dialog-backdrop">
@@ -308,13 +377,18 @@ export function JobInfoEditor({
               <Trash2 size={20} strokeWidth={1.8} />
             </span>
             <div>
-              <p className="eyebrow">Konfirmasi penghapusan</p>
-              <h2 id="job-delete-dialog-title">Hapus lowongan ini?</h2>
+              <p className="eyebrow">{t("Konfirmasi penghapusan")}</p>
+              <h2 id="job-delete-dialog-title">{t("Hapus lowongan ini?")}</h2>
               <p id="job-delete-dialog-description">
-                <strong>{jobInfo.title}</strong> di {jobInfo.company} akan dihapus permanen dari daftar lowonganmu.
+                <strong>{jobInfo.title}</strong> {t("di")} {jobInfo.company}{" "}
+                {t("akan dihapus permanen dari daftar lowonganmu.")}
               </p>
             </div>
-            {deleteError ? <p className="job-delete-error" role="alert">{deleteError}</p> : null}
+            {deleteError ? (
+              <p className="job-delete-error" role="alert">
+                {deleteError}
+              </p>
+            ) : null}
             <div className="job-delete-dialog-actions">
               <button
                 ref={cancelDeleteRef}
@@ -323,7 +397,7 @@ export function JobInfoEditor({
                 disabled={isDeleting}
                 onClick={closeDeleteDialog}
               >
-                Batal
+                {t("Batal")}
               </button>
               <button
                 className="ui-button ui-button--destructive ui-button--default career-button danger"
@@ -331,7 +405,7 @@ export function JobInfoEditor({
                 disabled={isDeleting}
                 onClick={deleteJob}
               >
-                {isDeleting ? "Menghapus…" : "Ya, hapus lowongan"}
+                {isDeleting ? t("Menghapus…") : t("Ya, hapus lowongan")}
               </button>
             </div>
           </div>
@@ -351,9 +425,17 @@ type DeleteResponse = {
 };
 
 async function readUpdateResponse(response: Response): Promise<UpdateResponse> {
-  try { return await response.json() as UpdateResponse; } catch { return {}; }
+  try {
+    return (await response.json()) as UpdateResponse;
+  } catch {
+    return {};
+  }
 }
 
 async function readDeleteResponse(response: Response): Promise<DeleteResponse> {
-  try { return await response.json() as DeleteResponse; } catch { return {}; }
+  try {
+    return (await response.json()) as DeleteResponse;
+  } catch {
+    return {};
+  }
 }

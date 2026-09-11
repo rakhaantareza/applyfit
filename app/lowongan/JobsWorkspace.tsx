@@ -1,19 +1,27 @@
 "use client";
+import { useI18n } from "../components/LanguageProvider";
 
 import {
   AlertCircle,
-  BriefcaseBusiness,
   Building2,
   Clock3,
   ExternalLink,
   MapPin,
   Monitor,
   Plus,
+  Search,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { ActionLink, CtaArrow } from "../components/ActionControl";
+import { useEffect, useState } from "react";
+import {
+  ActionButton,
+  ActionLink,
+  CtaArrow,
+} from "../components/ActionControl";
 import { PageHeader, SectionHeader } from "../components/ContentHeaders";
+import { CollectionIllustration } from "../components/CollectionIllustration";
 import { WorkspaceLoadingState } from "../components/WorkspaceLoadingState";
+
+import { JobInfoEditor } from "./[id]/JobInfoEditor";
 
 type SavedJob = {
   id: string;
@@ -29,19 +37,39 @@ type SavedJob = {
 type JobListItem = SavedJob & { requirementCount: number };
 
 export function JobsWorkspace() {
+  const { t, language } = useI18n();
   const [jobs, setJobs] = useState<JobListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
+  const [stage, setStage] = useState("all");
+  const filteredJobs = jobs.filter((job) => {
+    const text = [job.title, job.company, job.source, job.location]
+      .filter(Boolean)
+      .join(" ")
+      .toLocaleLowerCase();
+    return (
+      text.includes(query.trim().toLocaleLowerCase()) &&
+      (stage === "all" ||
+        (stage === "review"
+          ? job.requirementCount > 0
+          : job.requirementCount === 0))
+    );
+  });
 
   useEffect(() => {
     let active = true;
 
     async function loadJobs() {
       try {
-        const response = await fetch("/api/workspace?scope=jobs", { cache: "no-store" });
+        const response = await fetch("/api/workspace?scope=jobs", {
+          cache: "no-store",
+        });
         const result = await readJobsResponse(response);
         if (!response.ok || !result.data?.jobs) {
-          throw new Error(result.error?.message ?? "Daftar lowongan belum dapat dimuat.");
+          throw new Error(
+            result.error?.message ?? "Daftar lowongan belum dapat dimuat.",
+          );
         }
 
         if (active) setJobs(result.data.jobs);
@@ -64,11 +92,6 @@ export function JobsWorkspace() {
     };
   }, []);
 
-  const jobsWithRequirements = useMemo(
-    () => jobs.filter((job) => job.requirementCount > 0).length,
-    [jobs],
-  );
-
   if (error) return <JobsErrorState error={error} />;
 
   if (loading) {
@@ -88,65 +111,153 @@ export function JobsWorkspace() {
     <div className="page-container jobs-page">
       <JobsPageHeader />
 
-      <section className="jobs-overview" aria-labelledby="jobs-overview-title">
-        <div className="jobs-overview-copy">
-          <span className="jobs-overview-icon" aria-hidden="true">
-            <BriefcaseBusiness size={23} strokeWidth={1.8} />
-          </span>
-          <div>
-            <p className="eyebrow">Ruang kerja lowongan</p>
-            <h2 className="type-section-title" id="jobs-overview-title">{jobs.length} lowongan dalam pantauanmu</h2>
-            <p className="type-helper">
-              Setiap lowongan menyimpan sumber, lokasi, cara kerja, dan progres
-              requirement tanpa mencampur konteks antarpekerjaan.
-            </p>
-          </div>
-        </div>
-        <div className="jobs-stage-summary" aria-label="Ringkasan tahap lowongan">
-          <span><strong>{jobsWithRequirements}</strong> memiliki requirement</span>
-          <span><strong>{jobs.length - jobsWithRequirements}</strong> belum diekstrak</span>
-        </div>
-      </section>
-
-      <section className="jobs-list-section" aria-labelledby="jobs-list-title">
+      <section
+        className="jobs-list-section jobs-overview"
+        aria-labelledby="jobs-list-title"
+      >
         <SectionHeader
-          title="Konteks pekerjaan tersimpan"
+          title={t("Lowongan tersimpan")}
           titleId="jobs-list-title"
-          description={(
-            <>
-              Status menunjukkan tahap pengolahan data, bukan rekomendasi untuk
-              melamar atau melewatkan lowongan.
-            </>
-          )}
         />
 
+        <div className="jobs-filter-panel">
+          <label className="jobs-search-field">
+            <Search size={18} aria-hidden="true" />
+            <input
+              type="search"
+              aria-label={t("Cari lowongan")}
+              placeholder={t("Cari role, perusahaan, atau lokasi")}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </label>
+          <select
+            aria-label={t("Filter tahap lowongan")}
+            value={stage}
+            onChange={(event) => setStage(event.target.value)}
+          >
+            <option value="all">{t("Semua tahap")}</option>
+            <option value="draft">{t("Deskripsi tersimpan")}</option>
+            <option value="review">{t("Persyaratan tersedia")}</option>
+          </select>
+        </div>
         <div className="jobs-list">
-          {jobs.map((job) => (
-            <article className="job-library-row responsive-list-row" key={job.id}>
+          {filteredJobs.map((job) => (
+            <article
+              className="job-library-row responsive-list-row"
+              key={job.id}
+            >
               <span className="job-library-logo" aria-hidden="true">
                 {getInitials(job.company)}
               </span>
               <div className="job-library-copy">
                 <h3 className="type-primary-title">{job.title}</h3>
-                <span><Building2 aria-hidden="true" size={13} strokeWidth={1.8} />{job.company}</span>
+                <span>
+                  <Building2 aria-hidden="true" size={13} strokeWidth={1.8} />
+                  {job.company}
+                </span>
               </div>
               <div className="job-library-context">
-                <span><ExternalLink aria-hidden="true" size={13} strokeWidth={1.8} />{job.source ?? "Sumber belum diisi"}</span>
-                <span><MapPin aria-hidden="true" size={13} strokeWidth={1.8} />{job.location ?? "Lokasi belum diisi"}</span>
-                <span><Monitor aria-hidden="true" size={13} strokeWidth={1.8} />{job.workArrangement ?? "Cara kerja belum diisi"}</span>
+                <span>
+                  <ExternalLink
+                    aria-hidden="true"
+                    size={13}
+                    strokeWidth={1.8}
+                  />
+                  {job.source ?? t("Sumber belum diisi")}
+                </span>
+                <span>
+                  <MapPin aria-hidden="true" size={13} strokeWidth={1.8} />
+                  {job.location ?? t("Lokasi belum diisi")}
+                </span>
+                <span>
+                  <Monitor aria-hidden="true" size={13} strokeWidth={1.8} />
+                  {job.workArrangement ?? t("Cara kerja belum diisi")}
+                </span>
               </div>
               <div className="job-library-progress">
-                <span className={`job-stage ${job.requirementCount ? "review" : "draft"}`}>
-                  {job.requirementCount ? "Requirement tersimpan" : "Belum diekstrak"}
+                <span
+                  className={`job-stage ${job.requirementCount ? "review" : "draft"}`}
+                >
+                  {job.requirementCount
+                    ? t("Persyaratan tersedia")
+                    : t("Ambil persyaratan")}
                 </span>
-                <strong>{job.requirementCount ? `${job.requirementCount} requirement` : "Deskripsi tersimpan"}</strong>
-                <small><Clock3 aria-hidden="true" size={12} strokeWidth={1.8} />{formatRelativeDate(job.updatedAt)}</small>
+                <strong>
+                  {job.requirementCount
+                    ? t(`${job.requirementCount} persyaratan`)
+                    : t("Deskripsi tersimpan")}
+                </strong>
+                <small>
+                  <Clock3 aria-hidden="true" size={12} strokeWidth={1.8} />
+                  {t(formatRelativeDate(job.updatedAt, language))}
+                </small>
               </div>
-              <ActionLink className="job-library-detail-link" variant="text" href={`/lowongan/${job.id}`}>
-                Lihat detail <CtaArrow />
-              </ActionLink>
+              <div className="job-card-footer">
+                <ActionLink
+                  className="job-library-detail-link"
+                  variant="secondary"
+                  href={`/lowongan/${job.id}`}
+                >
+                  {t("Lihat detail")} <CtaArrow />
+                </ActionLink>
+                <JobInfoEditor
+                  presentation="card"
+                  jobId={job.id}
+                  initialJob={{
+                    title: job.title,
+                    company: job.company,
+                    source: job.source ?? "",
+                    location: job.location ?? "",
+                    arrangement: job.workArrangement ?? "",
+                    initials: getInitials(job.company),
+                  }}
+                  onUpdated={(info) =>
+                    setJobs((current) =>
+                      current.map((item) =>
+                        item.id === job.id
+                          ? {
+                              ...item,
+                              title: info.title,
+                              company: info.company,
+                              source: info.source || null,
+                              location: info.location || null,
+                              workArrangement: info.arrangement || null,
+                            }
+                          : item,
+                      ),
+                    )
+                  }
+                  onDeleted={() =>
+                    setJobs((current) =>
+                      current.filter((item) => item.id !== job.id),
+                    )
+                  }
+                />
+              </div>
             </article>
           ))}
+          {!filteredJobs.length ? (
+            <div
+              className="evidence-empty-state jobs-filter-empty"
+              role="status"
+            >
+              <CollectionIllustration kind="search" />
+              <div>
+                <strong>{t("Tidak ada lowongan yang cocok")}</strong>
+                <p>{t("Coba kata pencarian atau tahap lainnya.")}</p>
+              </div>
+              <ActionButton
+                variant="secondary"
+                onClick={() => {
+                  setQuery("");
+                  setStage("all");
+                }}
+              >
+                {t("Reset filter")}
+              </ActionButton>
+            </div>
+          ) : null}
         </div>
       </section>
     </div>
@@ -154,20 +265,26 @@ export function JobsWorkspace() {
 }
 
 function JobsEmptyWorkspace() {
+  const { t } = useI18n();
   return (
     <div className="page-container jobs-page">
       <JobsPageHeader showAction={false} />
 
-      <section className="page-empty-state jobs-zero-state" aria-labelledby="jobs-empty-title">
-        <span className="page-empty-state-icon" aria-hidden="true">
-          <BriefcaseBusiness size={25} strokeWidth={1.7} />
-        </span>
-        <p className="eyebrow">Mulai dari satu lowongan</p>
-        <h2 id="jobs-empty-title">Belum ada lowongan tersimpan</h2>
-        <p>Simpan lowongan yang ingin kamu pahami, lalu periksa Persyaratan secara bertahap.</p>
+      <section
+        className="page-empty-state jobs-zero-state"
+        aria-labelledby="jobs-empty-title"
+      >
+        <CollectionIllustration kind="jobs" />
+        <p className="eyebrow">{t("Mulai dari satu lowongan")}</p>
+        <h2 id="jobs-empty-title">{t("Belum ada lowongan tersimpan")}</h2>
+        <p>
+          {t(
+            "Simpan lowongan yang ingin kamu pahami, lalu periksa Persyaratan secara bertahap.",
+          )}
+        </p>
         <ActionLink className="jobs-add-button" href="/lowongan/baru">
           <Plus aria-hidden="true" size={16} strokeWidth={2} />
-          Tambah lowongan
+          {t("Tambah lowongan")}
         </ActionLink>
       </section>
     </div>
@@ -175,48 +292,63 @@ function JobsEmptyWorkspace() {
 }
 
 function JobsPageHeader({ showAction = true }: { showAction?: boolean }) {
+  const { t } = useI18n();
   return (
     <PageHeader
-      title="Pahami setiap lowongan sebelum melamar"
-      description={(
-        <>
-          Simpan konteks pekerjaan dan pantau tahap review requirement agar
-          setiap analisis tetap spesifik pada role dan perusahaan yang tepat.
-        </>
-      )}
-      action={showAction ? (
+      title={t("Lowongan")}
+      description={
+        <>{t("Lowongan yang ingin kamu cocokkan dengan profilmu.")}</>
+      }
+      action={
+        showAction ? (
           <ActionLink className="jobs-add-button" href="/lowongan/baru">
             <Plus aria-hidden="true" size={16} strokeWidth={2} />
-            Tambah lowongan
+            {t("Tambah lowongan")}
           </ActionLink>
-      ) : null}
+        ) : null
+      }
     />
   );
 }
 
 function JobsErrorState({ error }: { error: string }) {
+  const { t } = useI18n();
   return (
     <div className="page-container jobs-page">
       <div className="persisted-job-state error">
         <AlertCircle aria-hidden="true" size={22} />
-        <strong>{error}</strong>
+        <strong>{t(error)}</strong>
       </div>
     </div>
   );
 }
 
 function getInitials(company: string) {
-  return company.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]?.toLocaleUpperCase("id-ID")).join("") || "AF";
+  return (
+    company
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((word) => word[0]?.toLocaleUpperCase("id-ID"))
+      .join("") || "AF"
+  );
 }
 
-function formatRelativeDate(value: string) {
+function formatRelativeDate(value: string, language = "id") {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Baru diperbarui";
-  return `Diperbarui ${new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" }).format(date)}`;
+  return `Diperbarui ${new Intl.DateTimeFormat(language === "en" ? "en-GB" : "id-ID", { day: "numeric", month: "short", year: "numeric" }).format(date)}`;
 }
 
-type JobsResponse = { data?: { jobs?: JobListItem[] }; error?: { message?: string } };
+type JobsResponse = {
+  data?: { jobs?: JobListItem[] };
+  error?: { message?: string };
+};
 
 async function readJobsResponse(response: Response): Promise<JobsResponse> {
-  try { return await response.json() as JobsResponse; } catch { return {}; }
+  try {
+    return (await response.json()) as JobsResponse;
+  } catch {
+    return {};
+  }
 }

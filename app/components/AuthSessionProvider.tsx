@@ -64,10 +64,7 @@ export function useAuthSession() {
   );
   const refresh = useCallback(() => refreshAuthSession(), []);
 
-  return useMemo(
-    () => ({ user, loading, refresh }),
-    [loading, refresh, user],
-  );
+  return useMemo(() => ({ user, loading, refresh }), [loading, refresh, user]);
 }
 
 function subscribeToAuthSession(listener: () => void) {
@@ -118,7 +115,7 @@ async function loadCurrentUser(): Promise<AuthSessionUser | null> {
     });
     if (!response.ok) return null;
 
-    const result = await response.json() as AccountProfileResponse;
+    const result = (await response.json()) as AccountProfileResponse;
     const account = result.data?.account;
     if (!account) return null;
 
@@ -146,7 +143,9 @@ export function getAuthDisplayName(user: AuthSessionUser | null) {
   if (!words.length) return "Pengguna ApplyFit";
 
   return words
-    .map((word) => `${word.charAt(0).toLocaleUpperCase("id-ID")}${word.slice(1)}`)
+    .map(
+      (word) => `${word.charAt(0).toLocaleUpperCase("id-ID")}${word.slice(1)}`,
+    )
     .join(" ");
 }
 

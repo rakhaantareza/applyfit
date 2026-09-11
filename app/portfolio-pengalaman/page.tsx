@@ -1,3 +1,4 @@
+import { Message } from "../components/LanguageProvider";
 import type { Metadata } from "next";
 import { AppShell } from "../components/AppShell";
 import { PageHeader } from "../components/ContentHeaders";
@@ -12,19 +13,25 @@ export const metadata: Metadata = {
 
 export default function EvidenceLibraryPage() {
   return (
-    <AuthenticatedRoute><AppShell activeItem="Portfolio & Pengalaman" mainClassName="evidence-main">
+    <AuthenticatedRoute>
+      <AppShell
+        activeItem="Portfolio & Pengalaman"
+        mainClassName="evidence-main"
+      >
         <div className="page-container evidence-library-page">
           <PageHeader
-            title="Bukti nyata di balik setiap skill"
-            description={(
+            title={<Message>{"Portfolio & Pengalaman"}</Message>}
+            description={
               <>
-                Simpan hasil kerja, pengalaman, dan kredensial dalam satu tempat agar
-                setiap klaim kemampuan dapat ditelusuri dengan jelas.
+                <Message>
+                  {"Hasil kerja dan pengalaman yang mendukung skillmu."}
+                </Message>
               </>
-            )}
+            }
           />
           <EvidenceLibraryWorkspace />
         </div>
-    </AppShell></AuthenticatedRoute>
+      </AppShell>
+    </AuthenticatedRoute>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+import { useI18n } from "../components/LanguageProvider";
 
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -6,10 +7,7 @@ import { ActionButton } from "../components/ActionControl";
 import { WorkspaceLoadingState } from "../components/WorkspaceLoadingState";
 import { CareerDirectionEditor } from "./CareerDirectionEditor";
 import { SkillManager, type CareerSkill } from "./SkillManager";
-import {
-  EMPTY_CAREER_CATALOG,
-  type CareerCatalog,
-} from "./catalog-types";
+import { EMPTY_CAREER_CATALOG, type CareerCatalog } from "./catalog-types";
 
 type CareerProfile = {
   id: string;
@@ -38,6 +36,7 @@ type ProfileWorkspaceResponse = {
 };
 
 export function CareerProfileWorkspace() {
+  const { t } = useI18n();
   const [profile, setProfile] = useState<CareerProfile | null>(null);
   const [skills, setSkills] = useState<CareerSkill[]>([]);
   const [catalog, setCatalog] = useState<CareerCatalog>(EMPTY_CAREER_CATALOG);
@@ -49,10 +48,14 @@ export function CareerProfileWorkspace() {
 
     async function loadWorkspace() {
       try {
-        const response = await fetch("/api/workspace?scope=profile", { cache: "no-store" });
+        const response = await fetch("/api/workspace?scope=profile", {
+          cache: "no-store",
+        });
         const result = await readJson<ProfileWorkspaceResponse>(response);
         if (!response.ok || !result.data) {
-          throw new Error(result.error?.message ?? "Profil karier belum dapat dimuat.");
+          throw new Error(
+            result.error?.message ?? "Profil karier belum dapat dimuat.",
+          );
         }
         const apiSkills = result.data.skills;
 
@@ -84,14 +87,21 @@ export function CareerProfileWorkspace() {
     return (
       <div className="career-profile-state error" role="alert">
         <AlertCircle aria-hidden="true" size={22} />
-        <strong>{error}</strong>
-        <ActionButton size="compact" variant="secondary" type="button" onClick={() => window.location.reload()}>Coba lagi</ActionButton>
+        <strong>{t(error)}</strong>
+        <ActionButton
+          size="compact"
+          variant="secondary"
+          type="button"
+          onClick={() => window.location.reload()}
+        >
+          {t("Coba lagi")}
+        </ActionButton>
       </div>
     );
   }
 
   return (
-    <>
+    <div className="career-foundation-layout">
       <CareerDirectionEditor
         initialCareerField={profile?.careerField ?? ""}
         initialCareerFieldId={profile?.careerFieldId ?? null}
@@ -111,14 +121,17 @@ export function CareerProfileWorkspace() {
         careerFieldId={profile?.careerFieldId ?? null}
         targetRoleId={profile?.targetRoleId ?? null}
       />
-    </>
+    </div>
   );
 }
 
 function toCareerSkill(skill: ApiSkill): CareerSkill {
-  const level = skill.level === "Mahir" || skill.level === "Menengah" || skill.level === "Dasar"
-    ? skill.level
-    : "Dasar";
+  const level =
+    skill.level === "Mahir" ||
+    skill.level === "Menengah" ||
+    skill.level === "Dasar"
+      ? skill.level
+      : "Dasar";
   return {
     id: skill.id,
     name: skill.name,
@@ -131,7 +144,7 @@ function toCareerSkill(skill: ApiSkill): CareerSkill {
 
 async function readJson<T>(response: Response): Promise<T> {
   try {
-    return await response.json() as T;
+    return (await response.json()) as T;
   } catch {
     return {} as T;
   }

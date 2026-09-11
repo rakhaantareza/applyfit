@@ -1,6 +1,11 @@
 "use client";
+import { useI18n } from "../../components/LanguageProvider";
 
-import { ActionButton, ActionLink, CtaArrow } from "../../components/ActionControl";
+import {
+  ActionButton,
+  ActionLink,
+  CtaArrow,
+} from "../../components/ActionControl";
 import {
   Check,
   FileSearch,
@@ -10,10 +15,17 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 
 type JobDescriptionEditorProps = {
   initialDescription: string;
+  hasExistingRequirements?: boolean;
   reviewHref?: string;
   jobId: string;
   allowEditing?: boolean;
@@ -40,7 +52,9 @@ function renderDescription(description: string) {
     if (lines.every((line) => line.startsWith("- "))) {
       return (
         <ul key={`list-${index}`}>
-          {lines.map((line) => <li key={line}>{line.slice(2)}</li>)}
+          {lines.map((line) => (
+            <li key={line}>{line.slice(2)}</li>
+          ))}
         </ul>
       );
     }
@@ -51,17 +65,21 @@ function renderDescription(description: string) {
 
 export function JobDescriptionEditor({
   initialDescription,
+  hasExistingRequirements = false,
   reviewHref,
   jobId,
   allowEditing = true,
   onUpdated,
 }: JobDescriptionEditorProps) {
+  const { t } = useI18n();
   const [description, setDescription] = useState(initialDescription);
   const [draftDescription, setDraftDescription] = useState(initialDescription);
   const [isEditing, setIsEditing] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const [hasExtracted, setHasExtracted] = useState(false);
-  const [extractedRequirements, setExtractedRequirements] = useState<PreviewRequirement[]>([]);
+  const [extractedRequirements, setExtractedRequirements] = useState<
+    PreviewRequirement[]
+  >([]);
   const [extractionError, setExtractionError] = useState("");
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
@@ -74,7 +92,9 @@ export function JobDescriptionEditor({
   useEffect(() => {
     if (!isEditing) return;
 
-    const focusFrame = window.requestAnimationFrame(() => textareaRef.current?.focus());
+    const focusFrame = window.requestAnimationFrame(() =>
+      textareaRef.current?.focus(),
+    );
     return () => window.cancelAnimationFrame(focusFrame);
   }, [isEditing]);
 
@@ -110,7 +130,9 @@ export function JobDescriptionEditor({
         });
         const result = await readJobUpdateResponse(response);
         if (!response.ok || !result.data?.job) {
-          throw new Error(result.error?.message ?? "Deskripsi lowongan belum dapat disimpan.");
+          throw new Error(
+            result.error?.message ?? "Deskripsi lowongan belum dapat disimpan.",
+          );
         }
       }
 
@@ -122,7 +144,11 @@ export function JobDescriptionEditor({
       setAnnouncement("Deskripsi lowongan berhasil diperbarui.");
       onUpdated?.(normalizedDescription);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Deskripsi lowongan belum dapat disimpan.");
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Deskripsi lowongan belum dapat disimpan.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -133,22 +159,41 @@ export function JobDescriptionEditor({
     setExtractionError("");
     setAnnouncement("Deskripsi sedang diproses menjadi draft requirement.");
     try {
-      const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}/extract-requirements`, { method: "POST" });
+      const response = await fetch(
+        `/api/jobs/${encodeURIComponent(jobId)}/extract-requirements`,
+        { method: "POST" },
+      );
       const result = await readExtractionResponse(response);
-      if (!response.ok || !result.data?.requirements) throw new Error(result.error?.message ?? "Requirement belum dapat diekstrak. Coba lagi.");
-      const requirements = result.data.requirements.map((requirement, index) => ({
-        id: `${requirement.type}-${requirement.priority}-${index}`,
-        priority: requirement.priority === "required" ? "Wajib" as const : "Preferensi" as const,
-        category: requirementCategoryLabels[requirement.type],
-        text: requirement.name,
-      }));
+      if (!response.ok || !result.data?.requirements)
+        throw new Error(
+          result.error?.message ??
+            "Requirement belum dapat diekstrak. Coba lagi.",
+        );
+      const requirements = result.data.requirements.map(
+        (requirement, index) => ({
+          id: `${requirement.type}-${requirement.priority}-${index}`,
+          priority:
+            requirement.priority === "required"
+              ? ("Wajib" as const)
+              : ("Preferensi" as const),
+          category: requirementCategoryLabels[requirement.type],
+          text: requirement.name,
+        }),
+      );
       setExtractedRequirements(requirements);
-      window.sessionStorage.setItem(`applyfit:extracted-requirements:${jobId}`, JSON.stringify(result.data.requirements));
+      window.sessionStorage.setItem(
+        `applyfit:extracted-requirements:${jobId}`,
+        JSON.stringify(result.data.requirements),
+      );
       setHasExtracted(true);
       setAnnouncement(`${requirements.length} requirement berhasil diekstrak.`);
     } catch (requestError) {
       setHasExtracted(false);
-      setExtractionError(requestError instanceof Error ? requestError.message : "Requirement belum dapat diekstrak. Coba lagi.");
+      setExtractionError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Requirement belum dapat diekstrak. Coba lagi.",
+      );
     } finally {
       setIsExtracting(false);
     }
@@ -158,17 +203,25 @@ export function JobDescriptionEditor({
     <article className="job-description-copy">
       <div className="job-description-heading-row">
         <div className="job-detail-section-heading">
-          <span aria-hidden="true"><FileText size={18} strokeWidth={1.8} /></span>
+          <span aria-hidden="true">
+            <FileText size={18} strokeWidth={1.8} />
+          </span>
           <div>
-            <p className="eyebrow">Deskripsi asli</p>
-            <h2>Tentang peran ini</h2>
+            <p className="eyebrow">{t("Deskripsi asli")}</p>
+            <h2>{t("Deskripsi lowongan")}</h2>
           </div>
         </div>
 
         {!isEditing && allowEditing ? (
-          <ActionButton className="job-description-edit-button" size="compact" variant="ghost" type="button" onClick={openEditor}>
+          <ActionButton
+            className="job-description-edit-button ui-record-action ui-record-action--edit"
+            size="compact"
+            variant="ghost"
+            type="button"
+            onClick={openEditor}
+          >
             <Pencil aria-hidden="true" size={15} strokeWidth={1.9} />
-            Edit deskripsi
+            <span className="sr-only">{t("Edit deskripsi")}</span>
           </ActionButton>
         ) : null}
       </div>
@@ -176,9 +229,11 @@ export function JobDescriptionEditor({
       {isEditing ? (
         <form className="job-description-editor" onSubmit={handleSubmit}>
           <label htmlFor="job-description-draft">
-            <span>Tempel atau edit deskripsi lowongan</span>
+            <span>{t("Tempel atau edit deskripsi lowongan")}</span>
             <small>
-              Pertahankan informasi dari sumber agar requirement dapat ditinjau dengan konteks lengkap.
+              {t(
+                "Pertahankan informasi dari sumber agar requirement dapat ditinjau dengan konteks lengkap.",
+              )}
             </small>
           </label>
           <textarea
@@ -189,21 +244,39 @@ export function JobDescriptionEditor({
             rows={18}
           />
           <div className="job-description-editor-meta">
-            {error ? <p role="alert">{error}</p> : <span>{wordCount} kata</span>}
+            {t(error) ? (
+              <p role="alert">{t(error)}</p>
+            ) : (
+              <span>
+                {wordCount} {t("kata")}
+              </span>
+            )}
             <div>
-              <ActionButton className="career-button secondary" variant="secondary" type="button" onClick={closeEditor} disabled={isSaving}>
+              <ActionButton
+                className="career-button secondary"
+                variant="secondary"
+                type="button"
+                onClick={closeEditor}
+                disabled={isSaving}
+              >
                 <X aria-hidden="true" size={16} strokeWidth={1.9} />
-                Batal
+                {t("Batal")}
               </ActionButton>
-              <ActionButton className="career-button primary" type="submit" disabled={isSaving}>
+              <ActionButton
+                className="career-button primary"
+                type="submit"
+                disabled={isSaving}
+              >
                 <Check aria-hidden="true" size={16} strokeWidth={2} />
-                {isSaving ? "Menyimpan…" : "Simpan deskripsi"}
+                {isSaving ? t("Menyimpan…") : t("Simpan deskripsi")}
               </ActionButton>
             </div>
           </div>
         </form>
       ) : (
-        <div className="job-description-rendered">{renderDescription(description)}</div>
+        <div className="job-description-rendered">
+          {renderDescription(description)}
+        </div>
       )}
 
       {!isEditing ? (
@@ -213,55 +286,86 @@ export function JobDescriptionEditor({
               <FileSearch size={18} strokeWidth={1.8} />
             </span>
             <div>
-              <strong>Ubah deskripsi menjadi requirement terstruktur</strong>
+              <strong>{t("Ambil persyaratan lowongan")}</strong>
               <p>
-                Ekstraksi membuat draft requirement yang tetap perlu kamu periksa sebelum dipakai dalam analisis.
+                {t(
+                  "ApplyFit akan menyusunnya agar kamu bisa periksa sebelum lanjut.",
+                )}
               </p>
             </div>
           </div>
-          <ActionButton type="button" disabled={isExtracting} onClick={extractRequirements}>
+          <ActionButton
+            variant={
+              hasExistingRequirements || hasExtracted ? "secondary" : "primary"
+            }
+            type="button"
+            disabled={isExtracting}
+            onClick={extractRequirements}
+          >
             {isExtracting ? (
-              <LoaderCircle className="spin" aria-hidden="true" size={16} strokeWidth={1.9} />
+              <LoaderCircle
+                className="spin"
+                aria-hidden="true"
+                size={16}
+                strokeWidth={1.9}
+              />
             ) : (
               <Sparkles aria-hidden="true" size={16} strokeWidth={1.9} />
             )}
             {isExtracting
-              ? "Mengekstrak..."
-              : hasExtracted
-                ? "Ekstrak ulang"
-                : "Ekstrak requirement"}
+              ? t("Mengekstrak...")
+              : hasExtracted || hasExistingRequirements
+                ? t("Ekstrak ulang")
+                : t("Ambil persyaratan")}
           </ActionButton>
         </div>
       ) : null}
 
       {extractionError && !isEditing ? (
-        <p className="job-extraction-error" role="alert">{extractionError}</p>
+        <p className="job-extraction-error" role="alert">
+          {extractionError}
+        </p>
       ) : null}
 
       {hasExtracted && !isEditing ? (
-        <section className="job-requirement-preview" aria-labelledby="requirement-preview-title">
+        <section
+          className="job-requirement-preview"
+          aria-labelledby="requirement-preview-title"
+        >
           <div className="job-requirement-preview-heading">
             <div>
-              <p className="eyebrow">
-                Hasil ekstraksi
-              </p>
+              <p className="eyebrow">{t("Hasil ekstraksi")}</p>
               <h3 id="requirement-preview-title">
-                {extractedRequirements.length} requirement ditemukan
+                {extractedRequirements.length} {t("requirement ditemukan")}
               </h3>
             </div>
             <div className="job-requirement-preview-actions">
-              <div aria-label="Ringkasan prioritas requirement">
+              <div aria-label={t("Ringkasan prioritas requirement")}>
                 <span>
-                  <strong>{extractedRequirements.filter((item) => item.priority === "Wajib").length}</strong>
-                  wajib
+                  <strong>
+                    {
+                      extractedRequirements.filter(
+                        (item) => item.priority === "Wajib",
+                      ).length
+                    }
+                  </strong>
+                  {t("wajib")}
                 </span>
                 <span>
-                  <strong>{extractedRequirements.filter((item) => item.priority === "Preferensi").length}</strong>
-                  preferensi
+                  <strong>
+                    {
+                      extractedRequirements.filter(
+                        (item) => item.priority === "Preferensi",
+                      ).length
+                    }
+                  </strong>
+                  {t("preferensi")}
                 </span>
               </div>
               {reviewHref ? (
-                <ActionLink variant="text" href={reviewHref}>Buka Persyaratan <CtaArrow /></ActionLink>
+                <ActionLink variant="text" href={reviewHref}>
+                  {t("Buka Persyaratan")} <CtaArrow />
+                </ActionLink>
               ) : null}
             </div>
           </div>
@@ -269,10 +373,12 @@ export function JobDescriptionEditor({
           <div className="job-requirement-preview-list">
             {extractedRequirements.map((requirement) => (
               <article key={requirement.id}>
-                <span className={`requirement-priority ${
-                  requirement.priority === "Wajib" ? "required" : "preferred"
-                }`}>
-                  {requirement.priority}
+                <span
+                  className={`requirement-priority ${
+                    requirement.priority === "Wajib" ? "required" : "preferred"
+                  }`}
+                >
+                  {t(requirement.priority)}
                 </span>
                 <p>{requirement.text}</p>
                 <small>{requirement.category}</small>
@@ -281,13 +387,16 @@ export function JobDescriptionEditor({
           </div>
 
           <p className="job-requirement-preview-note">
-            Belum ada status Terbukti, Belum terbukti, Sedang dipelajari, atau Belum ada kecocokan pada tahap ini.
-            Status baru diturunkan setelah requirement dipetakan ke skill dan bukti.
+            {t(
+              "Belum ada status Terbukti, Belum terbukti, Sedang dipelajari, atau Belum ada kecocokan pada tahap ini. Status baru diturunkan setelah requirement dipetakan ke skill dan bukti.",
+            )}
           </p>
         </section>
       ) : null}
 
-      <span className="sr-only" aria-live="polite">{announcement}</span>
+      <span className="sr-only" aria-live="polite">
+        {t(announcement)}
+      </span>
     </article>
   );
 }
@@ -310,9 +419,11 @@ const requirementCategoryLabels = {
   experience: "Pengalaman",
 } as const;
 
-async function readExtractionResponse(response: Response): Promise<ExtractionResponse> {
+async function readExtractionResponse(
+  response: Response,
+): Promise<ExtractionResponse> {
   try {
-    return await response.json() as ExtractionResponse;
+    return (await response.json()) as ExtractionResponse;
   } catch {
     return {};
   }
@@ -323,6 +434,12 @@ type JobUpdateResponse = {
   error?: { message?: string };
 };
 
-async function readJobUpdateResponse(response: Response): Promise<JobUpdateResponse> {
-  try { return await response.json() as JobUpdateResponse; } catch { return {}; }
+async function readJobUpdateResponse(
+  response: Response,
+): Promise<JobUpdateResponse> {
+  try {
+    return (await response.json()) as JobUpdateResponse;
+  } catch {
+    return {};
+  }
 }

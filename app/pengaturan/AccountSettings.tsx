@@ -1,4 +1,5 @@
 "use client";
+import { useI18n } from "../components/LanguageProvider";
 
 /* eslint-disable @next/next/no-img-element -- Auth profile photos may come from user-provided HTTPS hosts. */
 
@@ -35,9 +36,12 @@ type AccountResponse = {
 };
 
 export function AccountSettings() {
+  const { t } = useI18n();
   const { user, loading, refresh } = useAuthSession();
   const [name, setName] = useState(() => getAuthDisplayName(user));
-  const [avatarUrl, setAvatarUrl] = useState(() => user?.profile?.avatar_url?.trim() || "");
+  const [avatarUrl, setAvatarUrl] = useState(
+    () => user?.profile?.avatar_url?.trim() || "",
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [isRequestingReset, setIsRequestingReset] = useState(false);
   const [profileError, setProfileError] = useState("");
@@ -61,7 +65,9 @@ export function AccountSettings() {
       });
       const result = await readAccountResponse(response);
       if (!response.ok || !result.data?.account) {
-        throw new Error(result.error?.message ?? "Profil akun belum dapat disimpan.");
+        throw new Error(
+          result.error?.message ?? "Profil akun belum dapat disimpan.",
+        );
       }
       setName(result.data.account.name);
       setAvatarUrl(result.data.account.avatarUrl ?? "");
@@ -83,7 +89,9 @@ export function AccountSettings() {
     setSecurityError("");
     setSecurityMessage("");
     if (user.isDemo) {
-      setSecurityError("Ruang demo hanya untuk dilihat. Perubahan tidak dapat disimpan.");
+      setSecurityError(
+        "Ruang demo hanya untuk dilihat. Perubahan tidak dapat disimpan.",
+      );
       return;
     }
     setIsRequestingReset(true);
@@ -95,9 +103,13 @@ export function AccountSettings() {
       });
       const result = await readAccountResponse(response);
       if (!response.ok) {
-        throw new Error(result.error?.message ?? "Kode reset belum dapat dikirim.");
+        throw new Error(
+          result.error?.message ?? "Kode reset belum dapat dikirim.",
+        );
       }
-      setSecurityMessage("Kode 6 digit sudah dikirim. Lanjutkan ke formulir perubahan kata sandi.");
+      setSecurityMessage(
+        "Kode 6 digit sudah dikirim. Lanjutkan ke formulir perubahan kata sandi.",
+      );
     } catch (requestError) {
       setSecurityError(
         requestError instanceof Error
@@ -115,89 +127,170 @@ export function AccountSettings() {
 
   return (
     <div className="account-settings-stack">
-      <section className="account-settings-card" aria-labelledby="account-profile-title">
+      <section
+        className="account-settings-card account-identity-card"
+        aria-labelledby="account-profile-title"
+      >
         <div className="account-settings-heading">
-          <span aria-hidden="true"><UserRound size={19} strokeWidth={1.8} /></span>
+          <span aria-hidden="true">
+            <UserRound size={19} strokeWidth={1.8} />
+          </span>
           <div>
-            <p className="eyebrow">Identitas akun</p>
-            <h2 id="account-profile-title">Nama dan foto profil</h2>
-            <p>Informasi ini tampil di menu akun tanpa mengubah data Profil Karier.</p>
+            <p className="eyebrow">{t("Identitas akun")}</p>
+            <h2 id="account-profile-title">{t("Nama dan foto profil")}</h2>
+            <p>
+              {t(
+                "Informasi ini tampil di menu akun tanpa mengubah data Profil Karier.",
+              )}
+            </p>
+          </div>
+          <div className="account-identity-preview">
+            <div
+              className="account-avatar-preview"
+              aria-label={`Pratinjau foto profil ${displayName}`}
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" />
+              ) : (
+                <span>{initials}</span>
+              )}
+            </div>
+            <strong>{displayName}</strong>
           </div>
         </div>
 
         <form className="account-profile-form" onSubmit={saveProfile}>
-          <div className="account-avatar-preview" aria-label={`Pratinjau foto profil ${displayName}`}>
-            {avatarUrl ? <img src={avatarUrl} alt="" /> : <span>{initials}</span>}
-          </div>
           <div className="account-profile-fields">
             <label>
-              <span>Nama lengkap</span>
-              <input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" minLength={2} maxLength={80} required />
+              <span>{t("Nama lengkap")}</span>
+              <input
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                autoComplete="name"
+                minLength={2}
+                maxLength={80}
+                required
+              />
             </label>
             <label>
-              <span>URL foto profil</span>
+              <span>{t("URL foto profil")}</span>
               <div className="account-input-with-icon">
                 <Camera aria-hidden="true" size={17} strokeWidth={1.8} />
-                <input type="url" inputMode="url" value={avatarUrl} onChange={(event) => setAvatarUrl(event.target.value)} placeholder="https://…" />
+                <input
+                  type="url"
+                  inputMode="url"
+                  value={avatarUrl}
+                  onChange={(event) => setAvatarUrl(event.target.value)}
+                  placeholder="https://…"
+                />
               </div>
-              <small>Gunakan URL HTTPS. Kosongkan untuk memakai inisial nama.</small>
+              <small>
+                {t("Gunakan URL HTTPS. Kosongkan untuk memakai inisial nama.")}
+              </small>
             </label>
             <div className="account-form-footer">
               <span aria-live="polite">
-                {profileError ? <em className="account-message error">{profileError}</em> : null}
-                {profileMessage ? <em className="account-message success">{profileMessage}</em> : null}
+                {profileError ? (
+                  <em className="account-message error">{profileError}</em>
+                ) : null}
+                {profileMessage ? (
+                  <em className="account-message success">{profileMessage}</em>
+                ) : null}
               </span>
-              <ActionButton className="career-button primary" type="submit" disabled={isSaving}>
-                {isSaving ? <LoaderCircle className="spin" aria-hidden="true" size={16} /> : <Save aria-hidden="true" size={16} strokeWidth={1.9} />}
-                {isSaving ? "Menyimpan…" : "Simpan identitas"}
+              <ActionButton
+                className="career-button primary"
+                type="submit"
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <LoaderCircle className="spin" aria-hidden="true" size={16} />
+                ) : (
+                  <Save aria-hidden="true" size={16} strokeWidth={1.9} />
+                )}
+                {isSaving ? t("Menyimpan…") : t("Simpan identitas")}
               </ActionButton>
             </div>
           </div>
         </form>
       </section>
 
-      <section className="account-settings-card account-security-card" aria-labelledby="account-security-title">
+      <section
+        className="account-settings-card account-security-card"
+        aria-labelledby="account-security-title"
+      >
         <div className="account-settings-heading">
-          <span aria-hidden="true"><ShieldCheck size={19} strokeWidth={1.8} /></span>
+          <span aria-hidden="true">
+            <ShieldCheck size={19} strokeWidth={1.8} />
+          </span>
           <div>
-            <p className="eyebrow">Akses dan keamanan</p>
-            <h2 id="account-security-title">Email dan kata sandi</h2>
-            <p>Email dan kata sandi digunakan untuk mengakses akun ApplyFit.</p>
+            <p className="eyebrow">{t("Akses dan keamanan")}</p>
+            <h2 id="account-security-title">{t("Email dan kata sandi")}</h2>
+            <p>
+              {t(
+                "Email dan kata sandi digunakan untuk mengakses akun ApplyFit.",
+              )}
+            </p>
           </div>
         </div>
 
         <div className="account-security-rows">
           <div className="account-security-row">
-            <span className="account-security-icon" aria-hidden="true"><Mail size={18} strokeWidth={1.8} /></span>
+            <span className="account-security-icon" aria-hidden="true">
+              <Mail size={18} strokeWidth={1.8} />
+            </span>
             <div>
-              <small>Email akun</small>
+              <small>{t("Email akun")}</small>
               <strong>{user.email}</strong>
               <span className="account-verified-status">
                 <BadgeCheck aria-hidden="true" size={14} strokeWidth={1.9} />
-                {user.emailVerified ? "Terverifikasi" : "Belum terverifikasi"}
+                {user.emailVerified
+                  ? t("Terverifikasi")
+                  : t("Belum terverifikasi")}
               </span>
             </div>
-            <span className="account-readonly-label">Identitas login</span>
+            <span className="account-readonly-label">
+              {t("Identitas login")}
+            </span>
           </div>
 
           <div className="account-security-row password-row">
-            <span className="account-security-icon" aria-hidden="true"><KeyRound size={18} strokeWidth={1.8} /></span>
+            <span className="account-security-icon" aria-hidden="true">
+              <KeyRound size={18} strokeWidth={1.8} />
+            </span>
             <div>
-              <small>Kata sandi</small>
-              <strong>Ubah dengan kode email</strong>
-              <p>Kode reset dikirim ke email terverifikasi agar perubahan tetap aman.</p>
+              <small>{t("Kata sandi")}</small>
+              <strong>{t("Ubah dengan kode email")}</strong>
+              <p>
+                {t(
+                  "Kode reset dikirim ke email terverifikasi agar perubahan tetap aman.",
+                )}
+              </p>
             </div>
-            <ActionButton className="career-button secondary" variant="secondary" type="button" disabled={isRequestingReset} onClick={requestPasswordReset}>
-              {isRequestingReset ? "Mengirim…" : "Kirim kode"}
+            <ActionButton
+              className="career-button secondary"
+              variant="secondary"
+              type="button"
+              disabled={isRequestingReset}
+              onClick={requestPasswordReset}
+            >
+              {isRequestingReset ? t("Mengirim…") : t("Kirim kode")}
             </ActionButton>
           </div>
         </div>
 
-        {securityError ? <p className="account-message error" role="alert">{securityError}</p> : null}
+        {securityError ? (
+          <p className="account-message error" role="alert">
+            {securityError}
+          </p>
+        ) : null}
         {securityMessage ? (
           <div className="account-security-next" role="status">
             <span>{securityMessage}</span>
-            <Link href={`/reset-kata-sandi?email=${encodeURIComponent(user.email)}`}>Masukkan kode</Link>
+            <Link
+              href={`/reset-kata-sandi?email=${encodeURIComponent(user.email)}`}
+            >
+              {t("Masukkan kode")}
+            </Link>
           </div>
         ) : null}
       </section>
@@ -205,9 +298,11 @@ export function AccountSettings() {
   );
 }
 
-async function readAccountResponse(response: Response): Promise<AccountResponse> {
+async function readAccountResponse(
+  response: Response,
+): Promise<AccountResponse> {
   try {
-    return await response.json() as AccountResponse;
+    return (await response.json()) as AccountResponse;
   } catch {
     return {};
   }

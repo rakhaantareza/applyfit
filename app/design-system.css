@@ -1,0 +1,5939 @@
+/* ApplyFit — warm paper, blue ink, comfortable working surfaces.
+ * This is the presentation owner, loaded after legacy feature styles.
+ * Shared geometry and semantic colors belong here; data and interactions remain
+ * with their existing components. No page-specific color palettes.
+ */
+:root {
+  --background: #f5f3ee;
+  --chrome: #f5f3ee;
+  --surface: #fffefa;
+  --surface-subtle: #eceae3;
+  --surface-hover: #e3e0d7;
+  --foreground: #24262c;
+  --foreground-muted: #6b6b72;
+  --foreground-subtle: #77777e;
+  --border: #d9d6cd;
+  --border-strong: #bab7af;
+  --primary: #4056d8;
+  --primary-hover: #3045bd;
+  --primary-subtle: #e9ecfc;
+  --primary-border: #adb8ef;
+  --primary-foreground: #ffffff;
+  --surface-inverse: #2c3eb0;
+  --foreground-inverse: #ffffff;
+  --foreground-inverse-muted: #c5ccf4;
+  --accent: #ddd3a8;
+  --score-track: #dfe2f0;
+  --primary-action-shadow: none;
+  --content-max: 1200px;
+  --job-shell-width: 1200px;
+  --content-form: 660px;
+  --sidebar-width: 224px;
+  --sidebar-collapsed-width: 64px;
+  --topbar-height: 76px;
+  --text-base: 1rem;
+  --text-sm: 0.875rem;
+  --text-xs: 0.75rem;
+  --type-section-title-size: 1.125rem;
+  --type-primary-title-size: 1rem;
+  --type-body-size: 1rem;
+  --type-helper-size: 0.875rem;
+  --type-control-size: 0.875rem;
+  --type-metadata-size: 0.75rem;
+  --control-height: 44px;
+  --control-height-compact: 36px;
+  --menu-item-height: 38px;
+  --icon-button-size: 36px;
+  --sheet-padding: clamp(20px, 2.5vw, 32px);
+  --relation-width: 1px;
+  --relation-color: var(--primary-border);
+  --label-column: 280px;
+  --accent-subtle: #f0ead5;
+  --accent-foreground: #393729;
+  --brand-strong: #3045bd;
+  --score-ink: #4056d8;
+}
+
+/* Typography, sheets, and controls are shared by both layout families. */
+body {
+  -webkit-font-smoothing: antialiased;
+}
+.type-page-title {
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 1.14;
+}
+.page-header {
+  padding: 0 0 26px;
+  border-bottom: 1px solid var(--border);
+}
+.page-header-description {
+  max-width: 560px;
+}
+.section-header {
+  align-items: center;
+}
+body :is(.ui-button, .ui-icon-button) {
+  box-shadow: none;
+}
+body .ui-button {
+  letter-spacing: -0.015em;
+}
+body :is(input, textarea, select):not([type="checkbox"]) {
+  font-size: var(--type-control-size);
+}
+:is(a, button, summary, input, select, textarea):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+}
+:is(.type-primary-title, .requirement-name, .mapping-requirement-copy h3) {
+  overflow-wrap: anywhere;
+}
+
+/* Quiet navigation frame; the connected marker identifies the current place. */
+.sidebar {
+  padding: 22px 12px 14px;
+  border-right-color: var(--border);
+}
+.main-nav {
+  gap: 5px;
+}
+.nav-item {
+  min-height: 39px;
+  padding: 9px 12px;
+  font-size: 13px;
+}
+.nav-item.active {
+  background: var(--surface);
+  color: var(--foreground);
+}
+.nav-item.active::before {
+  content: "";
+  width: 3px;
+  height: 16px;
+  background: var(--primary);
+  border-radius: 2px;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.sidebar-collapsed {
+  padding-inline: 10px;
+}
+.sidebar-collapsed .nav-item {
+  min-height: 39px;
+}
+.sidebar-utility {
+  margin-top: 8px;
+}
+.app-topbar-focus .app-topbar-leading {
+  padding-left: 20px;
+}
+.job-focus-tabs {
+  background: var(--background);
+}
+.job-focus-tabs .job-workspace-nav a {
+  display: flex;
+  align-items: center;
+  border-bottom-width: 2px;
+}
+.job-focus-tabs .job-workspace-nav a:first-child {
+  padding-left: 0;
+}
+.job-workspace-nav a.active .workspace-step-index {
+  color: var(--primary);
+}
+.job-workspace-nav a.active {
+  color: var(--primary);
+}
+
+/* A reusable line and node grammar for actual relationships. */
+.relationship-lane {
+  min-width: 0;
+  border-inline-start: var(--relation-width) solid var(--relation-color);
+  position: relative;
+}
+.connection-path {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+.connection-path li {
+  flex: 1;
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding-right: 18px;
+  font-size: 13px;
+}
+.connection-path li::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--relation-color);
+}
+.connection-path li:last-child::before {
+  display: none;
+}
+.connection-node {
+  width: 11px;
+  height: 11px;
+  border: 1px solid var(--primary);
+  background: var(--surface);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+/* Ringkasan: an introduction beside the current working sheet. */
+.home-page.summary-page {
+  column-gap: 40px;
+  row-gap: 32px;
+  align-items: start;
+}
+.summary-greeting {
+  border: 0;
+}
+.summary-greeting .page-header-description {
+  line-height: 1.7;
+}
+.summary-current-work,
+.summary-foundation {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sheet-padding);
+}
+.summary-current-work.completed {
+  background: var(--surface);
+  border-color: var(--border);
+}
+.summary-work-context {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.summary-work-context::before {
+  content: "";
+  border-radius: 50%;
+}
+.summary-work-layout {
+  margin-top: 0;
+  flex-direction: column;
+}
+.summary-work-copy {
+  width: 100%;
+  max-width: none;
+}
+.summary-work-action {
+  align-self: stretch;
+  border-top: 1px solid var(--border);
+}
+.summary-fit-score {
+  text-align: left;
+}
+.summary-workflow {
+  margin-top: 30px;
+  padding-top: 20px;
+}
+.summary-workflow li::before {
+  height: 1px;
+}
+.summary-workflow li.complete .summary-step-marker {
+  color: var(--primary);
+  background: var(--primary-subtle);
+  border: 1px solid var(--primary-border);
+}
+.summary-secondary {
+  padding-top: 4px;
+}
+.summary-secondary .section-header {
+  gap: 20px;
+}
+.summary-current-work-empty .section-header {
+  flex-direction: column;
+  gap: 24px;
+}
+.summary-foundation {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+/* Profil: career context stays beside the reusable skill collection. */
+.career-foundation-layout {
+  display: grid;
+  align-items: start;
+}
+.career-foundation-layout > * {
+  min-width: 0;
+}
+.career-profile-hero {
+  border: 0;
+}
+.career-profile-hero .section-header {
+  gap: 12px;
+  margin: 0 0 26px;
+}
+.career-direction {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.career-direction-statement {
+  border-left: 1px solid var(--relation-color);
+  position: relative;
+}
+.career-direction-statement::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: 4px;
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--primary);
+  border-radius: 50%;
+  background: var(--background);
+}
+.career-foundation-layout .profile-skills-section {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.career-foundation-layout .skill-manager {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.profile-skill-list {
+  margin-top: 24px;
+}
+.profile-skill-name {
+  position: relative;
+}
+.profile-skill-name::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 7px;
+  height: 7px;
+  width: 7px;
+  border: 1px solid var(--primary-border);
+  border-radius: 50%;
+  background: var(--primary-subtle);
+}
+.profile-skill-evidence {
+  line-height: 1.5;
+}
+.career-foundation-layout .career-form-fields {
+  grid-template-columns: 1fr;
+}
+.career-foundation-layout .career-form-actions > div {
+  flex-wrap: wrap;
+}
+
+/* Collections: readable content with supporting relationships in a second lane. */
+.evidence-overview {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+}
+.evidence-overview > p {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  font-size: 14px;
+  color: var(--foreground-muted);
+}
+.evidence-overview strong {
+  color: var(--foreground);
+  font-weight: 500;
+}
+:is(
+  .evidence-list-section,
+  .jobs-list-section,
+  .mapping-requirements,
+  .requirement-review-list-section,
+  .requirements-panel
+) {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+.evidence-list-section > .section-header .section-header-copy {
+  display: block;
+}
+.evidence-list-section > .section-header {
+  justify-content: space-between;
+  margin: 0 0 26px;
+}
+.evidence-filter-panel {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0 0 20px;
+}
+.evidence-filter-meta {
+  font-size: 12px;
+  padding: 2px 0;
+}
+.evidence-search-field {
+  min-height: 44px;
+}
+.evidence-search-field input {
+  font-size: 14px;
+}
+.evidence-filter-field,
+.evidence-filter-field select {
+  font-size: 13px;
+}
+.evidence-library-list {
+  border-top: 1px solid var(--border);
+}
+.evidence-row {
+  align-items: start;
+}
+.evidence-type-label {
+  text-transform: none;
+  letter-spacing: 0;
+}
+.evidence-row-copy > p {
+  color: var(--foreground-muted);
+}
+.evidence-skill-links {
+  position: relative;
+  margin-top: 22px;
+}
+.evidence-skill-links::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid var(--primary);
+  background: var(--background);
+  position: absolute;
+  left: -4px;
+  top: 8px;
+}
+.evidence-source {
+  margin-top: -14px;
+}
+.evidence-source > span {
+  font-size: 12px;
+}
+.evidence-row-actions {
+  gap: 4px;
+}
+.evidence-row-actions .ui-icon-button {
+  color: var(--foreground-muted);
+}
+.evidence-editor {
+  margin-bottom: 24px;
+}
+.jobs-overview.jobs-list-section {
+  display: block;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.jobs-list-section .section-header {
+  margin-bottom: 18px;
+}
+.job-library-row {
+  min-height: 130px;
+}
+.job-library-copy > span {
+  margin-top: 9px;
+}
+.job-library-context span,
+.job-library-progress strong {
+  font-size: 12px;
+}
+.job-library-progress {
+  gap: 8px;
+}
+.job-library-progress small {
+  font-size: 12px;
+}
+.job-stage {
+  font-size: 12px;
+  text-transform: none;
+  letter-spacing: 0;
+  background: transparent;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+}
+.job-stage.review {
+  background: transparent;
+  color: var(--primary);
+}
+.job-stage.draft {
+  background: transparent;
+  color: var(--foreground-muted);
+}
+
+/* Job detail uses the same sheet grid and readable document width. */
+.job-detail-hero {
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.job-detail-identity-row h1,
+#job-detail-title {
+  font-size: clamp(2rem, 3vw, 2.9rem);
+  font-weight: 500;
+  line-height: 1.16;
+}
+.job-detail-identity-row .eyebrow {
+  display: none;
+}
+.job-detail-meta {
+  background: transparent;
+  border: 0;
+}
+.job-detail-content {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  align-items: start;
+}
+.job-description-rendered {
+  color: var(--foreground);
+}
+.job-detail-section-heading .eyebrow,
+.job-detail-section-heading > span {
+  display: none;
+}
+.job-detail-aside p {
+  font-size: 13px;
+  line-height: 1.65;
+}
+.job-detail-aside :is(dt, dd) {
+  font-size: 12px;
+}
+.job-extraction-panel {
+  margin-top: 32px;
+}
+.job-extraction-panel strong {
+  font-size: 14px;
+}
+
+/* Dense review screens: context is quiet, requirements have the space. */
+:is(.requirement-review-header, .evidence-mapping-header) {
+  border-bottom: 1px solid var(--border);
+}
+:is(.requirement-review-header, .evidence-mapping-header) h1 {
+  line-height: 1.15;
+  margin-top: 0;
+}
+:is(.requirement-review-header, .evidence-mapping-header) .eyebrow {
+  display: none;
+}
+:is(.requirement-review-header, .evidence-mapping-header) .inline-back-link {
+  margin-bottom: 20px;
+  font-size: 12px;
+}
+:is(.requirement-review-header, .evidence-mapping-header) p:not(.eyebrow) {
+  font-size: 14px;
+  margin-top: 12px;
+}
+.requirement-review-list-section {
+  border: 0;
+  padding: 0;
+}
+.requirement-review-section-heading {
+  padding: 0 0 20px;
+}
+.requirement-review-section-heading .eyebrow {
+  display: none;
+}
+.requirement-review-section-heading h2 {
+  font-size: 20px;
+}
+.requirement-review-heading-actions {
+  flex-wrap: wrap;
+}
+.requirement-review-heading-actions small {
+  font-size: 12px;
+}
+.requirement-review-group-heading h3 {
+  font-size: 15px;
+}
+.requirement-review-group-heading p {
+  font-size: 12px;
+}
+.requirement-review-list article p {
+  font-size: 14px;
+  line-height: 1.65;
+}
+.requirement-review-list
+  article
+  :is(.requirement-number, .requirement-review-type) {
+  font-size: 12px;
+}
+.requirement-review-next-step {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+}
+.requirement-review-next-step > span {
+  display: none;
+}
+.requirement-review-next-step p {
+  font-size: 13px;
+}
+.mapping-job-context {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  color: var(--foreground);
+  box-shadow: none;
+}
+.mapping-job-copy h2 {
+  color: var(--foreground);
+}
+.mapping-job-copy strong,
+.mapping-job-meta span {
+  color: var(--foreground-muted);
+  font-size: 12px;
+}
+.mapping-job-copy .eyebrow {
+  display: none;
+}
+.mapping-job-mark {
+  background: var(--primary-subtle);
+  border: 1px solid var(--primary-border);
+  color: var(--primary);
+  border-radius: 8px;
+}
+.mapping-job-meta svg {
+  color: var(--primary);
+}
+.mapping-overview {
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  border-radius: 0;
+}
+.mapping-overview-icon,
+.mapping-overview-copy .eyebrow {
+  display: none;
+}
+.mapping-overview h2 {
+  font-size: 20px;
+}
+.mapping-overview-copy p {
+  font-size: 13px;
+}
+.mapping-progress small {
+  font-size: 12px;
+}
+.mapping-auto-summary {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin-top: -16px;
+}
+.mapping-auto-summary p {
+  font-size: 12px;
+}
+.mapping-auto-summary > small {
+  display: none;
+}
+.mapping-section-heading .eyebrow {
+  display: none;
+}
+.mapping-section-heading h2 {
+  font-size: 20px;
+}
+.mapping-section-heading p {
+  font-size: 13px;
+}
+.mapping-requirements {
+  overflow: visible;
+}
+.mapping-list {
+  border-top: 1px solid var(--border);
+}
+.mapping-row {
+  grid-template-columns: 24px minmax(0, 1fr) minmax(0, 1fr);
+}
+.mapping-row-number {
+  font-size: 12px;
+  background: transparent;
+  color: var(--foreground-subtle);
+  padding: 0;
+}
+.mapping-requirement-copy h3 {
+  font-weight: 500;
+}
+.mapping-priority {
+  background: transparent;
+  font-size: 12px;
+  padding: 0;
+  border: 0;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.mapping-priority.preferred {
+  background: transparent;
+}
+.mapping-requirement-copy > small {
+  display: none;
+}
+.mapping-connection {
+  position: relative;
+  background: transparent;
+  border: 0;
+  border-left: 1px solid var(--relation-color);
+  border-radius: 0;
+  padding: 4px 0 4px 24px;
+}
+.mapping-connection::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: 8px;
+  width: 9px;
+  height: 9px;
+  background: var(--background);
+  border: 1px solid var(--primary);
+  border-radius: 50%;
+}
+.mapping-row.without-evidence .mapping-connection {
+  border-color: var(--warning-border);
+}
+.mapping-row.without-evidence .mapping-connection::before {
+  border-color: var(--warning);
+}
+.mapping-connection-heading {
+  gap: 10px;
+}
+.mapping-connection-heading span,
+.mapping-connection-heading small,
+.mapping-connection > p {
+  font-size: 12px;
+}
+.mapping-skill-list > span {
+  font-size: 13px;
+  background: var(--surface);
+  padding: 5px 9px;
+}
+.mapping-skill-list small {
+  font-size: 12px;
+}
+.mapping-review {
+  box-shadow: none;
+  border: 1px solid var(--border);
+}
+.mapping-review-heading .eyebrow {
+  display: none;
+}
+.mapping-review-heading h2 {
+  font-size: 18px;
+}
+.mapping-review-heading p {
+  font-size: 13px;
+}
+.mapping-informational {
+  background: transparent;
+  border: 1px solid var(--border);
+}
+.mapping-informational summary strong {
+  font-size: 13px;
+}
+.mapping-informational summary small,
+.mapping-evidence-note p {
+  font-size: 12px;
+}
+
+/* Analysis: preserve the ring and disclosure, give the explanation a clear lane. */
+.analysis-page-header {
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--border);
+}
+.analysis-page-container {
+  gap: 28px;
+}
+.score-main {
+  max-width: none;
+  padding-top: 12px;
+}
+.score-visual {
+  border-right: 1px solid var(--relation-color);
+  padding-right: 32px;
+}
+.score-ring::after {
+  display: none;
+}
+.score-copy h2 {
+  max-width: 670px;
+}
+.score-copy > p.readiness-intro {
+  line-height: 1.75;
+}
+.score-copy > p.analysis-evidence-context {
+  font-size: 12px;
+}
+.attention-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.attention-item {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.attention-item + .attention-item {
+  border-left: 1px solid var(--border);
+}
+.attention-item h3 {
+  font-size: 14px;
+  font-weight: 500;
+}
+.requirements-list {
+  border-bottom: 1px solid var(--border);
+}
+.requirement-summary,
+.requirement-row.static {
+  gap: 18px;
+}
+.requirement-name {
+  font-weight: 500;
+  line-height: 1.6;
+}
+.requirement-meta {
+  font-size: 12px;
+}
+.requirement-icon {
+  background: transparent;
+  width: 28px;
+  height: 32px;
+}
+.status-badge {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.requirement-expanded {
+  border-left: 1px solid var(--relation-color);
+  margin-left: 45px;
+}
+.requirement-detail-label,
+.supporting-evidence-list li > span,
+.score-contribution > small {
+  font-size: 12px;
+}
+.requirement-detail-group + .requirement-detail-group {
+  border-left: 1px solid var(--relation-color);
+}
+.linked-skill-list strong,
+.supporting-evidence-list strong,
+.score-contribution > strong {
+  font-size: 13px;
+}
+.filter-result span {
+  font-size: 12px;
+}
+
+/* Account forms: open section introductions and a constrained working surface. */
+.account-settings-card {
+  display: grid;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 0 0 36px;
+  box-shadow: none;
+}
+.account-settings-heading {
+  align-items: start;
+}
+.account-settings-heading > span,
+.account-settings-heading .eyebrow {
+  display: none;
+}
+.account-settings-heading h2 {
+  line-height: 1.4;
+  margin-top: 0;
+}
+.account-settings-heading p {
+  font-size: 13px;
+  line-height: 1.7;
+}
+.account-profile-form {
+  margin-top: 0;
+  gap: 24px;
+  grid-template-columns: 64px minmax(0, 1fr);
+  max-width: var(--content-form);
+}
+.account-avatar-preview {
+  width: 64px;
+  font-size: 20px;
+}
+.account-profile-fields {
+  min-width: 0;
+}
+.account-profile-fields small {
+  font-size: 12px;
+}
+.account-input-with-icon {
+  position: relative;
+  width: 100%;
+}
+body .account-profile-fields .account-input-with-icon input {
+  width: 100%;
+  padding-left: 38px;
+}
+.account-input-with-icon > svg {
+  position: absolute;
+  top: 13px;
+  left: 12px;
+}
+.account-security-rows {
+  margin-top: 0;
+}
+.account-security-row:first-child {
+  padding-top: 0;
+}
+.account-security-row small,
+.account-security-row p,
+.account-verified-status {
+  font-size: 12px;
+}
+.account-security-row strong {
+  font-size: 14px;
+}
+.account-security-next,
+.account-settings-card > .account-message {
+  grid-column: 2;
+}
+.account-readonly-label {
+  display: none;
+}
+
+/* Auth is the same relationship language on an inverse sheet. */
+.auth-brand-copy > p:not(.auth-kicker) {
+  color: var(--foreground-inverse-muted);
+}
+.auth-connection-path {
+  display: grid;
+  color: var(--foreground-inverse);
+}
+.auth-connection-path li {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 0 24px;
+}
+.auth-connection-path li::before {
+  width: 1px;
+  height: 100%;
+  left: 5px;
+  top: 5px;
+  background: var(--foreground-inverse-muted);
+  opacity: 0.35;
+}
+.auth-connection-path .connection-node {
+  background: var(--surface-inverse);
+  border-color: var(--accent);
+}
+.auth-connection-path li:last-child .connection-node {
+  background: var(--accent);
+}
+.login-form :is(label, .login-forgot-link) {
+  font-size: 14px;
+}
+.login-demo-divider,
+.auth-beta {
+  font-size: 12px;
+}
+.auth-brand-footnote {
+  font-size: 13px;
+}
+
+@media (max-width: 1199px) {
+  :root {
+    --label-column: 210px;
+  }
+  .home-page,
+  .career-foundation-layout,
+  .account-settings-card {
+    column-gap: 28px;
+  }
+  .job-library-row {
+    grid-template-columns: 44px minmax(0, 1fr) minmax(160px, 0.65fr) auto;
+  }
+  .job-library-context {
+    grid-column: 2;
+    grid-row: 2;
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .job-library-progress {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+  .job-library-detail-link {
+    grid-column: 4;
+    grid-row: 1 / span 2;
+  }
+  .evidence-row {
+    gap: 16px;
+    grid-template-columns: 36px minmax(0, 1fr) minmax(140px, 0.75fr) auto;
+  }
+}
+
+@media (max-width: 1023px) {
+  .home-page.summary-page,
+  .career-foundation-layout {
+    grid-template-columns: 1fr;
+  }
+  .summary-greeting {
+    grid-column: 1;
+    grid-row: auto;
+    padding: 0;
+  }
+  .summary-greeting h1 {
+    max-width: none;
+  }
+  .home-page > :not(.summary-greeting) {
+    grid-column: 1;
+  }
+  .career-profile-hero .career-direction {
+    max-width: 600px;
+  }
+  .career-direction-statement {
+    padding-bottom: 4px;
+  }
+  .career-foundation-layout .career-form-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .job-detail-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .job-detail-aside {
+    max-width: none;
+  }
+  .account-settings-card {
+    grid-template-columns: 1fr;
+  }
+  .account-security-next,
+  .account-settings-card > .account-message {
+    grid-column: 1;
+  }
+  .score-main {
+    grid-template-columns: 170px minmax(0, 1fr);
+    gap: 28px;
+  }
+  .score-visual {
+    padding-right: 20px;
+  }
+  .score-ring {
+    width: 140px;
+    height: 140px;
+  }
+  .score-ring strong {
+    font-size: 38px;
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --sheet-padding: 20px;
+  }
+  .app-topbar-focus .app-topbar-leading {
+    padding-left: 0;
+  }
+  .page-header {
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .page-header-action {
+    width: auto;
+  }
+  .sidebar {
+    padding: 20px 12px 14px;
+  }
+  .job-focus-tabs .job-workspace-nav {
+    justify-content: space-between;
+  }
+  .job-focus-tabs .job-workspace-nav a {
+    padding: 14px 0;
+    gap: 0;
+  }
+  .workspace-step-index {
+    display: none;
+  }
+  .home-page {
+    gap: 28px;
+  }
+  .summary-greeting .page-header-description {
+    margin-top: 12px;
+  }
+  .summary-work-context {
+    margin-bottom: 20px;
+  }
+  .summary-work-action {
+    flex-wrap: wrap;
+    align-items: start;
+  }
+  .summary-work-action .summary-primary-action {
+    width: 100%;
+  }
+  .summary-workflow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .summary-workflow li {
+    min-width: 0;
+  }
+  .summary-workflow li::before {
+    display: none;
+  }
+  .summary-secondary .section-header {
+    flex-direction: column;
+  }
+  .career-foundation-layout .career-form-fields {
+    grid-template-columns: 1fr;
+  }
+  .profile-skill-row {
+    padding: 18px;
+    min-height: 82px;
+  }
+  .evidence-overview {
+    margin: 0;
+  }
+  .evidence-overview > p {
+    font-size: 13px;
+    gap: 8px;
+  }
+  .evidence-list-section > .section-header {
+    margin: 0 0 20px;
+    justify-content: flex-start;
+  }
+  .evidence-filter-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .evidence-search-field,
+  .evidence-filter-meta {
+    grid-column: 1 / -1;
+  }
+  .evidence-type-icon {
+    width: 32px;
+    height: 36px;
+  }
+  .evidence-row-copy > p {
+    line-height: 1.7;
+  }
+  .evidence-row-actions {
+    justify-self: end;
+  }
+  .evidence-skill-links {
+    margin-top: 2px;
+    padding-left: 14px;
+  }
+  .evidence-source {
+    margin-top: 0;
+  }
+  .job-library-copy {
+    grid-column: 2;
+  }
+  .job-library-context {
+    gap: 7px 12px;
+  }
+  .job-library-progress {
+    border-left: 1px solid var(--relation-color);
+  }
+  .job-library-detail-link {
+    justify-self: start;
+  }
+  .job-detail-identity-row {
+    padding: 0 0 22px;
+  }
+  .job-detail-identity-row h1,
+  #job-detail-title {
+    font-size: 2rem;
+  }
+  .job-description-heading-row {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .job-extraction-panel {
+    flex-direction: column;
+  }
+  .requirement-review-next-step {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .mapping-job-context {
+    flex-wrap: wrap;
+  }
+  .mapping-overview {
+    gap: 22px;
+  }
+  .mapping-connection {
+    grid-column: 2;
+    padding-left: 18px;
+  }
+  .mapping-connection-heading {
+    flex-wrap: wrap;
+  }
+  .mapping-section-heading {
+    padding: 0 0 18px;
+  }
+  .mapping-review-heading > span {
+    display: none;
+  }
+  .analysis-page-container {
+    gap: 24px;
+  }
+  .analysis-page-header {
+    gap: 18px;
+  }
+  .score-card {
+    padding: 20px;
+  }
+  .score-visual {
+    border: 0;
+    justify-content: flex-start;
+  }
+  .score-ring {
+    height: 120px;
+  }
+  .score-copy {
+    text-align: left;
+  }
+  .score-copy > p.score-context-note {
+    margin-left: 0;
+  }
+  .attention-item + .attention-item {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+  .attention-item {
+    padding: 16px;
+  }
+  .requirements-panel {
+    padding: 0;
+  }
+  .requirement-summary-status {
+    grid-column: 2;
+  }
+  .requirement-expanded {
+    margin-left: 0;
+    gap: 22px;
+    grid-template-columns: 1fr;
+  }
+  .requirement-detail-group + .requirement-detail-group {
+    padding-left: 0;
+    padding-top: 16px;
+    border-left: 0;
+    border-top: 1px solid var(--relation-color);
+  }
+  .account-settings-card {
+    padding: 0 0 28px;
+  }
+  .account-profile-form {
+    grid-template-columns: 1fr;
+  }
+  .account-security-row {
+    gap: 12px;
+  }
+  .auth-connection-path {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Shared surfaces across feature pages. */
+html
+  :is(
+    .evidence-list-section,
+    .evidence-overview,
+    .jobs-list-section,
+    .job-detail-hero,
+    .job-detail-content,
+    .mapping-overview,
+    .mapping-requirements,
+    .requirements-panel,
+    .account-settings-card,
+    .job-detail-meta,
+    .mapping-auto-summary
+  ) {
+  background: transparent;
+  box-shadow: none;
+}
+.job-focus-shell .app-topbar-focus {
+  column-gap: 20px;
+}
+@media (min-width: 1360px) {
+  .job-focus-shell .app-topbar-focus {
+    grid-template-columns: 140px minmax(0, 1fr) 48px;
+    padding-inline: 20px;
+  }
+  .job-focus-shell .app-topbar-focus .app-topbar-leading {
+    padding-left: 0;
+  }
+}
+.mapping-resolved {
+  border-block: 1px solid var(--border);
+}
+.mapping-resolved > summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: center;
+  cursor: pointer;
+  list-style: none;
+  font-size: 15px;
+}
+.mapping-resolved > summary::-webkit-details-marker {
+  display: none;
+}
+.mapping-resolved summary small {
+  color: var(--foreground-muted);
+  font-size: 12px;
+  margin-left: 12px;
+}
+.mapping-resolved[open] > summary svg {
+  transform: rotate(180deg);
+}
+.mapping-all-reviewed {
+  font-size: 14px;
+  margin: 0 0 22px;
+}
+.mapping-pending > h3 {
+  font-size: 16px;
+}
+.mapping-pending > h3 > span {
+  color: var(--foreground-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  margin-left: 8px;
+}
+.manual-mapping-panel {
+  background: transparent;
+  border: 0;
+}
+.manual-mapping-intro .eyebrow,
+.manual-mapping-intro > span {
+  display: none;
+}
+.manual-mapping-intro h2 {
+  font-size: 16px;
+}
+.manual-mapping-intro p {
+  font-size: 13px;
+}
+.requirement-review-state {
+  background: transparent;
+  color: var(--foreground-muted);
+}
+.requirement-review-state.reviewed {
+  background: transparent;
+  color: var(--foreground-muted);
+}
+.requirement-review-list article > div > p {
+  color: var(--foreground);
+}
+.requirement-review-counts span,
+.requirement-priority-control button,
+.requirement-review-savebar p {
+  font-size: 12px;
+}
+.requirement-review-number {
+  background: transparent;
+  font-size: 12px;
+}
+.job-detail-meta {
+  padding: 0;
+}
+.job-detail-meta > span {
+  padding: 0 24px 24px 0;
+  border: 0;
+}
+.job-detail-meta > span + span {
+  border: 0;
+}
+.job-detail-meta :is(strong, small) {
+  font-size: 12px;
+}
+.new-job-form,
+.new-job-guidance {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: none;
+}
+.new-job-form label > span,
+.new-job-guidance strong {
+  font-size: 14px;
+}
+.new-job-form small,
+.new-job-guidance li p {
+  font-size: 12px;
+}
+@media (max-width: 767px) {
+  .home-page.summary-page {
+    grid-template-columns: 1fr;
+  }
+  .evidence-row-copy {
+    padding-right: 0;
+  }
+  .evidence-row-copy > p {
+    margin-right: 0;
+  }
+  .evidence-list-section > .section-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .requirement-review-list article > div:first-of-type {
+    grid-column: 2 / -1;
+  }
+  .requirement-review-list article .requirement-row-actions {
+    flex-direction: row;
+  }
+  .requirement-review-list article .requirement-review-state {
+    grid-column: 2 / -1;
+  }
+  .requirement-review-group-heading p {
+    display: none;
+  }
+  .requirement-review-list article.selection-mode {
+    grid-template-columns: auto auto minmax(0, 1fr);
+  }
+  .requirement-review-list article.selection-mode > div:first-of-type {
+    grid-column: 3;
+  }
+  .mapping-resolved summary small {
+    display: block;
+    margin: 6px 0 0;
+  }
+}
+
+/* Intrinsic sizes must not push long option labels out of narrow controls. */
+.evidence-filter-field select {
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+}
+.mapping-job-context::after {
+  display: none;
+}
+.evidence-mapping-page {
+  gap: 24px;
+}
+.mapping-job-context {
+  min-height: 0;
+}
+.manual-mapping-intro {
+  gap: 16px;
+}
+.manual-mapping-intro > div {
+  min-width: 0;
+}
+.manual-mapping-intro p {
+  max-width: 620px;
+}
+.mapping-overview {
+  padding: 20px 0;
+}
+.account-profile-fields label > .account-input-with-icon {
+  width: 100%;
+  max-width: none;
+}
+.account-profile-fields .account-input-with-icon input {
+  max-width: none;
+}
+@media (max-width: 767px) {
+  .evidence-mapping-page {
+    gap: 24px;
+  }
+  .mapping-job-context {
+    gap: 12px;
+  }
+  .mapping-job-meta {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+  }
+  .mapping-progress {
+    border: 0;
+    padding: 0;
+  }
+  .manual-mapping-panel {
+    padding: 0;
+  }
+  .manual-mapping-intro {
+    padding: 0;
+    gap: 12px;
+  }
+}
+
+/* Editorial direction: personal career dossiers, paper and blue ink. */
+
+body :is(h1, .type-page-title) {
+  font-family: var(--font-editorial);
+}
+.type-section-title {
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+.page-header {
+  padding-bottom: 30px;
+  align-items: end;
+}
+.page-header-description {
+  margin-top: 16px;
+  font-size: 14px;
+}
+.page-container {
+  gap: var(--section-gap);
+}
+.app-topbar {
+  border-bottom: 1px solid var(--border-strong);
+  background: var(--background);
+  padding-inline: 36px;
+}
+.app-topbar-brand {
+  font-family: var(--font-editorial);
+  font-size: 29px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  gap: 10px;
+}
+.global-navigation {
+  display: none;
+}
+.avatar {
+  border-color: var(--border-strong);
+  color: var(--foreground);
+}
+.app-topbar-context {
+  font-size: 13px;
+}
+body .ui-button {
+  border-radius: 4px;
+  min-height: 44px;
+}
+body .ui-button--compact {
+  min-height: 36px;
+}
+.ui-button--primary {
+  background: var(--primary);
+}
+.main-content {
+  padding: 48px 40px 80px;
+}
+.job-focus-main {
+  padding: 38px 40px 80px;
+}
+
+@media (min-width: 1024px) {
+  .app-shell > .sidebar {
+    display: none;
+  }
+  .app-topbar-app .app-topbar-navigation-controls {
+    display: none;
+  }
+  .app-topbar-app {
+    grid-template-columns: 190px minmax(0, 1fr) 44px;
+    column-gap: 32px;
+  }
+  .global-navigation {
+    display: flex;
+    align-items: stretch;
+    height: 100%;
+    gap: 32px;
+    justify-content: center;
+  }
+  .global-navigation > a {
+    display: flex;
+    align-items: center;
+    position: relative;
+    font-size: 13px;
+    color: var(--foreground-muted);
+    white-space: nowrap;
+  }
+  .global-navigation > a:hover {
+    color: var(--foreground);
+  }
+  .global-navigation > a[aria-current="page"] {
+    color: var(--foreground);
+    font-weight: 600;
+  }
+  .global-navigation > a[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--primary);
+  }
+  .global-navigation-guide {
+    margin-left: 18px;
+  }
+  .main-content,
+  .app-shell:has(.sidebar-collapsed) .main-content {
+    margin-left: 0;
+    padding: 52px 48px 80px;
+  }
+  .job-focus-shell .app-topbar-focus {
+    grid-template-columns: 160px minmax(0, 1fr) 44px;
+    padding-inline: 36px;
+    column-gap: 32px;
+  }
+  .job-focus-shell .app-topbar-focus .app-topbar-leading {
+    padding-left: 0;
+  }
+}
+
+/* The first screen reads as a personal page with one active dossier. */
+.home-page.summary-page {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+.home-page > :not(.summary-greeting) {
+  grid-column: 1;
+}
+.summary-greeting {
+  grid-column: 1;
+  grid-row: auto;
+  border-bottom: 1px solid var(--border-strong);
+  padding: 0 0 30px;
+  display: flex;
+}
+.summary-greeting h1 {
+  font-size: var(--type-page-title-size);
+  max-width: none;
+}
+.summary-greeting .page-header-description {
+  max-width: 580px;
+  margin-top: 16px;
+}
+.summary-current-work,
+.summary-current-work.completed {
+  border-radius: 5px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+}
+.summary-work-context {
+  margin: 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground-muted);
+}
+.summary-work-context::before {
+  background: var(--primary);
+  width: 6px;
+  height: 6px;
+}
+.summary-work-layout {
+  display: grid;
+  margin: 0;
+  align-items: stretch;
+}
+.summary-work-copy {
+  align-self: center;
+}
+.summary-next-copy {
+  max-width: 580px;
+  line-height: 1.7;
+}
+.summary-work-action {
+  justify-self: stretch;
+  width: auto;
+  margin: 0;
+  border: 0;
+  background: var(--surface-inverse);
+  color: var(--foreground-inverse);
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: center;
+}
+.summary-fit-score {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+  align-items: start;
+}
+.summary-fit-score strong {
+  color: var(--foreground-inverse);
+}
+.summary-fit-score span {
+  color: var(--foreground-inverse-muted);
+}
+body .summary-work-action .ui-button.ui-button {
+  background: var(--foreground-inverse);
+  border-color: var(--foreground-inverse);
+  color: var(--surface-inverse);
+  width: 100%;
+}
+body .summary-work-action .ui-button.ui-button:hover {
+  background: var(--foreground-inverse-muted);
+  border-color: var(--foreground-inverse-muted);
+}
+.summary-workflow {
+  margin: 0;
+  border-top: 1px solid var(--border);
+}
+.summary-workflow li {
+  font-size: 12px;
+}
+.summary-current-work-empty {
+  padding: 32px;
+}
+.summary-current-work-empty h2 {
+  font-family: var(--font-editorial);
+  font-size: 36px;
+  font-weight: 400;
+}
+.summary-secondary .type-section-title {
+  font-size: 18px;
+}
+
+/* The reusable career profile is a direction card plus a clean skill index. */
+.career-profile-hero {
+  background: var(--surface-inverse);
+  color: var(--foreground-inverse);
+}
+.career-profile-hero .type-section-title {
+  color: var(--foreground-inverse-muted);
+}
+body .career-profile-hero .career-edit-button.ui-button {
+  color: var(--foreground-inverse);
+}
+body .career-profile-hero .career-edit-button.ui-button:hover {
+  background: color-mix(in srgb, var(--foreground-inverse) 10%, transparent);
+}
+.career-profile-hero .career-direction:not(.career-direction-form) {
+  display: block;
+  padding: 0;
+  margin: 0;
+}
+.career-profile-hero .section-header {
+  flex-direction: row;
+  align-items: center;
+  text-align: left;
+}
+.career-direction-statement {
+  border: 0;
+}
+.career-direction-statement::before {
+  display: none;
+}
+.career-direction-statement > span {
+  color: var(--foreground-inverse-muted);
+  font-size: 13px;
+}
+.career-direction-statement > strong {
+  color: var(--foreground-inverse);
+}
+.career-profile-hero:has(.career-direction-form) {
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+.career-profile-hero:has(.career-direction-form) .type-section-title {
+  color: var(--foreground);
+}
+.profile-skill-list {
+  border: 0;
+  border-top: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: transparent;
+}
+.profile-skill-row {
+  min-height: 98px;
+  padding: 22px 20px;
+}
+.profile-skill-name {
+  padding-left: 0;
+}
+.profile-skill-name::before {
+  display: none;
+}
+.profile-skill-row:nth-child(odd) {
+  padding-left: 0;
+}
+
+/* Portfolio is a collection of works, with support relationships as the footer. */
+.evidence-library-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.evidence-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  grid-template-rows: auto 1fr auto auto;
+  gap: 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  background: var(--surface);
+  padding: 26px;
+  min-width: 0;
+}
+.evidence-row + .evidence-row {
+  border-top: 1px solid var(--border-strong);
+}
+.evidence-type-icon {
+  grid-column: 1;
+  grid-row: 1;
+}
+.evidence-row-actions {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+}
+.evidence-row-copy {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  padding: 0;
+}
+.evidence-type-label {
+  color: var(--foreground-muted);
+}
+.evidence-row-copy > p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.75;
+}
+.evidence-skill-links {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  border-left: 0;
+  border-top: 1px solid var(--border);
+}
+.evidence-skill-links::before {
+  display: none;
+}
+.evidence-skill-links > div {
+  margin-top: 10px;
+  gap: 6px;
+}
+.evidence-skill-links > div > span {
+  border-color: var(--border);
+}
+.evidence-source {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  margin: 0;
+}
+.evidence-source:empty {
+  display: none;
+}
+.evidence-overview .type-section-title {
+  font-size: 16px;
+}
+
+/* Saved roles read as short dossiers instead of database records. */
+.jobs-list {
+  border-top: 1px solid var(--border-strong);
+}
+.job-library-logo {
+  background: var(--surface-subtle);
+  color: var(--foreground);
+}
+.job-library-copy h3 {
+  line-height: 1.15;
+}
+.job-library-copy > span {
+  font-size: 13px;
+}
+.job-library-progress {
+  border-left: 1px solid var(--border);
+  padding-left: 22px;
+}
+.job-library-detail-link {
+  font-size: 13px;
+}
+
+/* Focused job work keeps the full canvas and a simple typographic chapter nav. */
+.job-focus-tabs {
+  border-bottom: 1px solid var(--border);
+}
+.job-focus-tabs .job-workspace-nav {
+  gap: 36px;
+}
+.job-focus-tabs .job-workspace-nav a {
+  padding: 18px 0;
+  gap: 10px;
+}
+.workspace-step-index {
+  color: var(--foreground-subtle);
+  font-size: 11px;
+}
+.job-detail-identity-row {
+  padding-top: 8px;
+  padding-bottom: 32px;
+}
+#job-detail-title {
+  font-family: var(--font-editorial);
+  font-size: clamp(2.8rem, 4.6vw, 4.1rem);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+.job-detail-logo,
+.mapping-job-mark {
+  background: var(--surface-subtle);
+  color: var(--foreground);
+  border-color: var(--border-strong);
+}
+.job-detail-aside {
+  border: 0;
+  border-left: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: transparent;
+  padding: 0 0 0 28px;
+}
+.job-description-heading-row {
+  margin-bottom: 24px;
+}
+.job-detail-section-heading h2 {
+  font-family: var(--font-editorial);
+  font-size: 30px;
+  font-weight: 400;
+}
+:is(.requirement-review-header, .evidence-mapping-header) {
+  padding-bottom: 30px;
+  border-color: var(--border-strong);
+}
+:is(.requirement-review-header, .evidence-mapping-header) h1 {
+  font-family: var(--font-editorial);
+  font-size: var(--type-page-title-size);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+:is(.requirement-review-section-heading, .mapping-section-heading) h2 {
+  font-family: var(--font-editorial);
+  font-size: 30px;
+  font-weight: 400;
+}
+.mapping-requirement-copy h3 {
+  font-size: 15px;
+  line-height: 1.6;
+}
+.mapping-connection {
+  border-left-style: dashed;
+}
+.mapping-row {
+  padding-block: 26px;
+}
+.mapping-review {
+  border-radius: 5px;
+  background: var(--surface);
+}
+.manual-mapping-panel {
+  padding: 0;
+}
+.manual-mapping-intro {
+  padding: 0;
+}
+
+/* Fit Score becomes a typographic reading with its actual percentage as a rule. */
+.analysis-page-header h1 {
+  font-family: var(--font-editorial);
+  font-size: var(--type-page-title-size);
+  font-weight: 400;
+}
+.fit-story {
+  background: var(--surface);
+}
+.score-card {
+  padding: 0;
+}
+.analyzed-job-context {
+  margin: 0;
+  border-bottom: 1px solid var(--border);
+}
+.score-main {
+  align-items: stretch;
+}
+.score-visual {
+  border: 0;
+  background: var(--surface-inverse);
+  color: var(--foreground-inverse);
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 12px;
+  justify-content: center;
+}
+.score-visual-label {
+  order: -1;
+  color: var(--foreground-inverse-muted);
+  font-size: 12px;
+}
+.score-ring {
+  display: block;
+  position: relative;
+  padding: 0 0 26px;
+  width: 100%;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
+}
+.score-ring::before {
+  content: "";
+  inset: auto 0 0;
+  background: linear-gradient(
+    to right,
+    var(--foreground-inverse) var(--score-value),
+    color-mix(in srgb, var(--foreground-inverse) 20%, transparent)
+      var(--score-value)
+  );
+  width: auto;
+}
+.score-ring > div {
+  position: static;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  width: auto;
+  height: auto;
+  transform: none;
+  border-radius: 0;
+  background: transparent;
+}
+.score-ring strong {
+  color: var(--foreground-inverse);
+  line-height: 1;
+}
+.score-ring span {
+  color: var(--foreground-inverse-muted);
+}
+.score-copy {
+  align-self: center;
+}
+.attention-heading h2,
+.requirements-heading h2 {
+  font-family: var(--font-editorial);
+  font-size: 29px;
+  font-weight: 400;
+}
+.attention-list {
+  border-radius: 4px;
+}
+.attention-item {
+  padding: 20px;
+}
+.requirements-panel {
+  padding-top: 4px;
+}
+.requirement-expanded {
+  border-left-style: dashed;
+}
+
+/* Account and entry screens belong to the same editorial family. */
+.account-settings-card {
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 48px;
+}
+.account-settings-heading h2 {
+  font-family: var(--font-editorial);
+  font-size: 30px;
+  font-weight: 400;
+}
+.account-avatar-preview {
+  background: var(--surface-subtle);
+  color: var(--foreground);
+}
+.auth-page {
+  grid-template-columns: minmax(400px, 1fr) minmax(480px, 1fr);
+}
+.auth-brand-panel {
+  background: var(--surface-inverse);
+  padding: clamp(36px, 5vw, 80px);
+}
+.auth-wordmark {
+  font-family: var(--font-editorial);
+  font-size: 32px;
+  font-weight: 400;
+}
+.auth-brand-copy {
+  max-width: 540px;
+}
+.auth-brand-copy > p:not(.auth-kicker) {
+  font-size: 16px;
+  margin-top: 28px;
+}
+.auth-connection-path {
+  margin-top: 40px;
+}
+.auth-connection-path li {
+  font-size: 13px;
+  padding-bottom: 19px;
+}
+.auth-form-panel {
+  background: var(--background);
+  padding: 48px;
+}
+.auth-form-panel {
+  max-width: none;
+}
+.auth-form-panel .login-card {
+  width: 100%;
+  margin-inline: auto;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .main-content,
+  .app-shell:has(.sidebar-collapsed) .main-content {
+    padding: 40px 28px 64px;
+  }
+  .career-foundation-layout {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .career-profile-hero {
+    max-width: none;
+  }
+  .summary-work-layout {
+    grid-template-columns: minmax(0, 1fr) 240px;
+  }
+  .summary-work-copy {
+    padding: 28px;
+  }
+  .summary-fit-score strong {
+    font-size: 68px;
+  }
+  .evidence-library-list {
+    grid-template-columns: 1fr;
+  }
+  .job-library-row {
+    grid-template-columns: 48px minmax(0, 1fr) minmax(140px, 0.6fr);
+    gap: 20px;
+  }
+  .job-library-progress {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+  .job-library-context {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .job-library-detail-link {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  .job-detail-content,
+  .account-settings-card {
+    grid-template-columns: 1fr;
+  }
+  .job-detail-aside {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+    padding: 24px 0 0;
+  }
+  .score-main {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+  .score-copy {
+    padding: 28px;
+  }
+  .score-ring strong {
+    font-size: 66px;
+  }
+  .auth-page {
+    grid-template-columns: minmax(300px, 0.8fr) minmax(400px, 1fr);
+  }
+  .auth-brand-panel,
+  .auth-form-panel {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --topbar-height: 64px;
+    --type-page-title-size: 2.8rem;
+  }
+  .app-topbar-brand > span:last-child {
+    display: inline;
+  }
+  .app-topbar-focus .app-topbar-brand > span:last-child {
+    display: none;
+  }
+  .main-content,
+  .app-shell:has(.sidebar-collapsed) .main-content {
+    margin-left: 0;
+  }
+  .page-header {
+    align-items: flex-start;
+    padding-bottom: 24px;
+  }
+  .summary-greeting {
+    display: block;
+    padding: 0 0 24px;
+  }
+  .home-page.summary-page {
+    gap: 28px;
+  }
+  .summary-work-copy {
+    padding: 26px 22px;
+  }
+  .summary-work-copy h2 {
+    font-size: 36px;
+  }
+  .summary-fit-score {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .summary-workflow {
+    gap: 18px;
+  }
+  .summary-current-work-empty {
+    padding: 24px;
+  }
+  .career-foundation-layout .profile-skills-section > .section-header {
+    align-items: flex-start;
+    text-align: left;
+    padding-inline: 0;
+  }
+  .profile-skill-row,
+  .profile-skill-row:nth-child(odd) {
+    padding: 20px 0;
+    min-height: 88px;
+  }
+  .evidence-row {
+    padding: 22px;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    gap: 14px;
+  }
+  .evidence-row-copy {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .evidence-row-copy > p {
+    margin: 0;
+    font-size: 14px;
+  }
+  .evidence-row-actions {
+    grid-row: 1;
+    grid-column: 3;
+  }
+  .evidence-skill-links {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    padding: 17px 0 0;
+  }
+  .evidence-source {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+  .job-library-progress {
+    padding-left: 16px;
+  }
+  .job-focus-tabs .job-workspace-nav a {
+    padding-block: 15px;
+  }
+  #job-detail-title {
+    font-size: 39px;
+  }
+  .job-detail-aside {
+    border-left: 0;
+    border-top: 1px solid var(--border-strong);
+    padding: 24px 0 0;
+  }
+  .job-detail-identity-row {
+    padding-top: 0;
+  }
+  .mapping-job-copy h2 {
+    font-size: 25px;
+  }
+  .mapping-row {
+    padding-block: 22px;
+  }
+  .score-main {
+    grid-template-columns: 1fr;
+  }
+  .score-visual {
+    gap: 12px;
+  }
+  .score-ring {
+    max-width: 100%;
+    padding-bottom: 20px;
+  }
+  .score-ring > div {
+    justify-content: flex-start;
+  }
+  .score-copy > p.readiness-intro {
+    font-size: 14px;
+  }
+  .attention-heading h2,
+  .requirements-heading h2 {
+    font-size: 27px;
+    line-height: 1.15;
+  }
+  .requirement-name {
+    font-size: 14px;
+  }
+  .account-settings-card {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .account-settings-heading h2 {
+    font-size: 29px;
+  }
+  .auth-page {
+    display: block;
+  }
+  .auth-brand-panel {
+    padding: 20px;
+  }
+}
+
+/* On narrow forms suggestions take space, keeping the editor actions reachable. */
+
+/* Context and form spacing. */
+html .mapping-job-context {
+  padding: 0;
+  margin: 0;
+  min-height: 0;
+}
+.manual-mapping-intro {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.manual-mapping-intro > button {
+  width: auto;
+  justify-self: end;
+}
+.requirement-review-next-step {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.account-input-with-icon {
+  display: block;
+}
+.new-job-header .page-header {
+  padding-top: 0;
+}
+.new-job-header .eyebrow {
+  display: none;
+}
+.new-job-layout {
+  grid-template-columns: minmax(0, 1fr) 280px;
+}
+.new-job-form {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+html .new-job-guidance {
+  background: transparent;
+  border-left: 1px solid var(--border-strong);
+  border-radius: 0;
+}
+.new-job-guidance h2 {
+  font-family: var(--font-editorial);
+  font-size: 30px;
+  font-weight: 400;
+}
+@media (max-width: 767px) {
+  .manual-mapping-intro,
+  .new-job-layout {
+    grid-template-columns: 1fr;
+  }
+  .manual-mapping-intro > button {
+    justify-self: start;
+  }
+  html .new-job-guidance {
+    border-left: 0;
+    border-top: 1px solid var(--border-strong);
+  }
+}
+
+.new-job-form-card {
+  overflow: visible;
+}
+.new-job-form-heading {
+  padding: 0 0 24px;
+}
+.new-job-form-actions {
+  margin: 0;
+  padding: 20px 0 0;
+}
+
+/* Readable type, restrained surfaces, and comfortable touch interactions. */
+body .career-foundation-layout .profile-skill-list > .profile-skill-row {
+  border: 0;
+  background: transparent;
+}
+.profile-skill-row .skill-row-actions,
+.profile-skill-row .skill-row-actions:has(.skill-delete-confirmation) {
+  grid-column: 2;
+  grid-row: 1;
+  width: 44px;
+  justify-self: end;
+  align-self: center;
+  display: block;
+  margin: 0;
+}
+.skill-row-menu > div {
+  top: 46px;
+}
+.skill-row-menu > summary {
+  min-width: 44px;
+}
+body .summary-work-copy h2.type-section-title {
+  font-size: 30px;
+  line-height: 1.25;
+}
+:root {
+  --font-sans: "DM Sans";
+  --font-mono: "DM Sans", Arial, sans-serif;
+  --font-editorial: "DM Sans", Arial, sans-serif;
+  --type-page-title-size: clamp(1.75rem, 2.6vw, 2.25rem);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --panel-padding: 28px;
+  --section-gap: 28px;
+  --shadow-soft: none;
+}
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-sans), Arial, sans-serif;
+}
+body :is(h1, .type-page-title) {
+  font-size: var(--type-page-title-size);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+body
+  :is(
+    .type-section-title,
+    .job-detail-section-heading h2,
+    .requirement-review-section-heading h2,
+    .mapping-section-heading h2,
+    .attention-heading h2,
+    .requirements-heading h2,
+    .account-settings-heading h2,
+    .new-job-guidance h2
+  ) {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.025em;
+}
+body
+  :is(
+    .page-header,
+    .summary-greeting,
+    .analysis-page-header,
+    .requirement-review-header,
+    .evidence-mapping-header
+  ) {
+  border: 0;
+  padding-bottom: 4px;
+}
+.page-header-description,
+.summary-greeting .page-header-description {
+  margin-top: 10px;
+  font-size: 15px;
+  line-height: 1.65;
+}
+body :is(.ui-button, .ui-icon-button) {
+  border-radius: var(--radius-sm);
+}
+body .ui-button {
+  font-size: 14px;
+  font-weight: 500;
+}
+body input:not([type="checkbox"]),
+body select,
+body textarea {
+  border-radius: var(--radius-sm);
+}
+.app-topbar-brand,
+.auth-wordmark {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.065em;
+}
+.app-topbar {
+  border-bottom-color: var(--border);
+}
+.global-navigation > a {
+  font-size: 14px;
+}
+.avatar {
+  border: 0;
+  background: var(--surface-subtle);
+  width: 34px;
+  height: 34px;
+  font-size: 12px;
+}
+.topbar-account-trigger {
+  width: 44px;
+  height: 44px;
+}
+.topbar-account-menu {
+  border-radius: var(--radius-md);
+}
+.workspace-step-index {
+  font-family: var(--font-sans), sans-serif;
+}
+.job-focus-tabs .job-workspace-nav a {
+  font-size: 14px;
+}
+.relationship-lane {
+  border: 0;
+}
+
+/* One current job; progress stays secondary to the result and next action. */
+.home-page.summary-page {
+  gap: 28px;
+}
+body .summary-current-work,
+body .summary-current-work.completed {
+  border: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface);
+}
+.summary-work-context {
+  border: 0;
+  padding: 24px 28px 0;
+  font-size: 13px;
+}
+.summary-work-layout {
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 24px;
+  padding: 24px 28px 28px;
+}
+.summary-work-copy {
+  padding: 0;
+}
+.summary-work-copy h2 {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.25;
+}
+.summary-job-meta {
+  font-size: 14px;
+  margin-top: 12px;
+}
+.summary-next-copy {
+  margin-top: 22px;
+  font-size: 15px;
+}
+.summary-work-action {
+  border-radius: var(--radius-md);
+  padding: 24px;
+  gap: 22px;
+}
+.summary-fit-score strong {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 52px;
+  font-weight: 600;
+  letter-spacing: -0.06em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.summary-fit-score span {
+  font-size: 13px;
+}
+.summary-workflow {
+  border: 0;
+  padding: 0 28px 28px;
+}
+.summary-workflow li::before {
+  display: none;
+}
+.summary-current-work.completed .summary-workflow {
+  display: none;
+}
+.summary-secondary {
+  max-width: none;
+  padding: 4px 0;
+}
+.summary-secondary .section-header {
+  align-items: center;
+}
+.summary-secondary .section-header-description {
+  max-width: 600px;
+  font-size: 14px;
+}
+
+/* Two distinct groups: direction and the reusable skill collection. */
+.career-foundation-layout {
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 24px;
+}
+.career-profile-hero {
+  border-radius: var(--radius-lg);
+  padding: var(--panel-padding);
+}
+.career-profile-hero .section-header {
+  margin-bottom: 20px;
+}
+.career-profile-hero .type-section-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+.career-direction-statement {
+  gap: 12px;
+  padding: 0;
+}
+.career-direction-statement > strong {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 27px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.035em;
+}
+body .career-foundation-layout .profile-skills-section {
+  padding: var(--panel-padding);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+body .profile-skill-list {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  gap: 8px 28px;
+  margin-top: 20px;
+  overflow: visible;
+}
+body .profile-skill-row,
+body .profile-skill-row:nth-child(odd) {
+  border: 0;
+  min-height: 78px;
+  padding: 14px 0;
+}
+.profile-skill-name h3 {
+  font-size: 16px;
+  font-weight: 500;
+}
+.profile-skill-meta {
+  margin-top: 5px;
+}
+.profile-skill-evidence {
+  font-size: 13px;
+}
+.profile-skills-section > .section-header {
+  min-height: 0;
+}
+.profile-skills-section .section-header-description {
+  font-size: 14px;
+}
+body .profile-inline-editor {
+  border-radius: var(--radius-md);
+  margin-top: 20px;
+}
+
+/* Work cards keep descriptions available without making mobile endlessly tall. */
+.evidence-list-section > .section-header {
+  margin-bottom: 20px;
+}
+.evidence-filter-panel {
+  gap: 12px;
+  padding-bottom: 12px;
+}
+.evidence-filter-field {
+  border-radius: var(--radius-sm);
+  min-width: 0;
+}
+.evidence-library-list {
+  gap: 20px;
+  border: 0;
+  align-items: stretch;
+}
+body .evidence-row,
+body .evidence-row + .evidence-row {
+  border: 0;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  gap: 14px;
+  background: var(--surface);
+}
+.evidence-type-icon {
+  background: var(--primary-subtle);
+  color: var(--primary);
+  border: 0;
+  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+}
+.evidence-row-copy h3 {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 22px;
+  line-height: 1.35;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  margin: 6px 0 10px;
+}
+.evidence-type-label {
+  font-size: 13px;
+}
+.evidence-row-copy > p,
+.expandable-text p {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--foreground-muted);
+  margin: 0;
+}
+.expandable-text p[data-collapsed="true"] {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.expandable-text button {
+  color: var(--primary);
+  border: 0;
+  background: transparent;
+  padding: 6px 0;
+  min-height: 36px;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+}
+.evidence-skill-links {
+  border: 0;
+  padding: 0;
+  margin: 8px 0 0;
+}
+.evidence-skill-links > span {
+  font-size: 13px;
+}
+.evidence-skill-links > div > span {
+  background: var(--surface-subtle);
+  border: 0;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.evidence-source {
+  font-size: 13px;
+}
+.evidence-row:has(.evidence-delete-confirmation) .evidence-row-actions {
+  grid-column: 1 / -1;
+  grid-row: 5;
+  justify-self: stretch;
+}
+.evidence-delete-confirmation {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.evidence-delete-confirmation > span {
+  margin-right: auto;
+}
+
+/* Jobs are self-contained and stay readable at intermediate tablet widths. */
+.jobs-list {
+  border: 0;
+  display: grid;
+  gap: 16px;
+}
+.job-library-row {
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: 24px;
+  grid-template-columns: 52px minmax(0, 1fr) minmax(130px, 0.55fr) auto;
+  gap: 14px 20px;
+}
+.job-library-logo {
+  font-family: var(--font-sans), sans-serif;
+  font-weight: 600;
+  border: 0;
+  border-radius: 12px;
+  width: 52px;
+  height: 52px;
+  font-size: 17px;
+}
+.job-library-copy h3 {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+.job-library-copy {
+  grid-column: 2;
+  grid-row: 1;
+}
+.job-library-context {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.job-library-progress {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  border: 0;
+  padding: 0;
+}
+.job-library-detail-link {
+  grid-column: 4;
+  grid-row: 1 / span 2;
+}
+.job-library-context span,
+.job-library-progress strong,
+.job-library-progress small {
+  font-size: 13px;
+}
+html .job-detail-hero {
+  border: 0;
+}
+.job-detail-identity-row {
+  padding: 0 0 20px;
+}
+body #job-detail-title {
+  font-weight: 600;
+}
+.job-detail-logo,
+.mapping-job-mark {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 18px;
+  border: 0;
+  border-radius: 12px;
+}
+.job-detail-content {
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 24px;
+}
+.job-description-copy {
+  padding: var(--panel-padding);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+}
+.job-description-rendered {
+  font-size: 16px;
+  line-height: 1.85;
+}
+.job-description-rendered > p,
+.job-description-rendered li {
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--foreground);
+}
+.job-description-rendered h3 {
+  font-size: 18px;
+  line-height: 1.5;
+}
+.job-detail-meta > span:nth-child(n) {
+  border: 0;
+}
+html .job-detail-aside {
+  border: 0;
+  border-radius: var(--radius-lg);
+}
+.job-detail-aside dl {
+  border: 0;
+  padding-block: 8px;
+}
+.job-extraction-panel {
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--primary-subtle);
+  padding: 20px;
+}
+.job-extraction-panel p {
+  font-size: 13px;
+}
+.job-extraction-panel .ui-button {
+  flex-shrink: 0;
+}
+
+/* Review rows use one surface, with actions below text on small screens. */
+.requirement-review-section-heading {
+  padding-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.requirement-review-group-heading {
+  border: 0;
+  padding: 12px 0;
+}
+.requirement-review-list {
+  display: grid;
+  gap: 10px;
+}
+.requirement-review-list article {
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  padding: 20px;
+}
+.requirement-review-list article > div > p {
+  font-size: 15px;
+  line-height: 1.65;
+}
+.requirement-review-number {
+  font-family: var(--font-sans), sans-serif;
+}
+.requirement-priority-control {
+  border: 0;
+  border-radius: 8px;
+  background: var(--surface-subtle);
+}
+.requirement-review-state {
+  font-size: 12px;
+}
+.requirement-review-savebar {
+  border: 0;
+  border-radius: var(--radius-md);
+  padding: 20px;
+  background: var(--surface);
+}
+.requirement-review-next-step {
+  gap: 20px;
+}
+.requirement-review-next-step .ui-button {
+  width: auto;
+}
+
+/* Connections remain clear through grouping, not an extra decorative graph. */
+.page-container.evidence-mapping-page {
+  gap: 24px;
+}
+.mapping-job-copy h2 {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+}
+html .mapping-overview {
+  border: 0;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  background: var(--surface);
+}
+.mapping-progress {
+  border: 0;
+  padding-left: 0;
+}
+.mapping-section-heading {
+  padding: 0 0 18px;
+}
+.mapping-list {
+  border: 0;
+  display: grid;
+  gap: 12px;
+}
+.mapping-row {
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  padding: 22px;
+  gap: 18px;
+}
+.mapping-row-number {
+  font-family: var(--font-sans), sans-serif;
+}
+.mapping-row .mapping-connection {
+  border: 0;
+  padding: 16px;
+  background: var(--surface-subtle);
+  border-radius: 10px;
+}
+.mapping-connection::before {
+  display: none;
+}
+.mapping-row.without-evidence .mapping-connection {
+  background: var(--surface-subtle);
+  border: 0;
+}
+.mapping-connection-heading span,
+.mapping-connection > p {
+  font-size: 13px;
+}
+.mapping-skill-list > span {
+  border: 0;
+  border-radius: 6px;
+}
+.mapping-resolved {
+  border: 0;
+}
+.mapping-resolved > summary {
+  border-radius: var(--radius-md);
+  background: var(--surface-subtle);
+  padding: 18px 20px;
+}
+.mapping-resolved[open] > summary {
+  margin-bottom: 12px;
+}
+.mapping-review,
+.mapping-informational {
+  border: 0;
+  border-radius: var(--radius-lg);
+}
+.mapping-review-heading {
+  padding: 22px;
+}
+.mapping-review-content {
+  border: 0;
+}
+.mapping-review-list > article {
+  border: 0;
+  background: var(--surface-subtle);
+  border-radius: 10px;
+  margin-top: 10px;
+}
+.mapping-all-reviewed {
+  color: var(--foreground-muted);
+  margin-bottom: 16px;
+}
+.manual-mapping-panel {
+  margin: 0;
+}
+
+/* Score and explanation share a soft card; actual proof remains expandable. */
+.fit-story {
+  border: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.analyzed-job-context {
+  border: 0;
+  padding: 22px 28px 0;
+}
+.score-main {
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 28px;
+  padding: 24px 28px 28px;
+}
+.score-visual {
+  border-radius: var(--radius-md);
+  padding: 24px;
+}
+.score-ring {
+  padding-bottom: 20px;
+}
+.score-ring strong {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 58px;
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  font-variant-numeric: tabular-nums;
+}
+.score-ring span {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 22px;
+}
+.score-ring::before {
+  border-radius: 4px;
+  height: 4px;
+}
+.score-copy {
+  padding: 4px 0;
+}
+.score-copy h2 {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.03em;
+}
+.score-copy > p.readiness-intro {
+  font-size: 15px;
+  margin-top: 14px;
+}
+.attention-list {
+  background: transparent;
+  border: 0;
+  gap: 16px;
+}
+.attention-item,
+.attention-item + .attention-item {
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  padding: 20px;
+}
+.attention-item p {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.requirements-list {
+  border: 0;
+  display: grid;
+  gap: 10px;
+}
+body .requirement-row {
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  overflow: visible;
+}
+.requirement-summary,
+.requirement-row.static {
+  padding: 20px;
+}
+.requirement-name {
+  font-size: 15px;
+}
+.requirement-icon {
+  border: 0;
+  border-radius: 8px;
+}
+.requirement-expanded {
+  background: var(--surface-subtle);
+  border: 0;
+  border-radius: 10px;
+  margin: 0 16px 16px;
+  padding: 20px;
+}
+.requirement-detail-group + .requirement-detail-group {
+  border: 0;
+  padding-left: 0;
+}
+.status-badge {
+  border-radius: 6px;
+}
+
+/* Account and entry forms use a single readable field scale. */
+html .account-settings-card {
+  background: var(--surface);
+  border: 0;
+  border-radius: var(--radius-lg);
+  padding: var(--panel-padding);
+  gap: 24px;
+  grid-template-columns: 260px minmax(0, 1fr);
+}
+.account-settings-stack {
+  gap: 20px;
+}
+.account-avatar-preview {
+  border: 0;
+  border-radius: 14px;
+  height: 64px;
+}
+.account-profile-fields label > span {
+  font-size: 14px;
+}
+.account-security-row {
+  border: 0;
+  padding: 18px 0;
+}
+.account-form-footer {
+  border: 0;
+}
+.account-security-row p {
+  font-size: 13px;
+}
+.auth-brand-copy h1 {
+  font-family: var(--font-sans), sans-serif;
+  font-size: clamp(2rem, 3.5vw, 3.25rem);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 1.2;
+}
+.login-heading h2 {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.25;
+}
+.auth-form-panel .login-card {
+  max-width: 440px;
+}
+.new-job-layout {
+  gap: 24px;
+}
+.new-job-form-card {
+  background: var(--surface);
+  border: 0;
+  border-radius: var(--radius-lg);
+  padding: var(--panel-padding);
+}
+.new-job-form-actions {
+  border: 0;
+}
+.new-job-form-heading p,
+.new-job-form small {
+  font-size: 13px;
+}
+body .new-job-form label > span:first-child {
+  font-size: 14px;
+}
+html .new-job-guidance {
+  border: 0;
+  padding: 20px 0;
+}
+.new-job-guidance li + li {
+  border: 0;
+}
+.new-job-guidance li p {
+  font-size: 14px;
+}
+
+/* Tablet: give each reading/form column enough room before it becomes cramped. */
+@media (max-width: 1100px) {
+  html
+    body
+    :is(.app-shell, .job-focus-shell, .auth-page)
+    :is(
+      button,
+      select,
+      input:not([type="checkbox"]):not([type="radio"]),
+      summary,
+      a.ui-button
+    ) {
+    min-height: 44px;
+  }
+  html body :is(.app-shell, .job-focus-shell, .auth-page) button {
+    min-width: 44px;
+  }
+}
+@media (min-width: 768px) and (max-width: 1100px) {
+  body .ui-button,
+  body .ui-button--compact,
+  body .ui-icon-button {
+    min-height: 44px;
+  }
+  body .ui-icon-button {
+    min-width: 44px;
+  }
+  .sidebar .nav-item {
+    min-height: 44px;
+  }
+  .career-foundation-layout {
+    grid-template-columns: 1fr;
+  }
+  .career-profile-hero {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 24px;
+    align-items: center;
+  }
+  .career-profile-hero .section-header {
+    margin: 0;
+  }
+  .career-profile-hero:has(.career-direction-form) {
+    display: block;
+  }
+  .evidence-library-list {
+    grid-template-columns: 1fr;
+  }
+  .job-detail-content,
+  .new-job-layout {
+    grid-template-columns: 1fr;
+  }
+  html .account-settings-card {
+    grid-template-columns: 1fr;
+  }
+  .job-library-row {
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+  }
+  .job-library-progress {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  .job-library-detail-link {
+    grid-column: 3;
+    grid-row: 1 / span 3;
+  }
+  .score-main {
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: 22px;
+  }
+  .score-visual {
+    padding: 20px;
+  }
+  .score-ring strong {
+    font-size: 50px;
+  }
+  .score-copy h2 {
+    font-size: 23px;
+  }
+  .requirement-review-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .requirement-review-list article {
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+  .requirement-review-list article > div:first-of-type {
+    grid-column: 2 / -1;
+  }
+  .requirement-review-list article .requirement-priority-control {
+    grid-column: 2;
+  }
+  .requirement-review-list article .requirement-row-actions {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  .requirement-review-list article .requirement-review-state {
+    grid-column: 2 / -1;
+  }
+  .mapping-row {
+    grid-template-columns: 20px minmax(0, 1fr);
+  }
+  .mapping-connection {
+    grid-column: 2;
+  }
+}
+@media (max-width: 767px) {
+  :root {
+    --panel-padding: 20px;
+    --section-gap: 24px;
+    --control-height-compact: 44px;
+    --icon-button-size: 44px;
+    --menu-item-height: 44px;
+  }
+  .main-content,
+  .app-shell:has(.sidebar-collapsed) .main-content {
+    padding: 26px 16px 48px;
+  }
+  .job-focus-main {
+    padding: 24px 16px 48px;
+  }
+  .app-topbar {
+    padding-inline: 16px;
+  }
+  .app-topbar-brand {
+    font-size: 21px;
+    gap: 8px;
+  }
+  .app-topbar-mobile-menu,
+  .mobile-drawer-close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .sidebar .nav-item {
+    min-height: 48px;
+    font-size: 15px;
+  }
+  body .ui-button,
+  body .ui-button--compact,
+  body .ui-icon-button {
+    min-height: 44px;
+  }
+  body .ui-icon-button {
+    min-width: 44px;
+  }
+  body :is(input, select, textarea):not([type="checkbox"]) {
+    font-size: 16px;
+  }
+  .page-header,
+  .section-header {
+    text-align: left;
+  }
+  .page-header-description {
+    font-size: 15px;
+  }
+  .job-focus-tabs .job-workspace-nav {
+    width: calc(100% - 32px);
+    gap: 8px;
+  }
+  .job-focus-tabs .job-workspace-nav a {
+    font-size: 12px;
+    min-height: 48px;
+  }
+  .summary-work-context {
+    padding: 20px 20px 0;
+  }
+  .summary-work-layout {
+    padding: 20px;
+    gap: 22px;
+    display: flex;
+    flex-direction: column;
+  }
+  body .summary-work-copy h2.type-section-title {
+    font-size: 25px;
+  }
+  .summary-next-copy {
+    font-size: 14px;
+    margin-top: 16px;
+  }
+  .summary-work-action {
+    padding: 20px;
+    gap: 20px;
+    width: 100%;
+  }
+  .summary-fit-score strong {
+    font-size: 46px;
+  }
+  .summary-workflow {
+    padding: 0 20px 20px;
+  }
+  .summary-secondary .section-header {
+    align-items: flex-start;
+  }
+  .career-foundation-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .career-profile-hero {
+    padding: 20px;
+  }
+  .career-profile-hero .section-header {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+  .career-direction-statement > strong {
+    font-size: 25px;
+  }
+  body .career-foundation-layout .profile-skills-section {
+    padding: 20px;
+  }
+  .profile-skill-list {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  body .profile-skill-row,
+  body .profile-skill-row:nth-child(odd) {
+    padding: 13px 0;
+    min-height: 76px;
+  }
+  .skill-row-menu > summary {
+    width: 44px;
+    height: 44px;
+  }
+  .skill-row-menu > div {
+    right: 0;
+    min-width: 160px;
+  }
+  .skill-row-menu > div > button,
+  .skill-delete-confirmation button {
+    min-height: 44px;
+  }
+  .evidence-library-list {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  body .evidence-row {
+    padding: 20px;
+    gap: 12px;
+  }
+  .evidence-row-copy h3 {
+    font-size: 21px;
+  }
+  .evidence-row-copy {
+    padding: 0;
+  }
+  .expandable-text button {
+    min-height: 44px;
+  }
+  .evidence-filter-field {
+    min-height: 44px;
+  }
+  .evidence-filter-field > span {
+    display: none;
+  }
+  .evidence-filter-field select {
+    min-width: 0;
+    font-size: 16px;
+  }
+  .evidence-delete-confirmation button {
+    min-height: 44px;
+    padding-inline: 12px;
+  }
+  .job-library-row {
+    grid-template-columns: 44px minmax(0, 1fr);
+    padding: 20px;
+    gap: 12px 16px;
+  }
+  .job-library-logo {
+    width: 44px;
+    height: 44px;
+  }
+  .job-library-copy h3 {
+    font-size: 21px;
+  }
+  .job-library-context {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .job-library-progress {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    padding: 0;
+    margin: 4px 0 0;
+  }
+  .job-library-detail-link {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .job-detail-content {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .job-description-copy {
+    padding: 20px;
+  }
+  .job-description-rendered {
+    font-size: 16px;
+  }
+  .job-detail-identity-row {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .job-detail-aside,
+  html .job-detail-aside {
+    padding: 20px;
+  }
+  .job-extraction-panel {
+    padding: 18px;
+    align-items: stretch;
+  }
+  .requirement-review-list article {
+    padding: 18px;
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .requirement-review-list article .requirement-priority-control {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .requirement-review-list article .requirement-row-actions {
+    grid-column: 2;
+    grid-row: auto;
+    justify-self: start;
+  }
+  .requirement-priority-control button,
+  .requirement-row-actions button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .requirement-review-counts {
+    flex-wrap: wrap;
+  }
+  .requirement-review-savebar {
+    padding: 18px;
+  }
+  .requirement-review-next-step .ui-button {
+    width: 100%;
+  }
+  .mapping-overview,
+  html .mapping-overview {
+    padding: 20px;
+  }
+  .mapping-overview h2 {
+    font-size: 19px;
+  }
+  .mapping-row {
+    padding: 18px;
+    grid-template-columns: 18px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .mapping-row .mapping-connection {
+    grid-column: 1 / -1;
+    padding: 14px;
+  }
+  .mapping-skill-list button {
+    min-height: 44px;
+    min-width: 36px;
+  }
+  .mapping-review-heading {
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .mapping-review-heading > div {
+    flex: 1 1 200px;
+  }
+  .mapping-review-list > article {
+    padding: 16px;
+  }
+  .score-main {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 22px;
+  }
+  .analyzed-job-context {
+    padding: 20px 20px 0;
+  }
+  .score-visual {
+    width: 100%;
+    padding: 20px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .score-ring {
+    width: 100%;
+  }
+  .score-ring strong {
+    font-size: 54px;
+  }
+  .score-copy {
+    padding: 0;
+  }
+  .score-copy h2 {
+    font-size: 22px;
+  }
+  .attention-list {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .requirement-summary,
+  .requirement-row.static {
+    padding: 18px;
+    gap: 10px 12px;
+  }
+  .requirement-expanded {
+    margin: 0 12px 12px;
+    padding: 16px;
+  }
+  .requirement-detail-group + .requirement-detail-group {
+    border: 0;
+    padding: 0;
+  }
+  html .account-settings-card {
+    padding: 20px;
+    grid-template-columns: 1fr;
+  }
+  .account-profile-form {
+    gap: 18px;
+  }
+  .account-security-row {
+    flex-wrap: wrap;
+  }
+  .account-security-row > .ui-button {
+    margin-left: 0;
+  }
+  .new-job-layout {
+    grid-template-columns: 1fr;
+  }
+  .new-job-form-card {
+    padding: 20px;
+  }
+  .new-job-form-heading > span {
+    display: none;
+  }
+  html .new-job-guidance {
+    border: 0;
+    padding: 8px 4px;
+  }
+  .auth-form-panel {
+    padding: 28px 20px;
+  }
+  .login-heading h2 {
+    font-size: 26px;
+  }
+  .searchable-combobox-list {
+    position: static;
+    width: 100%;
+    max-height: 220px;
+    margin-top: 6px;
+    transform: none;
+    box-shadow: none;
+  }
+  .searchable-combobox-list > li {
+    min-height: 44px;
+  }
+}
+.nav-compact-text {
+  display: none;
+}
+
+/* Compact navigation shares the same quiet surfaces as the workspace. */
+@media (max-width: 1023px) {
+  body .sidebar {
+    background: var(--surface);
+    border: 0;
+    overflow: hidden;
+  }
+  .sidebar-links {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  body .sidebar .main-nav {
+    flex: 0 0 auto;
+    gap: 6px;
+    margin: 0;
+  }
+  body .sidebar .nav-item {
+    border-radius: 12px;
+    border: 0;
+    gap: 12px;
+    color: var(--foreground-muted);
+    white-space: normal;
+  }
+  body .sidebar .nav-item.active {
+    color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+    font-weight: 600;
+  }
+  body .sidebar .nav-item.active::before,
+  body .sidebar [data-tooltip]::after {
+    display: none;
+  }
+  body .sidebar .sidebar-utility {
+    display: grid;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: 32px;
+    flex: 0 0 auto;
+    border: 0;
+  }
+  .sidebar-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--foreground);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.8px;
+  }
+  .sidebar-brand > span {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--primary);
+    color: var(--surface);
+    font-size: 19px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root {
+    --sidebar-collapsed-width: 96px;
+    --sidebar-width: 256px;
+  }
+  body .sidebar {
+    top: calc(var(--topbar-height) + 12px);
+    left: 12px;
+    bottom: 12px;
+    height: auto;
+    border-radius: 18px;
+    padding: 12px 8px;
+    width: calc(var(--sidebar-width) - 12px);
+  }
+  body .sidebar:not(.sidebar-tablet-expanded) {
+    width: calc(var(--sidebar-collapsed-width) - 12px);
+    padding: 12px 6px;
+  }
+  body .sidebar:not(.sidebar-tablet-expanded) .nav-item {
+    flex-direction: column;
+    gap: 6px;
+    min-height: 66px;
+    padding: 10px 2px;
+  }
+  body .sidebar:not(.sidebar-tablet-expanded) .nav-compact-text {
+    display: block;
+    font-size: 11px;
+    line-height: 1.25;
+    font-weight: 500;
+  }
+}
+
+@media (max-width: 767px) {
+  body .sidebar,
+  body .sidebar.sidebar-collapsed {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(340px, calc(100vw - 32px));
+    max-width: none;
+    height: 100dvh;
+    padding: max(18px, env(safe-area-inset-top)) 16px
+      max(20px, env(safe-area-inset-bottom));
+    border-radius: 0 24px 24px 0;
+    z-index: 101;
+    transform: translateX(-110%);
+    visibility: hidden;
+    transition: transform 180ms ease;
+  }
+  body .sidebar.sidebar-mobile-open {
+    transform: translateX(0);
+    visibility: visible;
+  }
+  body .sidebar-backdrop {
+    inset: 0;
+    height: 100dvh;
+    z-index: 100;
+    touch-action: none;
+  }
+  body .sidebar .sidebar-mobile-heading {
+    padding: 0 0 28px 8px;
+    flex: 0 0 auto;
+  }
+  body .sidebar .nav-item {
+    min-height: 56px;
+    padding: 14px 16px;
+    font-size: 15px;
+    justify-content: flex-start;
+  }
+  body .sidebar .sidebar-utility .nav-item {
+    min-height: 48px;
+    font-size: 14px;
+  }
+  body .sidebar .nav-text {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body .sidebar,
+  body .sidebar-backdrop {
+    transition: none;
+  }
+}
+:root {
+  color-scheme: light;
+  --control-surface: #fffefa;
+  --control-border: #d9d6cd;
+  --control-radius: 10px;
+}
+
+/* Meeting shapes and a blue navigation band identify the product. */
+.brand-motif {
+  width: 128px;
+  height: auto;
+  color: var(--primary);
+  flex: 0 0 auto;
+}
+body .app-topbar {
+  background: var(--surface-inverse);
+  border: 0;
+  color: var(--foreground-inverse);
+}
+body .app-topbar-brand {
+  color: var(--foreground-inverse);
+}
+.topbar-tools {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: 12px;
+}
+body .app-topbar :is(.sidebar-context-toggle, .app-topbar-mobile-menu) {
+  color: var(--foreground-inverse);
+}
+body .app-topbar :is(.sidebar-context-toggle, .app-topbar-mobile-menu):hover {
+  background: #ffffff20;
+}
+body .app-topbar .avatar {
+  background: #ffffff;
+  color: var(--surface-inverse);
+}
+body .app-topbar-context,
+body .app-topbar-context .shell-breadcrumb-current,
+body .app-topbar-context a {
+  color: var(--foreground-inverse);
+}
+.language-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: inherit;
+  min-height: 44px;
+}
+body .page-header {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  padding: 12px 0 24px;
+  border-radius: 0;
+  background: transparent;
+  min-height: 100px;
+  align-items: center;
+}
+.page-header-copy {
+  max-width: 740px;
+}
+.auth-brand-panel {
+  position: relative;
+  overflow: hidden;
+}
+.auth-brand-panel > .brand-motif {
+  position: absolute;
+  width: 200px;
+  right: -20px;
+  bottom: 60px;
+  opacity: 0.18;
+  color: white;
+  pointer-events: none;
+}
+.auth-language {
+  position: absolute;
+  right: 24px;
+  top: 22px;
+  color: var(--foreground-inverse);
+}
+
+/* Search, filters and editable fields use one surface and focus treatment. */
+body
+  :is(
+    .evidence-search-field,
+    .evidence-filter-field,
+    .job-search,
+    .searchable-combobox > input
+  ) {
+  background: var(--control-surface);
+  border: 1px solid var(--control-border);
+  border-radius: var(--control-radius);
+  min-height: 48px;
+  box-shadow: none;
+}
+body :is(.evidence-search-field, .evidence-filter-field):focus-within {
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px #24262c0c;
+}
+body :is(.evidence-search-field, .evidence-filter-field) :is(input, select) {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  outline: none;
+  min-height: 46px;
+  font-size: 14px;
+}
+body .evidence-filter-panel {
+  padding: 16px;
+  background: var(--surface);
+  border: 0;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+body .evidence-filter-meta {
+  padding: 0 2px;
+  font-size: 12px;
+}
+body
+  :is(
+    .profile-inline-editor,
+    .new-job-form,
+    .account-settings-card,
+    .evidence-form,
+    .job-info-editor,
+    .job-description-editor,
+    .requirement-editor,
+    .manual-mapping-form
+  )
+  :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
+  background-color: var(--control-surface);
+  border-color: var(--control-border);
+  border-radius: var(--control-radius);
+}
+body
+  :is(
+    .searchable-combobox-list,
+    .job-dropdown,
+    .topbar-account-menu,
+    .skill-row-menu > div
+  ) {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px #24262c12;
+}
+
+/* Empty collections are complete compositions, never leftover table rows. */
+body :is(.skill-empty-state, .evidence-empty-state) {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: 0;
+  padding: 36px 24px;
+  min-height: 260px;
+  gap: 16px;
+  background: var(--surface);
+  border-radius: 16px;
+}
+body :is(.skill-empty-state, .evidence-empty-state) .brand-motif {
+  width: 86px;
+}
+body :is(.skill-empty-state, .evidence-empty-state) strong {
+  font-size: 18px;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+body :is(.skill-empty-state, .evidence-empty-state) p {
+  font-size: 14px;
+  line-height: 1.65;
+  max-width: 380px;
+  margin: 6px 0 0;
+  color: var(--foreground-muted);
+}
+body :is(.skill-empty-state, .evidence-empty-state) button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 18px;
+  background: var(--primary-subtle);
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+body .profile-skill-list:has(.skill-empty-state),
+body .evidence-library-list:has(.evidence-empty-state) {
+  display: block;
+  border: 0;
+  background: transparent;
+}
+body .evidence-library-list:has(.evidence-empty-state)::after {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  body .app-topbar-app,
+  body .job-focus-shell .app-topbar-focus {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    column-gap: 24px;
+  }
+  body .global-navigation {
+    align-items: stretch;
+    gap: 4px;
+  }
+  body .global-navigation > a {
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: 0;
+    color: #e3e7ff;
+    font-size: 14px;
+  }
+  body .global-navigation > a:hover {
+    color: white;
+    background: #ffffff12;
+  }
+  body .global-navigation > a[aria-current="page"] {
+    background: transparent;
+    color: white;
+  }
+  body .global-navigation > a[aria-current="page"]::after {
+    display: block;
+    background: var(--accent);
+    left: 14px;
+    right: 14px;
+    bottom: 0;
+  }
+  body .global-navigation-guide {
+    margin-left: 8px;
+  }
+}
+@media (max-width: 1023px) {
+  body .app-topbar-app {
+    grid-template-columns: 1fr auto;
+  }
+  body .app-topbar-focus {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  body .page-header {
+    padding: 12px 0 20px;
+  }
+}
+@media (max-width: 767px) {
+  .topbar-tools {
+    gap: 4px;
+  }
+  .language-picker {
+    gap: 2px;
+  }
+  body .page-header {
+    padding: 8px 0 16px;
+    gap: 20px;
+    min-height: 0;
+  }
+  body .evidence-filter-panel {
+    padding: 12px;
+    gap: 10px;
+  }
+  body :is(.evidence-search-field, .evidence-filter-field) :is(input, select) {
+    font-size: 16px;
+  }
+  .auth-language {
+    top: 12px;
+    right: 16px;
+  }
+}
+body .filter-fields select {
+  background: var(--control-surface);
+  border: 1px solid var(--control-border);
+  border-radius: var(--control-radius);
+  min-height: 48px;
+  font-size: 14px;
+  padding: 10px 36px 10px 14px;
+}
+body .job-search input {
+  background: transparent;
+  border: 0;
+  min-height: 44px;
+}
+body .job-popover {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px #24262c12;
+}
+body .page-header:has(.job-popover) {
+  z-index: 20;
+}
+body .page-header {
+  text-align: left;
+}
+body .page-header .page-header-copy {
+  text-align: left;
+}
+body .job-popover {
+  width: min(380px, calc(100vw - 48px));
+  min-width: 0;
+  z-index: 30;
+}
+body
+  .profile-skills-section:has(.skill-empty-state)
+  > .section-header
+  .section-header-action {
+  display: none;
+}
+:root {
+  --input-focus-ring: #4056d826;
+  --focus-ring: #4056d826;
+}
+@media (max-width: 767px) {
+  body .page-header-action:has(.job-switcher-wrap),
+  body .page-header .job-switcher-wrap,
+  body .page-header .job-switcher {
+    width: 100%;
+  }
+  body .page-header .job-popover {
+    width: 100%;
+    left: 0;
+    right: auto;
+  }
+}
+/* Shared interaction details: one focus boundary and one select chevron. */
+body
+  :is(
+    input:not([type="checkbox"]):not([type="radio"]),
+    textarea,
+    select
+  ):focus {
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px #24262c0c;
+  outline: none;
+}
+body
+  :is(
+    .login-input-wrap,
+    .evidence-search-field,
+    .evidence-filter-field,
+    .job-search,
+    .jobs-search-field
+  ):focus-within {
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px #24262c0c;
+}
+body
+  :is(
+    .login-input-wrap,
+    .evidence-search-field,
+    .evidence-filter-field,
+    .job-search,
+    .jobs-search-field
+  )
+  :is(input, select):not([type="checkbox"]):not([type="radio"]):focus {
+  border: 0;
+  outline: none;
+  box-shadow: none;
+}
+body select:not([multiple]) {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b6b72' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 38px;
+}
+body .ui-button.ui-button--primary:not(:disabled):hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+  color: white;
+}
+body .ui-button.ui-button--secondary:not(:disabled):hover,
+body .ui-button.ui-button--ghost:not(:disabled):hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+  color: var(--foreground);
+}
+body .page-header h1 {
+  font-size: clamp(26px, 2.5vw, 34px);
+  line-height: 1.2;
+}
+.mobile-bottom-nav,
+.mobile-menu-profile {
+  display: none;
+}
+html .job-detail-hero {
+  background: var(--surface);
+}
+body .job-detail-logo {
+  width: 56px;
+  height: 56px;
+  color: var(--primary);
+  background: var(--primary-subtle);
+  border-radius: 18px 18px 6px 18px;
+}
+html .job-detail-aside {
+  background: transparent;
+}
+.job-detail-aside > div:first-child {
+  padding: 22px;
+  border-radius: 16px 16px 5px 16px;
+  background: color-mix(in srgb, var(--primary) 5%, var(--surface));
+}
+.job-detail-aside dl {
+  padding-inline: 8px;
+}
+body .fit-story {
+  background: transparent;
+  border-radius: 0;
+  overflow: visible;
+}
+body .analyzed-job-context {
+  padding: 0 0 18px;
+}
+body .score-main {
+  padding: 0;
+  gap: 32px;
+}
+body .score-copy {
+  padding: 8px 0;
+}
+@media (max-width: 767px) {
+  .mobile-bottom-nav {
+    position: fixed;
+    z-index: 45;
+    inset: auto 0 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: 6px 8px max(6px, env(safe-area-inset-bottom));
+    background: var(--surface);
+    box-shadow: 0 -3px 18px #24262c08;
+    border-top: 1px solid #24262c0a;
+  }
+  .mobile-bottom-nav a {
+    display: flex;
+    min-height: 54px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    color: var(--foreground-muted);
+    text-decoration: none;
+    font-size: 11px;
+  }
+  .mobile-bottom-nav a[aria-current="page"] {
+    color: var(--primary);
+    font-weight: 700;
+  }
+  .app-shell > main {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+  .mobile-menu-profile {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 16px 24px;
+    text-decoration: none;
+    color: var(--foreground);
+  }
+  .mobile-menu-profile > span:last-child {
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+  }
+  .mobile-menu-profile strong {
+    overflow-wrap: anywhere;
+    font-size: 15px;
+  }
+  .mobile-menu-profile small {
+    color: var(--primary);
+    font-size: 13px;
+  }
+  html .job-detail-hero {
+    padding: 20px;
+  }
+  html .job-detail-aside {
+    padding: 0;
+  }
+  body .score-main {
+    gap: 22px;
+  }
+  body .score-visual {
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+  }
+  body .score-ring {
+    width: auto;
+    flex: 1;
+    padding-bottom: 16px;
+  }
+}
+.job-detail-aside {
+  position: relative;
+  isolation: isolate;
+}
+.job-detail-accent {
+  position: absolute;
+  pointer-events: none;
+  overflow: hidden;
+  top: 0;
+  right: 0;
+  width: 90px;
+  height: 90px;
+  opacity: 0.07;
+  z-index: 1;
+}
+.job-detail-accent .brand-motif {
+  width: 105px;
+  transform: translate(18px, 28px);
+}
+body .filter-fields select {
+  padding-right: 38px;
+  min-width: 166px;
+}
+body .evidence-filter-field select {
+  padding-right: 32px;
+}
+body .searchable-combobox-icon,
+body .job-switcher > svg:last-child {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.8;
+}
+@media (max-width: 767px) {
+  body .filter-fields select {
+    min-width: 0;
+    flex: 1;
+  }
+}
+@media (max-width: 767px) {
+  body .page-header {
+    align-items: flex-start;
+  }
+  body .page-header-copy {
+    width: 100%;
+  }
+  body .requirements-heading {
+    align-items: flex-start;
+    text-align: left;
+    border: 0;
+  }
+  body .requirements-heading h2 {
+    text-align: left;
+  }
+}
+/* Compound fields have a single boundary, including browser autofill. */
+body
+  :is(
+    .login-input-wrap,
+    .evidence-search-field,
+    .evidence-filter-field,
+    .job-search,
+    .jobs-search-field
+  )
+  :is(input, select) {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  outline: none;
+  background-color: transparent;
+}
+body .login-input-wrap input:autofill {
+  box-shadow: 0 0 0 1000px var(--surface) inset;
+  -webkit-text-fill-color: var(--foreground);
+}
+html
+  body
+  .login-input-wrap
+  input:not([type="checkbox"]):not([type="radio"]):-webkit-autofill:focus {
+  box-shadow: 0 0 0 1000px var(--surface) inset;
+}
+.language-picker {
+  position: relative;
+}
+.language-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.language-trigger:hover,
+.language-trigger[aria-expanded="true"] {
+  background: #ffffff20;
+}
+.language-trigger > svg {
+  margin-left: 4px;
+}
+.language-flag {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px #24262c0a;
+}
+.language-flag-id {
+  background: linear-gradient(#ed2939 0 50%, white 50%);
+}
+.language-flag-en {
+  background: repeating-linear-gradient(
+    to bottom,
+    #b22234 0 1.08px,
+    white 1.08px 2.16px
+  );
+}
+.language-flag-en::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 7px;
+  height: 8px;
+  background: #3c3b6e;
+}
+.language-flag-en::after {
+  content: "· ·";
+  position: absolute;
+  left: 1px;
+  top: -5px;
+  color: white;
+  font-size: 8px;
+  line-height: 12px;
+}
+.language-menu {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 88px;
+  padding: 4px 0;
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid #24262c0a;
+  border-radius: 6px;
+  box-shadow: 0 5px 18px #24262c14;
+}
+.language-menu button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.language-menu button:hover,
+.language-menu button:focus-visible {
+  background: var(--surface-subtle);
+  outline: none;
+}
+body .app-topbar .app-topbar-mobile-menu {
+  width: 44px;
+  height: 44px;
+  padding: 8px;
+}
+body .app-topbar .mobile-menu-icon {
+  width: 28px;
+  height: 24px;
+}
+@media (max-width: 767px) {
+  .app-topbar-app .topbar-tools {
+    gap: 6px;
+  }
+  .app-topbar-app .language-trigger {
+    padding-inline: 4px;
+  }
+}
+/* The meeting motif is the product mark; accents belong to selected cards. */
+body .brand-logo {
+  width: 38px;
+  height: 32px;
+  flex: 0 0 38px;
+  color: inherit;
+}
+body .auth-brand-panel > .brand-logo {
+  position: static;
+  opacity: 1;
+}
+body .sidebar-brand {
+  color: var(--foreground);
+}
+body .sidebar-brand .brand-logo {
+  color: var(--primary);
+}
+body .page-header {
+  padding-block: 8px 22px;
+}
+body .page-header h1 {
+  font-weight: 650;
+  letter-spacing: -0.04em;
+}
+body .page-header-description {
+  margin-top: 10px;
+  max-width: 560px;
+}
+.card-brand-accent {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 0;
+}
+.card-brand-accent .brand-motif {
+  position: absolute;
+  width: 230px;
+  height: auto;
+  right: -65px;
+  bottom: -65px;
+  opacity: 0.1;
+  color: white;
+}
+.career-profile-hero,
+.summary-work-action {
+  position: relative;
+  isolation: isolate;
+}
+.career-profile-hero > :not(.card-brand-accent),
+.summary-work-action > :not(.card-brand-accent) {
+  position: relative;
+  z-index: 1;
+}
+body .section-header {
+  gap: 18px 24px;
+}
+body .section-header-action {
+  flex-shrink: 0;
+}
+.mobile-menu-language,
+.mobile-menu-signout,
+.job-focus-mobile-navigation {
+  display: none;
+}
+body .app-topbar-context .inline-back-link {
+  color: var(--foreground-inverse);
+  opacity: 1;
+}
+body .app-topbar-context .inline-back-link:hover {
+  color: var(--foreground-inverse-muted);
+  background: transparent;
+}
+@media (min-width: 1024px) {
+  .job-focus-shell {
+    --topbar-height: 76px;
+  }
+  body .job-focus-shell .app-topbar-focus {
+    height: 76px;
+    grid-template-columns:
+      minmax(max-content, calc((100vw - var(--job-shell-width)) / 2 - 60px))
+      minmax(0, 1fr) auto;
+    grid-template-rows: 76px;
+    gap: 24px;
+    padding: 0 36px;
+  }
+  .job-focus-shell .app-topbar-leading {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .job-focus-shell .topbar-tools {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  body .job-focus-shell .app-topbar-context {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    max-width: none;
+    justify-self: start;
+    padding: 0;
+    margin-left: -3px;
+  }
+  .job-focus-shell .app-topbar-navigation-controls {
+    display: none;
+  }
+}
+@media (max-width: 767px) {
+  body .app-topbar .topbar-tools > :is(.language-picker, .topbar-account) {
+    display: none;
+  }
+  body .app-topbar-focus {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    column-gap: 10px;
+  }
+  body .app-topbar-focus .app-topbar-context {
+    display: flex;
+    min-width: 0;
+    width: 100%;
+    gap: 6px;
+  }
+  body .app-topbar-focus .app-topbar-leading {
+    min-width: 0;
+  }
+  .job-focus-mobile-navigation {
+    display: contents;
+  }
+  .job-focus-mobile-navigation .mobile-bottom-nav {
+    display: none;
+  }
+  body .sidebar .main-nav {
+    display: none;
+  }
+  body .sidebar .sidebar-utility {
+    margin-top: 12px;
+    padding-top: 0;
+  }
+  .mobile-menu-language {
+    display: block;
+    padding: 0 16px 12px;
+  }
+  .mobile-menu-language .language-trigger {
+    color: var(--foreground);
+    background: var(--surface-subtle);
+    min-width: 112px;
+    justify-content: space-between;
+  }
+  .mobile-menu-language .language-menu {
+    right: auto;
+    left: 0;
+  }
+  .mobile-menu-signout {
+    display: block;
+    padding: 24px 8px 8px;
+    margin-top: auto;
+  }
+  .mobile-menu-signout .topbar-signout {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 48px;
+    border: 0;
+    border-radius: 24px;
+    background: var(--primary-subtle);
+    color: var(--primary);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .mobile-menu-signout .topbar-signout:hover {
+    background: var(--primary);
+    color: white;
+  }
+  .mobile-menu-signout .topbar-signout:disabled {
+    opacity: 0.6;
+  }
+}
+.job-focus-shell .app-topbar-navigation-controls {
+  display: none;
+}
+body .filter-fields label:nth-child(n) select {
+  min-width: 176px;
+  padding-right: 38px;
+}
+@media (max-width: 767px) {
+  body .filter-fields label:nth-child(n) select {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+body .app-topbar-context {
+  line-height: 1.5;
+  align-items: center;
+}
+body .app-topbar-context .shell-breadcrumb-current {
+  min-width: 0;
+  line-height: 1.5;
+  padding-block: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 767px) {
+  body .app-topbar-focus .app-topbar-context > .inline-back-link {
+    display: inline-flex;
+    flex: 0 0 24px;
+    width: 24px;
+    min-width: 24px;
+    min-height: 44px;
+    justify-content: center;
+    font-size: 0;
+    padding: 0;
+  }
+  body .app-topbar-focus .app-topbar-context .shell-breadcrumb-separator {
+    display: inline;
+    flex-shrink: 0;
+    margin-left: -7px;
+    line-height: 1.5;
+  }
+  body .app-topbar-focus .shell-breadcrumb-current {
+    font-size: 12px;
+  }
+} /* Review refinement: distinctive actions and clear collection/document layouts. */
+body
+  .ui-button:is(
+    .ui-button--primary,
+    .ui-button--secondary,
+    .ui-button--destructive
+  ) {
+  border-radius: 14px 14px 5px 14px;
+  border: 1px solid var(--border);
+  font-weight: 600;
+  gap: 10px;
+  box-shadow: 0 3px 0 var(--button-edge, #24262c18);
+  transition:
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+body .ui-button--primary {
+  --button-edge: #293a9c;
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+body .ui-button--secondary {
+  --button-edge: #d9d6cd;
+  background: var(--surface);
+  color: var(--foreground);
+}
+body .ui-button--destructive {
+  --button-edge: #8e3434;
+}
+body
+  .ui-button:is(
+    .ui-button--primary,
+    .ui-button--secondary,
+    .ui-button--destructive
+  ):not(:disabled):not([aria-disabled="true"]):hover {
+  box-shadow: 0 4px 0 var(--button-edge);
+}
+body
+  .ui-button:is(
+    .ui-button--primary,
+    .ui-button--secondary,
+    .ui-button--destructive
+  ):not(:disabled):active {
+  box-shadow: 0 1px 0 var(--button-edge);
+}
+body .ui-button:is(:disabled, [aria-disabled="true"]) {
+  box-shadow: none;
+  opacity: 0.55;
+}
+body .ui-icon-button {
+  border-radius: 10px 10px 4px 10px;
+}
+.collection-illustration {
+  display: block;
+  width: min(220px, 100%);
+  height: auto;
+  flex-shrink: 0;
+  margin: 0 auto 4px;
+}
+body :is(.jobs-zero-state, .evidence-empty-state) {
+  padding: 36px 24px;
+  gap: 14px;
+  background: var(--surface);
+  border-radius: 22px;
+}
+body .jobs-zero-state .eyebrow {
+  display: none;
+}
+body .jobs-zero-state h2 {
+  font-size: 23px;
+  margin: 0;
+}
+body .jobs-zero-state > p {
+  max-width: 410px;
+  line-height: 1.7;
+}
+body .evidence-empty-state .ui-button--primary {
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: white;
+}
+.job-source-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  align-self: start;
+}
+.job-source-field > label {
+  display: grid;
+  gap: 8px;
+}
+.job-source-field label > span {
+  font-size: 14px;
+  font-weight: 500;
+}
+.job-source-field .job-source-custom {
+  margin-top: 6px;
+}
+.job-source-field :is(select, input:not([type="hidden"])) {
+  width: 100%;
+  min-width: 0;
+}
+body .jobs-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+body .job-library-row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr auto;
+  gap: 18px 16px;
+  min-height: 0;
+  padding: 24px;
+  align-items: start;
+  border: 1px solid transparent;
+}
+body .job-library-row:hover {
+  border-color: var(--primary-border);
+}
+body .job-library-logo {
+  grid-column: 1;
+  grid-row: 1;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px 14px 5px 14px;
+  background: var(--primary-subtle);
+  color: var(--primary);
+}
+body .job-library-copy {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+body .job-library-copy h3 {
+  font-size: 21px;
+  line-height: 1.4;
+}
+body .job-library-copy > span {
+  margin-top: 5px;
+  font-size: 14px;
+}
+body .job-library-context {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  gap: 10px 16px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+body .job-library-context span {
+  font-size: 13px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+body .job-library-context svg {
+  flex-shrink: 0;
+}
+body .job-library-progress {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+body .job-library-progress .job-stage {
+  font-size: 14px;
+  font-weight: 600;
+}
+body .job-library-progress strong {
+  display: none;
+}
+body .job-library-detail-link {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  justify-self: start;
+  margin-top: 2px;
+  font-size: 14px;
+}
+body .job-detail-page {
+  gap: 28px;
+}
+html .job-detail-hero {
+  padding: 28px;
+  border-radius: 20px;
+}
+body .job-detail-identity-row {
+  align-items: flex-start;
+  gap: 24px;
+  padding-bottom: 24px;
+}
+body .job-detail-identity {
+  min-width: 0;
+  align-items: flex-start;
+  gap: 18px;
+}
+body .job-detail-identity > div {
+  min-width: 0;
+}
+body #job-detail-title {
+  font-family: var(--font-sans), sans-serif;
+  font-size: clamp(26px, 2.6vw, 34px);
+  line-height: 1.3;
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+}
+body .job-detail-company {
+  font-size: 15px;
+  margin-top: 8px;
+}
+body .job-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-shrink: 0;
+}
+body .job-detail-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  border-top: 1px solid var(--border);
+  padding-top: 22px;
+}
+body .job-detail-meta > span:nth-child(n) {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 6px 8px;
+  padding: 0;
+}
+body .job-detail-meta svg {
+  grid-column: 1;
+  grid-row: 1;
+  margin-top: 2px;
+  color: var(--foreground-muted);
+}
+body .job-detail-meta small {
+  grid-column: 2;
+  font-size: 12px;
+}
+body .job-detail-meta strong {
+  grid-column: 2;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+body .job-detail-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 28px;
+}
+body .job-description-copy {
+  min-width: 0;
+  padding: 28px;
+  background: var(--surface);
+  border-radius: 20px;
+}
+body .job-description-heading-row {
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+body .job-detail-section-heading h2 {
+  font-size: 20px;
+  line-height: 1.4;
+}
+body .job-description-rendered {
+  max-width: 72ch;
+}
+body .job-description-rendered :is(p, li) {
+  font-size: 15px;
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+}
+body .job-description-rendered h3 {
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 28px 0 10px;
+}
+body .job-description-rendered > p {
+  margin: 0 0 18px;
+}
+html .job-detail-aside {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+body .job-next-step {
+  padding: 24px;
+  background: var(--primary-subtle);
+  border-radius: 20px 20px 6px 20px;
+}
+body .job-next-step .eyebrow {
+  margin: 0 0 14px;
+  font-size: 12px;
+}
+body .job-next-step .job-stage {
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+body .job-next-step > p:last-child {
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 12px 0 0;
+}
+body .job-detail-aside dl {
+  margin: 0;
+  padding: 0 4px;
+}
+body .job-detail-aside dl > div {
+  padding: 10px 0;
+  gap: 12px;
+}
+body .job-detail-aside :is(dt, dd) {
+  font-size: 13px;
+  line-height: 1.5;
+}
+body .job-extraction-panel {
+  padding: 20px;
+  margin-top: 28px;
+  border-radius: 14px;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+body .job-extraction-panel p {
+  font-size: 14px;
+  line-height: 1.65;
+}
+body .summary-foundation {
+  background: linear-gradient(
+    115deg,
+    var(--primary-subtle),
+    var(--surface) 65%
+  );
+  border-radius: 22px 22px 7px 22px;
+}
+body .summary-current-work {
+  border: 1px solid var(--border);
+  border-radius: 22px;
+}
+body .summary-workflow {
+  background: var(--surface-subtle);
+  padding: 20px;
+  border-radius: 14px;
+}
+body .summary-secondary-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+body .summary-secondary-nav > a {
+  padding: 18px 20px;
+  border-radius: 16px 16px 5px 16px;
+  background: var(--surface);
+}
+html .account-settings-card:has(.account-profile-form) {
+  grid-template-columns: minmax(190px, 0.7fr) minmax(0, 1.5fr);
+  gap: 32px;
+}
+body .account-profile-form {
+  width: 100%;
+  max-width: none;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 20px;
+}
+body .account-profile-fields {
+  width: 100%;
+  max-width: none;
+}
+body .account-profile-fields input {
+  width: 100%;
+  max-width: none;
+}
+body .account-form-footer {
+  align-items: flex-start;
+  gap: 16px;
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  body .sidebar-context-toggle {
+    display: none;
+  }
+}
+@media (max-width: 1023px) {
+  body .jobs-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  body .job-detail-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  body .job-detail-aside {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+  body .job-detail-aside > .ui-button {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+  body .job-detail-identity-row {
+    flex-wrap: wrap;
+  }
+  html .account-settings-card:has(.account-profile-form) {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  body .requirement-review-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 20px;
+  }
+  body .requirement-review-heading-actions {
+    width: 100%;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  body .requirement-review-list article {
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 14px 12px;
+    align-items: start;
+    padding: 22px;
+  }
+  body .requirement-review-list article > div:first-of-type {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  body .requirement-review-number {
+    grid-column: 1;
+    grid-row: 1;
+    padding-top: 3px;
+  }
+  body .requirement-review-list article .requirement-priority-control {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+  }
+  body .requirement-review-list article .requirement-review-state {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  body .requirement-review-list article .requirement-row-actions {
+    grid-column: 2;
+    grid-row: 4;
+    justify-self: stretch;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+  }
+  body .requirement-review-list article.selection-mode {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+  body
+    .requirement-review-list
+    article.selection-mode
+    .requirement-selection-checkbox {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 44px;
+    align-items: flex-start;
+  }
+  body
+    .requirement-review-list
+    article.selection-mode
+    .requirement-review-number {
+    display: none;
+  }
+  body .requirement-review-list article.selection-mode > div:first-of-type {
+    grid-column: 2;
+  }
+  body .requirement-review-savebar {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+}
+@media (max-width: 767px) {
+  body .job-library-row,
+  html .job-detail-hero,
+  body .job-description-copy {
+    padding: 20px;
+  }
+  body .job-detail-identity {
+    gap: 14px;
+  }
+  body .job-detail-logo {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    font-size: 15px;
+  }
+  body .job-detail-meta {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  body .job-detail-meta > span:nth-child(n) {
+    grid-template-columns: 18px 72px minmax(0, 1fr);
+    align-items: start;
+  }
+  body .job-detail-meta strong {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  body .job-detail-aside {
+    display: flex;
+  }
+  body .job-detail-aside > .ui-button {
+    align-self: flex-start;
+  }
+  body .job-description-heading-row {
+    flex-wrap: wrap;
+  }
+  body .requirement-review-list article {
+    padding: 18px;
+    gap: 12px;
+  }
+  body .requirement-review-heading-actions {
+    justify-content: flex-start;
+  }
+  body .requirement-review-list article .requirement-row-actions button {
+    min-height: 44px;
+  }
+  body .account-profile-form {
+    grid-template-columns: 1fr;
+  }
+  body .account-form-footer {
+    flex-direction: column;
+  }
+  .collection-illustration {
+    width: 180px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body .ui-button {
+    transition: none;
+  }
+}
+/* Keep job identity compact and the next action ahead of the long document on small screens. */
+@media (max-width: 1023px) {
+  body .job-detail-aside {
+    order: -1;
+  }
+}
+@media (max-width: 767px) {
+  body .job-detail-identity {
+    flex-direction: row;
+    width: 100%;
+  }
+  body .job-detail-actions {
+    width: auto;
+  }
+  body .job-detail-actions :is(.job-info-edit-button, .job-delete-button) {
+    flex: 0 1 auto;
+    justify-content: flex-start;
+  }
+  body .job-detail-identity-row {
+    gap: 16px;
+  }
+  body .requirement-review-list article {
+    grid-template-columns: 20px minmax(0, 1fr) 140px;
+  }
+  body .requirement-review-list article > div:first-of-type {
+    grid-column: 2 / -1;
+  }
+  body .requirement-review-list article .requirement-priority-control {
+    grid-column: 2 / -1;
+  }
+  body .requirement-review-list article .requirement-review-state {
+    grid-column: 2;
+    grid-row: 3;
+    align-self: center;
+  }
+  body .requirement-review-list article .requirement-row-actions {
+    grid-column: 3;
+    grid-row: 3;
+    border: 0;
+    padding: 0;
+    gap: 4px;
+    justify-content: flex-end;
+  }
+  body
+    .requirement-review-list
+    article:has(.requirement-delete-confirmation)
+    .requirement-row-actions {
+    grid-column: 2 / -1;
+    grid-row: 4;
+  }
+  body .requirement-review-list article.selection-mode > div:first-of-type {
+    grid-column: 2 / -1;
+  }
+  body
+    .requirement-review-list
+    article.selection-mode
+    .requirement-review-state {
+    grid-column: 2 / -1;
+  }
+}
+body .jobs-filter-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  background: var(--surface);
+  border-radius: 16px;
+}
+body .jobs-search-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 0 14px;
+  background: var(--control-surface);
+  border: 1px solid var(--control-border);
+  border-radius: var(--control-radius);
+  color: var(--foreground-muted);
+}
+body .jobs-search-field input {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+}
+body .jobs-search-field:focus-within {
+  box-shadow: 0 0 0 3px #24262c0c;
+  border-color: var(--border-strong);
+}
+body .jobs-search-field input:focus {
+  border: 0;
+  box-shadow: none;
+}
+body .jobs-filter-panel > select {
+  min-height: 48px;
+  min-width: 0;
+  padding-left: 14px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--control-radius);
+  background-color: var(--control-surface);
+  font-size: 14px;
+}
+@media (max-width: 767px) {
+  body .jobs-filter-panel {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+  body .jobs-search-field input {
+    font-size: 16px;
+  }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  body .requirement-review-list article {
+    grid-template-columns: 24px minmax(0, 1fr) 140px;
+  }
+  body .requirement-review-list article > div:first-of-type {
+    grid-column: 2 / -1;
+  }
+  body .requirement-review-list article .requirement-priority-control {
+    grid-column: 2;
+  }
+  body .requirement-review-list article .requirement-review-state {
+    grid-column: 2;
+    grid-row: 3;
+    align-self: center;
+  }
+  body .requirement-review-list article .requirement-row-actions {
+    grid-column: 3;
+    grid-row: 2 / 4;
+    align-self: end;
+    border: 0;
+    padding: 0;
+    gap: 4px;
+    justify-content: flex-end;
+  }
+  body
+    .requirement-review-list
+    article:has(.requirement-delete-confirmation)
+    .requirement-row-actions {
+    grid-column: 2 / -1;
+    grid-row: 4;
+  }
+  body .requirement-review-list article.selection-mode > div:first-of-type {
+    grid-column: 2 / -1;
+  }
+  body
+    .requirement-review-list
+    article.selection-mode
+    .requirement-review-state {
+    grid-column: 2 / -1;
+  }
+}
+
+/* Record actions share one quiet treatment across cards, menus and job pages.
+   These scoped overrides supersede legacy per-page interaction declarations. */
+html body .ui-record-action {
+  --record-color: var(--foreground-muted);
+  --record-hover: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px !important;
+  min-width: 44px !important;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: var(--record-color) !important;
+  transition: color 160ms ease;
+}
+html body .ui-record-action--delete {
+  --record-color: var(--destructive);
+  --record-hover: var(--destructive-hover);
+}
+html body .career-profile-hero .ui-record-action {
+  --record-color: var(--foreground-inverse);
+  --record-hover: var(--accent);
+}
+html body .ui-record-action svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.8;
+  flex-shrink: 0;
+  transition: none;
+}
+html body .ui-record-action.ui-icon-button {
+  padding: 10px;
+}
+html body .skill-row-menu .ui-record-action {
+  justify-content: flex-start;
+  width: 100%;
+}
+html
+  body
+  .ui-record-action:not(:disabled):not([aria-disabled="true"]):is(
+    :hover,
+    :focus-visible
+  ) {
+  color: var(--record-hover) !important;
+}
+html
+  body
+  .ui-record-action:not(:disabled):not([aria-disabled="true"]):hover
+  svg {
+  transform: none;
+}
+html body .ui-record-action:focus-visible {
+  outline: 2px solid var(--record-hover);
+  outline-offset: 2px;
+}
+html body .ui-record-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+html body .job-detail-actions {
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Focus and fallback fills. Enabled pointer-hover colors are defined below. */
+html body .ui-button--primary:is(:hover, :focus-visible) {
+  background: var(--primary) !important;
+}
+html body .ui-button--secondary:is(:hover, :focus-visible) {
+  background: transparent !important;
+  color: var(--primary);
+}
+html body .ui-button--destructive:is(:hover, :focus-visible) {
+  background: var(--destructive) !important;
+}
+html
+  body
+  :is(.ui-button--ghost, .ui-button--destructive-ghost, .ui-icon-button):is(
+    :hover,
+    :focus-visible
+  ) {
+  background: transparent !important;
+}
+html body .summary-work-action .ui-button:is(:hover, :focus-visible) {
+  background: var(--foreground-inverse) !important;
+}
+html
+  body
+  :is(
+    .evidence-delete-confirmation,
+    .skill-delete-confirmation,
+    .requirement-delete-confirmation
+  )
+  button:is(:hover, :focus-visible) {
+  background: transparent !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html body .ui-record-action,
+  html body .ui-record-action svg {
+    transition: none;
+  }
+  html body .ui-record-action:hover svg {
+    transform: none !important;
+  }
+}
+
+/* Hover preserves the resting border and depth; it never adds a second frame. */
+html body .ui-button {
+  --button-rest-border: transparent;
+  --button-rest-shadow: none;
+}
+html body .ui-button--primary {
+  --button-rest-border: var(--primary);
+}
+html body .ui-button--secondary {
+  --button-rest-border: var(--border-strong);
+}
+html body .ui-button--destructive {
+  --button-rest-border: var(--destructive);
+}
+html
+  body
+  .ui-button:is(
+    .ui-button--primary,
+    .ui-button--secondary,
+    .ui-button--destructive
+  ) {
+  --button-rest-shadow: 0 3px 0 var(--button-edge, #24262c18);
+}
+html body .summary-work-action .ui-button {
+  --button-rest-border: var(--foreground-inverse);
+}
+html body .ui-button.login-demo-button {
+  --button-rest-border: var(--border-strong);
+}
+html body .ui-button:hover {
+  border-color: var(--button-rest-border) !important;
+  box-shadow: var(--button-rest-shadow) !important;
+}
+html body :is(.ui-icon-button, .ui-record-action):hover {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+html body :is(button, a.ui-button, a.ui-text-cta):hover:not(:focus-visible) {
+  outline: none;
+}
+
+/* Color-only hover; icon actions and paired form controls. */
+html
+  body
+  :is(.ui-button, .ui-icon-button, .ui-record-action):hover
+  svg:not(.cta-arrow):not(.spin) {
+  transform: none !important;
+}
+html body .ui-button--primary:not(:disabled):not([aria-disabled="true"]):hover {
+  background: color-mix(in srgb, var(--primary) 92%, black) !important;
+}
+html body .ui-button--destructive:not(:disabled):hover {
+  background: color-mix(in srgb, var(--destructive) 92%, black) !important;
+}
+html body .summary-work-action .ui-button:not(:disabled):hover {
+  background: color-mix(
+    in srgb,
+    var(--foreground-inverse) 94%,
+    var(--primary)
+  ) !important;
+}
+html body .ui-record-action:has(> svg):not(:has(> svg.spin)) {
+  width: 44px !important;
+  height: 44px;
+  padding: 10px;
+  justify-content: center;
+  flex: 0 0 44px;
+}
+html body .skill-row-menu > div:has(> button > .sr-only) {
+  display: flex;
+  gap: 4px;
+  min-width: 104px;
+  width: max-content;
+  padding: 6px;
+}
+html
+  body
+  :is(
+    .career-form-actions,
+    .skill-editor-actions,
+    .evidence-editor-actions,
+    .job-info-editor-actions,
+    .job-description-editor-meta,
+    .requirement-editor-actions,
+    .manual-mapping-actions
+  ) {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+html
+  body
+  :is(
+    .career-form-actions,
+    .skill-editor-actions,
+    .evidence-editor-actions,
+    .job-info-editor-actions,
+    .job-description-editor-meta,
+    .requirement-editor-actions,
+    .manual-mapping-actions
+  )
+  > div:last-child,
+html body :is(.new-job-form-actions, .job-delete-dialog-actions),
+html body .requirement-split-actions > div:last-child {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+  max-width: 460px;
+  align-self: flex-end;
+  align-items: stretch;
+}
+html
+  body
+  :is(
+    .career-form-actions,
+    .skill-editor-actions,
+    .evidence-editor-actions,
+    .job-info-editor-actions,
+    .job-description-editor-meta,
+    .requirement-editor-actions,
+    .manual-mapping-actions,
+    .new-job-form-actions,
+    .job-delete-dialog-actions,
+    .requirement-split-actions
+  )
+  .ui-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 12px 12px 5px 12px;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1.4;
+  white-space: normal;
+}
+
+/* Arrow CTAs retain their motion; light buttons retain readable ink on hover. */
+html body .summary-work-action .ui-button:is(:hover, :focus-visible) {
+  color: var(--surface-inverse) !important;
+}
+html
+  body
+  .ui-button:is(.ui-button--secondary, .ui-button--ghost):not(
+    .ui-record-action
+  ):not(:disabled):not([aria-disabled="true"]):hover {
+  background: color-mix(in srgb, var(--primary) 5%, transparent) !important;
+  color: var(--primary) !important;
+}
+html
+  body
+  .summary-work-action
+  .ui-button:not(:disabled):not([aria-disabled="true"]):hover {
+  background: color-mix(
+    in srgb,
+    var(--foreground-inverse) 94%,
+    var(--primary)
+  ) !important;
+  color: var(--surface-inverse) !important;
+}
+
+/* Transparent text buttons keep their resting ink; tint provides hover feedback. */
+html body .ui-button--secondary {
+  --button-rest-ink: var(--foreground);
+}
+html body .ui-button--ghost {
+  --button-rest-ink: var(--foreground-muted);
+}
+html body .ui-button--destructive-ghost {
+  --button-rest-ink: var(--destructive);
+}
+html body .summary-work-action .ui-button {
+  --button-rest-ink: var(--surface-inverse);
+}
+html
+  body
+  .ui-button:is(
+    .ui-button--secondary,
+    .ui-button--ghost,
+    .ui-button--destructive-ghost
+  ):not(.ui-record-action):not(:disabled):not([aria-disabled="true"]):hover {
+  color: var(--button-rest-ink) !important;
+}
+html body a.ui-button:is(:hover, :focus-visible) {
+  text-decoration: none;
+}
+
+/* Job management belongs to each saved-job card. */
+body .job-card-footer {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+}
+body .job-card-footer > .job-library-detail-link {
+  grid-column: 1;
+  grid-row: 1;
+}
+body .job-card-controls {
+  display: contents;
+}
+body .job-card-control-row {
+  grid-column: 2;
+  grid-row: 1;
+}
+body .job-card-controls > .job-info-editor {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin: 0;
+  padding: 20px;
+  background: var(--surface-subtle);
+  border-radius: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+body .job-card-controls .job-info-editor-heading {
+  grid-column: 1 / -1;
+}
+body .job-card-controls .job-info-editor-heading > span {
+  display: none;
+}
+body .job-card-controls .job-info-editor :is(label, input, select) {
+  min-width: 0;
+  width: 100%;
+}
+body .job-card-controls .job-info-editor-actions {
+  grid-column: 1 / -1;
+}
+@media (max-width: 767px) {
+  body .job-card-controls > .job-info-editor {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
+  }
+}
+
+/* Keep the description edit icon beside its heading on small screens. */
+@media (max-width: 767px) {
+  body .job-description-heading-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+  }
+  body .job-description-heading-row .job-detail-section-heading,
+  body .job-description-heading-row .job-detail-section-heading > div {
+    min-width: 0;
+  }
+  body .job-description-heading-row .job-detail-section-heading h2 {
+    overflow-wrap: anywhere;
+  }
+  body .job-description-heading-row .job-description-edit-button {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+}
+
+/* Account identity: a compact live preview beside the editing surface. */
+html body .account-settings-card.account-identity-card {
+  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.65fr);
+  gap: 32px;
+  padding: 24px;
+  align-items: start;
+}
+body .account-identity-card .account-settings-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  border-radius: 16px 16px 6px 16px;
+  background: color-mix(in srgb, var(--primary) 5%, var(--surface));
+}
+body .account-identity-card .account-settings-heading h2 {
+  font-size: 20px;
+}
+body .account-identity-card .account-settings-heading p {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.65;
+}
+body .account-identity-preview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding-top: 20px;
+  border-top: 1px solid var(--primary-border);
+  min-width: 0;
+}
+body .account-identity-preview .account-avatar-preview {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  background: var(--surface);
+  color: var(--primary);
+  border-radius: 18px 18px 6px 18px;
+}
+body .account-identity-preview > strong {
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+body .account-identity-card .account-profile-form {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 4px 4px 0 0;
+}
+body .account-identity-card .account-profile-fields {
+  display: grid;
+  gap: 20px;
+}
+body .account-identity-card .account-form-footer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+}
+body .account-identity-card .account-form-footer .ui-button {
+  width: auto;
+  margin-left: auto;
+}
+@media (max-width: 1023px) {
+  html body .account-settings-card.account-identity-card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  body .account-identity-card .account-settings-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+  }
+  body .account-identity-preview {
+    padding: 0 0 0 20px;
+    border-top: 0;
+    border-left: 1px solid var(--primary-border);
+  }
+}
+@media (max-width: 599px) {
+  html body .account-settings-card.account-identity-card {
+    padding: 18px;
+    gap: 24px;
+  }
+  body .account-identity-card .account-settings-heading {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px;
+    gap: 18px;
+  }
+  body .account-identity-preview {
+    border-left: 0;
+    border-top: 1px solid var(--primary-border);
+    padding: 18px 0 0;
+  }
+  body .account-identity-card .account-profile-form {
+    padding: 0;
+  }
+}
+
+/* Identity uses spacing rather than decorative separators. */
+body .account-identity-card .account-identity-preview {
+  border: 0;
+  padding-top: 4px;
+}
+body .account-identity-card .account-form-footer {
+  border: 0;
+  padding-top: 4px;
+}
+@media (min-width: 600px) and (max-width: 1023px) {
+  body .account-identity-card .account-identity-preview {
+    padding: 0 0 0 20px;
+  }
+}
+@media (max-width: 599px) {
+  body .account-identity-card .account-identity-preview {
+    padding: 4px 0 0;
+  }
+}

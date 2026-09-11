@@ -1,3 +1,4 @@
+import { Message } from "../components/LanguageProvider";
 import type { Metadata } from "next";
 import { AuthBrandPanel } from "../components/AuthBrandPanel";
 import { PasswordRecoveryForm } from "./PasswordRecoveryForm";
@@ -15,8 +16,16 @@ export default function PasswordRecoveryPage() {
       <section className="auth-form-panel" aria-labelledby="recovery-title">
         <div className="login-card">
           <div className="login-heading">
-            <h2 id="recovery-title">Lupa kata sandi?</h2>
-            <p>Masukkan email akunmu. Kami akan kirim kode untuk membuat kata sandi baru.</p>
+            <h2 id="recovery-title">
+              <Message>{"Lupa kata sandi?"}</Message>
+            </h2>
+            <p>
+              <Message>
+                {
+                  "Masukkan email akunmu. Kami akan kirim kode untuk membuat kata sandi baru."
+                }
+              </Message>
+            </p>
           </div>
 
           <PasswordRecoveryForm />

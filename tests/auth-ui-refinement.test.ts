@@ -37,9 +37,9 @@ test("Auth forms use the approved concise actions and no pseudo-legal consent", 
 
   assert.match(login, /Coba demo/);
   assert.match(login, /atau masuk dengan akunmu/);
-  assert.match(login, /\? "Masuk…" : "Masuk"/);
-  assert.match(register, /\? "Membuat akun…" : "Buat akun"/);
+  assert.match(login, /\? t\("Masuk…"\) : t\("Masuk"\)/);
+  assert.match(register, /\? t\("Membuat akun…"\) : t\("Buat akun"\)/);
   assert.doesNotMatch(register, /acceptTerms|Saya setuju data akun|registration-consent/);
-  assert.match(recovery, /\? "Mengirim kode…" : "Kirim kode"/);
-  assert.match(reset, /\? "Menyimpan kata sandi…" : "Simpan kata sandi"/);
+  assert.match(recovery, /\? t\("Mengirim kode…"\) : t\("Kirim kode"\)/);
+  assert.match(reset, /\? t\("Menyimpan kata sandi…"\) : t\("Simpan kata sandi"\)/);
 });

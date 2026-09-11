@@ -1,3 +1,4 @@
+import { Message } from "../components/LanguageProvider";
 import type { Metadata } from "next";
 import {
   PRIORITY_WEIGHTS,
@@ -35,7 +36,8 @@ const exampleRequirements: ExampleRequirement[] = [
     status: "Partial",
     weight: PRIORITY_WEIGHTS.preferred,
     multiplier: STATUS_MULTIPLIERS.partial,
-    contribution: (PRIORITY_WEIGHTS.preferred * STATUS_MULTIPLIERS.partial) / 100,
+    contribution:
+      (PRIORITY_WEIGHTS.preferred * STATUS_MULTIPLIERS.partial) / 100,
     className: "partial",
   },
 ];
@@ -71,39 +73,75 @@ const statusRules = [
 
 export default function CalculationExamplePage() {
   return (
-    <AppShell activeItem="Cara Fit Score dihitung" mainClassName="fit-guide-main">
+    <AppShell
+      activeItem="Cara Fit Score dihitung"
+      mainClassName="fit-guide-main"
+    >
       <div className="page-container fit-guide-page">
-        <InlineBackLink href="/beranda">Kembali</InlineBackLink>
+        <InlineBackLink href="/beranda">
+          <Message>{"Kembali"}</Message>
+        </InlineBackLink>
 
         <header className="fit-guide-header">
           <span className="fit-guide-kicker">Fit Score</span>
-          <h1>Cara Fit Score dihitung</h1>
+          <h1>
+            <Message>{"Cara Fit Score dihitung"}</Message>
+          </h1>
           <p>
-            Fit Score merangkum seberapa kuat requirement Skill dan Tool didukung
-            oleh skill serta Portfolio &amp; Pengalaman yang sudah kamu hubungkan.
+            <Message>
+              {
+                "Fit Score merangkum seberapa kuat requirement Skill dan Tool didukung oleh skill serta Portfolio & Pengalaman yang sudah kamu hubungkan."
+              }
+            </Message>
           </p>
         </header>
 
-        <nav className="fit-guide-jump-links" aria-label="Bagian panduan Fit Score">
+        <nav
+          className="fit-guide-jump-links"
+          aria-label="Bagian panduan Fit Score"
+        >
           <a href="#status">Status</a>
-          <a href="#bobot-formula">Bobot &amp; formula</a>
-          <a href="#contoh">Contoh perhitungan</a>
+          <a href="#bobot-formula">
+            <Message>{"Bobot & formula"}</Message>
+          </a>
+          <a href="#contoh">
+            <Message>{"Contoh perhitungan"}</Message>
+          </a>
         </nav>
 
-        <section className="fit-guide-section" id="status" aria-labelledby="status-title">
+        <section
+          className="fit-guide-section"
+          id="status"
+          aria-labelledby="status-title"
+        >
           <div className="fit-guide-section-heading">
-            <h2 id="status-title">Status requirement</h2>
-            <p>Status menunjukkan hubungan requirement dengan skill dan dukungan profilmu.</p>
+            <h2 id="status-title">
+              <Message>{"Status requirement"}</Message>
+            </h2>
+            <p>
+              <Message>
+                {
+                  "Status menunjukkan hubungan requirement dengan skill dan dukungan profilmu."
+                }
+              </Message>
+            </p>
           </div>
           <div className="fit-guide-status-list">
             {statusRules.map((rule) => (
               <article key={rule.status}>
                 <div className="fit-guide-status-name">
-                  <span className={`status-dot ${rule.className}`} aria-hidden="true" />
-                  <strong>{rule.status}</strong>
+                  <span
+                    className={`status-dot ${rule.className}`}
+                    aria-hidden="true"
+                  />
+                  <strong>
+                    <Message>{rule.status}</Message>
+                  </strong>
                   <span>{rule.multiplier}</span>
                 </div>
-                <p>{rule.description}</p>
+                <p>
+                  <Message>{rule.description}</Message>
+                </p>
               </article>
             ))}
           </div>
@@ -115,47 +153,91 @@ export default function CalculationExamplePage() {
           aria-labelledby="weight-title"
         >
           <div className="fit-guide-section-heading">
-            <h2 id="weight-title">Bobot dan formula</h2>
-            <p>Prioritas menentukan bobot maksimum sebelum status diterapkan.</p>
+            <h2 id="weight-title">
+              <Message>{"Bobot dan formula"}</Message>
+            </h2>
+            <p>
+              <Message>
+                {
+                  "Prioritas menentukan bobot maksimum sebelum status diterapkan."
+                }
+              </Message>
+            </p>
           </div>
 
           <div className="fit-guide-rules">
-            <div className="fit-guide-weights" aria-label="Bobot prioritas requirement">
+            <div
+              className="fit-guide-weights"
+              aria-label="Bobot prioritas requirement"
+            >
               <div>
                 <span>{PRIORITY_WEIGHTS.required}</span>
-                <p><strong>Wajib</strong><small>Bobot maksimum 3 poin</small></p>
+                <p>
+                  <strong>
+                    <Message>{"Wajib"}</Message>
+                  </strong>
+                  <small>
+                    <Message>{"Bobot maksimum 3 poin"}</Message>
+                  </small>
+                </p>
               </div>
               <div>
                 <span>{PRIORITY_WEIGHTS.preferred}</span>
-                <p><strong>Preferensi</strong><small>Bobot maksimum 1 poin</small></p>
+                <p>
+                  <strong>
+                    <Message>{"Preferensi"}</Message>
+                  </strong>
+                  <small>
+                    <Message>{"Bobot maksimum 1 poin"}</Message>
+                  </small>
+                </p>
               </div>
             </div>
 
             <div className="fit-guide-formula" aria-label="Formula Fit Score">
               <div>
-                <small>Poin tiap requirement</small>
-                <strong>Bobot × multiplier status</strong>
+                <small>
+                  <Message>{"Poin tiap requirement"}</Message>
+                </small>
+                <strong>
+                  <Message>{"Bobot × multiplier status"}</Message>
+                </strong>
               </div>
               <div>
                 <small>Fit Score</small>
-                <strong>Total poin saat ini ÷ total poin maksimum × 100</strong>
+                <strong>
+                  <Message>
+                    {"Total poin saat ini ÷ total poin maksimum × 100"}
+                  </Message>
+                </strong>
               </div>
             </div>
           </div>
 
           <p className="fit-guide-scope-note">
-            Hanya requirement Skill dan Tool yang dihitung. Pendidikan dan pengalaman
-            tetap disimpan sebagai konteks. Hasil dibulatkan ke satu angka desimal,
-            dan AI tidak menentukan skor.
+            <Message>
+              {
+                "Hanya requirement Skill dan Tool yang dihitung. Pendidikan dan pengalaman tetap disimpan sebagai konteks. Hasil dibulatkan ke satu angka desimal, dan AI tidak menentukan skor."
+              }
+            </Message>
           </p>
         </section>
 
-        <section className="fit-guide-section" id="contoh" aria-labelledby="example-title">
+        <section
+          className="fit-guide-section"
+          id="contoh"
+          aria-labelledby="example-title"
+        >
           <div className="fit-guide-section-heading">
-            <h2 id="example-title">Contoh perhitungan</h2>
+            <h2 id="example-title">
+              <Message>{"Contoh perhitungan"}</Message>
+            </h2>
             <p>
-              Dua requirement berikut menghasilkan 3,5 dari 4 poin maksimum,
-              sehingga Fit Score akhirnya 87,5%.
+              <Message>
+                {
+                  "Dua requirement berikut menghasilkan 3,5 dari 4 poin maksimum, sehingga Fit Score akhirnya 87,5%."
+                }
+              </Message>
             </p>
           </div>
           <div className="fit-guide-example">

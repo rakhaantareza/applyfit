@@ -1,4 +1,5 @@
 "use client";
+import { Message } from "./LanguageProvider";
 
 import { ChevronDown } from "lucide-react";
 import {
@@ -21,7 +22,7 @@ export type { SearchableComboboxOption } from "./searchable-combobox-ranking";
 
 type SearchableComboboxProps = Omit<
   InputHTMLAttributes<HTMLInputElement>,
-  "onChange" | "value"
+  "onChange" | "onSelect" | "value"
 > & {
   options: readonly SearchableComboboxOption[];
   defaultOptions?: readonly SearchableComboboxOption[];
@@ -34,17 +35,27 @@ export const SearchableCombobox = forwardRef<
   HTMLInputElement,
   SearchableComboboxProps
 >(function SearchableCombobox(
-  { options, defaultOptions, value, onChange, onSelect, onBlur, onFocus, ...inputProps },
+  {
+    options,
+    defaultOptions,
+    value,
+    onChange,
+    onSelect,
+    onBlur,
+    onFocus,
+    ...inputProps
+  },
   ref,
 ) {
   const listboxId = useId();
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const filteredOptions = useMemo(
-    () => filterSearchableComboboxOptions(
-      value.trim() ? options : defaultOptions ?? options,
-      value,
-    ),
+    () =>
+      filterSearchableComboboxOptions(
+        value.trim() ? options : (defaultOptions ?? options),
+        value,
+      ),
     [defaultOptions, options, value],
   );
 
@@ -138,43 +149,52 @@ export const SearchableCombobox = forwardRef<
       {showListbox ? (
         <ul id={listboxId} className="searchable-combobox-list" role="listbox">
           {filteredOptions.map((option, index) => {
-            const matchingAlias = findMatchingSearchableComboboxAlias(option, value);
+            const matchingAlias = findMatchingSearchableComboboxAlias(
+              option,
+              value,
+            );
             const isActive = index === activeIndex;
-            const isSelected = option.value.localeCompare(value.trim(), "id-ID", {
-              sensitivity: "accent",
-            }) === 0;
+            const isSelected =
+              option.value.localeCompare(value.trim(), "id-ID", {
+                sensitivity: "accent",
+              }) === 0;
             return (
-            <li
-              id={`${listboxId}-option-${index}`}
-              aria-selected={isSelected}
-              className={[isActive ? "active" : "", isSelected ? "selected" : ""]
-                .filter(Boolean)
-                .join(" ") || undefined}
-              key={option.id}
-              role="option"
-              tabIndex={-1}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  selectOption(option);
+              <li
+                id={`${listboxId}-option-${index}`}
+                aria-selected={isSelected}
+                className={
+                  [isActive ? "active" : "", isSelected ? "selected" : ""]
+                    .filter(Boolean)
+                    .join(" ") || undefined
                 }
-              }}
-              onMouseDown={(event) => event.preventDefault()}
-              onMouseEnter={() => setActiveIndex(index)}
-              onClick={() => selectOption(option)}
-            >
-              <strong>{option.value}</strong>
-              {matchingAlias ? (
-                <small>{matchingAlias} → {option.value}</small>
-              ) : option.meta ? (
-                <small>{option.meta}</small>
-              ) : null}
-            </li>
+                key={option.id}
+                role="option"
+                tabIndex={-1}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    selectOption(option);
+                  }
+                }}
+                onMouseDown={(event) => event.preventDefault()}
+                onMouseEnter={() => setActiveIndex(index)}
+                onClick={() => selectOption(option)}
+              >
+                <strong>{option.value}</strong>
+                {matchingAlias ? (
+                  <small>
+                    {matchingAlias} → {option.value}
+                  </small>
+                ) : option.meta ? (
+                  <small>{option.meta}</small>
+                ) : null}
+              </li>
             );
           })}
           {filteredOptions.length === 0 && value.trim() ? (
             <li className="searchable-combobox-empty" role="presentation">
-              Tetap gunakan “{value.trim()}”
+              <Message>{"Tetap gunakan “"}</Message>
+              {value.trim()}”
             </li>
           ) : null}
         </ul>

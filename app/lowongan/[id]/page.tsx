@@ -13,5 +13,9 @@ export const metadata: Metadata = {
 
 export default async function JobDetailPage({ params }: JobDetailPageProps) {
   const { id } = await params;
-  return <AuthenticatedRoute><PersistedJobDetail jobId={id} /></AuthenticatedRoute>;
+  return (
+    <AuthenticatedRoute>
+      <PersistedJobDetail jobId={id} />
+    </AuthenticatedRoute>
+  );
 }

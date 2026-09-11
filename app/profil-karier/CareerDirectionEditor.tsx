@@ -1,12 +1,16 @@
 "use client";
+import { BrandMotif } from "../components/BrandMotif";
+import { useI18n } from "../components/LanguageProvider";
 
+import { Check, LoaderCircle, Pencil, X } from "lucide-react";
 import {
-  Check,
-  LoaderCircle,
-  Pencil,
-  X,
-} from "lucide-react";
-import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import { ActionButton } from "../components/ActionControl";
 import { SectionHeader } from "../components/ContentHeaders";
 import {
@@ -37,14 +41,23 @@ export function CareerDirectionEditor({
   catalog,
   onSaved,
 }: CareerDirectionEditorProps) {
+  const { t } = useI18n();
   const [targetRole, setTargetRole] = useState(initialTargetRole);
-  const [targetRoleId, setTargetRoleId] = useState<string | null>(initialTargetRoleId);
+  const [targetRoleId, setTargetRoleId] = useState<string | null>(
+    initialTargetRoleId,
+  );
   const [careerField, setCareerField] = useState(initialCareerField);
-  const [careerFieldId, setCareerFieldId] = useState<string | null>(initialCareerFieldId);
+  const [careerFieldId, setCareerFieldId] = useState<string | null>(
+    initialCareerFieldId,
+  );
   const [draftTargetRole, setDraftTargetRole] = useState(initialTargetRole);
-  const [draftTargetRoleId, setDraftTargetRoleId] = useState<string | null>(initialTargetRoleId);
+  const [draftTargetRoleId, setDraftTargetRoleId] = useState<string | null>(
+    initialTargetRoleId,
+  );
   const [draftCareerField, setDraftCareerField] = useState(initialCareerField);
-  const [draftCareerFieldId, setDraftCareerFieldId] = useState<string | null>(initialCareerFieldId);
+  const [draftCareerFieldId, setDraftCareerFieldId] = useState<string | null>(
+    initialCareerFieldId,
+  );
   const [isEditing, setIsEditing] = useState(
     !initialTargetRole || !initialCareerField,
   );
@@ -54,17 +67,26 @@ export function CareerDirectionEditor({
   const targetRoleInputId = useId();
   const careerFieldInputId = useId();
   const careerFieldRef = useRef<HTMLInputElement>(null);
-  const fieldOptions = useMemo<SearchableComboboxOption[]>(() =>
-    catalog.fields.map((field) => ({ id: field.id, value: field.name })),
-  [catalog.fields]);
+  const fieldOptions = useMemo<SearchableComboboxOption[]>(
+    () => catalog.fields.map((field) => ({ id: field.id, value: field.name })),
+    [catalog.fields],
+  );
   const roleOptions = useMemo<SearchableComboboxOption[]>(() => {
-    const fieldNames = new Map(catalog.fields.map((field) => [field.id, field.name]));
+    const fieldNames = new Map(
+      catalog.fields.map((field) => [field.id, field.name]),
+    );
     return catalog.roles.map((role) => ({
       id: role.id,
       value: role.name,
       aliases: role.aliases,
-      meta: role.fieldIds.map((fieldId) => fieldNames.get(fieldId)).filter(Boolean).join(" · "),
-      priority: draftCareerFieldId && role.fieldIds.includes(draftCareerFieldId) ? 0 : 1,
+      meta: role.fieldIds
+        .map((fieldId) => fieldNames.get(fieldId))
+        .filter(Boolean)
+        .join(" · "),
+      priority:
+        draftCareerFieldId && role.fieldIds.includes(draftCareerFieldId)
+          ? 0
+          : 1,
     }));
   }, [catalog.fields, catalog.roles, draftCareerFieldId]);
 
@@ -123,7 +145,9 @@ export function CareerDirectionEditor({
       });
       const result = await readCareerProfileResponse(response);
       if (!response.ok || !result.data?.profile) {
-        throw new Error(result.error?.message ?? "Target karier belum dapat disimpan.");
+        throw new Error(
+          result.error?.message ?? "Target karier belum dapat disimpan.",
+        );
       }
 
       setTargetRole(result.data.profile.targetRole);
@@ -150,16 +174,25 @@ export function CareerDirectionEditor({
 
   if (isEditing) {
     return (
-      <section className="career-profile-hero" aria-labelledby="career-direction-title">
+      <section
+        className="career-profile-hero"
+        aria-labelledby="career-direction-title"
+      >
+        <span className="card-brand-accent" aria-hidden="true">
+          <BrandMotif />
+        </span>
         <SectionHeader
           className="profile-direction-heading"
-          title="Arah karier"
+          title={t("Arah karier")}
           titleId="career-direction-title"
         />
-        <form className="profile-inline-editor career-direction-form" onSubmit={handleSubmit}>
+        <form
+          className="profile-inline-editor career-direction-form"
+          onSubmit={handleSubmit}
+        >
           <div className="career-form-fields">
             <label htmlFor={careerFieldInputId}>
-              <span>Bidang karier</span>
+              <span>{t("Bidang karier")}</span>
               <SearchableCombobox
                 id={careerFieldInputId}
                 ref={careerFieldRef}
@@ -171,11 +204,11 @@ export function CareerDirectionEditor({
                 onSelect={(option) => setDraftCareerFieldId(option.id)}
                 options={fieldOptions}
                 autoComplete="off"
-                placeholder="Contoh: Software & IT"
+                placeholder={t("Contoh: Software & IT")}
               />
             </label>
             <label htmlFor={targetRoleInputId}>
-              <span>Target role</span>
+              <span>{t("Target role")}</span>
               <SearchableCombobox
                 id={targetRoleInputId}
                 value={draftTargetRole}
@@ -186,20 +219,34 @@ export function CareerDirectionEditor({
                 onSelect={(option) => setDraftTargetRoleId(option.id)}
                 options={roleOptions}
                 autoComplete="organization-title"
-                placeholder="Contoh: Frontend Engineer"
+                placeholder={t("Contoh: Frontend Engineer")}
               />
             </label>
           </div>
           <div className="career-form-actions">
-            {error ? <p role="alert">{error}</p> : <span />}
+            {t(error) ? <p role="alert">{t(error)}</p> : <span />}
             <div>
-              <ActionButton className="career-button secondary" variant="secondary" type="button" onClick={closeEditor} disabled={isSaving || (!targetRole && !careerField)}>
+              <ActionButton
+                className="career-button secondary"
+                variant="secondary"
+                type="button"
+                onClick={closeEditor}
+                disabled={isSaving || (!targetRole && !careerField)}
+              >
                 <X aria-hidden="true" size={16} strokeWidth={1.9} />
-                Batal
+                {t("Batal")}
               </ActionButton>
-              <ActionButton className="career-button primary" type="submit" disabled={isSaving}>
-                {isSaving ? <LoaderCircle className="spin" aria-hidden="true" size={16} /> : <Check aria-hidden="true" size={16} strokeWidth={2} />}
-                {isSaving ? "Menyimpan…" : "Simpan"}
+              <ActionButton
+                className="career-button primary"
+                type="submit"
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <LoaderCircle className="spin" aria-hidden="true" size={16} />
+                ) : (
+                  <Check aria-hidden="true" size={16} strokeWidth={2} />
+                )}
+                {isSaving ? t("Menyimpan…") : t("Simpan")}
               </ActionButton>
             </div>
           </div>
@@ -209,26 +256,38 @@ export function CareerDirectionEditor({
   }
 
   return (
-    <section className="career-profile-hero" aria-labelledby="career-direction-title">
+    <section
+      className="career-profile-hero"
+      aria-labelledby="career-direction-title"
+    >
+      <span className="card-brand-accent" aria-hidden="true">
+        <BrandMotif />
+      </span>
       <SectionHeader
         className="profile-direction-heading"
-        title="Arah karier"
+        title={t("Arah karier")}
         titleId="career-direction-title"
-        action={(
-          <ActionButton className="career-edit-button" size="compact" variant="ghost" type="button" onClick={openEditor}>
+        action={
+          <ActionButton
+            className="career-edit-button ui-record-action ui-record-action--edit"
+            size="compact"
+            variant="ghost"
+            type="button"
+            onClick={openEditor}
+          >
             <Pencil aria-hidden="true" size={15} strokeWidth={1.9} />
-            Ubah
+            <span className="sr-only">{t("Ubah")}</span>
           </ActionButton>
-        )}
+        }
       />
-      <div className="career-direction" aria-label="Target karier">
+      <div className="career-direction" aria-label={t("Target karier")}>
         <div className="career-direction-statement">
           <span>{careerField}</span>
           <strong>{targetRole}</strong>
         </div>
       </div>
       <span className="sr-only" aria-live="polite">
-        {announcement}
+        {t(announcement)}
       </span>
     </section>
   );
@@ -246,9 +305,11 @@ type CareerProfileResponse = {
   error?: { message?: string };
 };
 
-async function readCareerProfileResponse(response: Response): Promise<CareerProfileResponse> {
+async function readCareerProfileResponse(
+  response: Response,
+): Promise<CareerProfileResponse> {
   try {
-    return await response.json() as CareerProfileResponse;
+    return (await response.json()) as CareerProfileResponse;
   } catch {
     return {};
   }

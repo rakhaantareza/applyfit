@@ -29,10 +29,30 @@ const VIEWPORTS = [
   { name: "390x844", width: 390, height: 844 },
 ];
 const ROUTES = [
-  { label: "Ringkasan", slug: "ringkasan", path: "/beranda", readySelector: ".summary-greeting" },
-  { label: "Profil", slug: "profil", path: "/profil-karier", readySelector: ".career-profile-hero" },
-  { label: "Portfolio & Pengalaman", slug: "portfolio-pengalaman", path: "/portfolio-pengalaman", readySelector: ".evidence-overview" },
-  { label: "Lowongan", slug: "lowongan", path: "/lowongan", readySelector: ".jobs-overview, .jobs-zero-state" },
+  {
+    label: "Ringkasan",
+    slug: "ringkasan",
+    path: "/beranda",
+    readySelector: ".summary-greeting",
+  },
+  {
+    label: "Profil",
+    slug: "profil",
+    path: "/profil-karier",
+    readySelector: ".career-profile-hero",
+  },
+  {
+    label: "Portfolio & Pengalaman",
+    slug: "portfolio-pengalaman",
+    path: "/portfolio-pengalaman",
+    readySelector: ".evidence-overview",
+  },
+  {
+    label: "Lowongan",
+    slug: "lowongan",
+    path: "/lowongan",
+    readySelector: ".jobs-overview, .jobs-zero-state",
+  },
 ];
 const SCREENSHOT_ROUTE_SLUGS = new Set(["ringkasan", "profil"]);
 
@@ -68,10 +88,18 @@ try {
 
           const audit = await auditLayout(page, viewport.width);
           sharedTypography ??= audit.typography;
-          assertSharedTypography(sharedTypography, audit.typography, route.label);
+          assertSharedTypography(
+            sharedTypography,
+            audit.typography,
+            route.label,
+          );
 
           if (SCREENSHOT_ROUTE_SLUGS.has(route.slug)) {
-            const routeDirectory = path.join(OUTPUT_ROOT, appearance, route.slug);
+            const routeDirectory = path.join(
+              OUTPUT_ROOT,
+              appearance,
+              route.slug,
+            );
             await mkdir(routeDirectory, { recursive: true });
             await page.screenshot({
               animations: "disabled",
@@ -86,11 +114,15 @@ try {
         await context.close();
       }
 
-      console.log(`${appearance} ${viewport.name}: 4 pages passed; Ringkasan and Profil captured.`);
+      console.log(
+        `${appearance} ${viewport.name}: 4 pages passed; Ringkasan and Profil captured.`,
+      );
     }
   }
 
-  console.log(`Typography normalization QA passed. Screenshots: ${path.relative(process.cwd(), OUTPUT_ROOT)}.`);
+  console.log(
+    `Typography normalization QA passed. Screenshots: ${path.relative(process.cwd(), OUTPUT_ROOT)}.`,
+  );
 } catch (error) {
   console.error(errorMessage(error));
   process.exitCode = 1;
@@ -105,16 +137,19 @@ async function createContext(browserInstance, appearance, viewport) {
     storageState: AUTH_STATE_PATH,
     viewport,
   });
-  await context.addInitScript(({ appearanceValue, storageKey }) => {
-    try {
-      window.localStorage.setItem(storageKey, appearanceValue);
-    } catch {
-      // The script runs again for the ApplyFit origin.
-    }
-    document.documentElement.dataset.appearance = appearanceValue;
-    document.documentElement.dataset.theme = appearanceValue;
-    document.documentElement.style.colorScheme = appearanceValue;
-  }, { appearanceValue: appearance, storageKey: APPEARANCE_STORAGE_KEY });
+  await context.addInitScript(
+    ({ appearanceValue, storageKey }) => {
+      try {
+        window.localStorage.setItem(storageKey, appearanceValue);
+      } catch {
+        // The script runs again for the ApplyFit origin.
+      }
+      document.documentElement.dataset.appearance = appearanceValue;
+      document.documentElement.dataset.theme = appearanceValue;
+      document.documentElement.style.colorScheme = appearanceValue;
+    },
+    { appearanceValue: appearance, storageKey: APPEARANCE_STORAGE_KEY },
+  );
   return context;
 }
 
@@ -122,14 +157,17 @@ async function auditLayout(page, viewportWidth) {
   return page.evaluate((width) => {
     const root = document.documentElement;
     if (root.scrollWidth > root.clientWidth) {
-      throw new Error(`Horizontal overflow: ${root.scrollWidth}px > ${root.clientWidth}px.`);
+      throw new Error(
+        `Horizontal overflow: ${root.scrollWidth}px > ${root.clientWidth}px.`,
+      );
     }
 
     const pageTitle = document.querySelector(".type-page-title");
     if (!pageTitle) throw new Error("Missing semantic page-title role.");
 
     const sectionTitles = [...document.querySelectorAll(".type-section-title")];
-    if (!sectionTitles.length) throw new Error("Missing semantic section-title role.");
+    if (!sectionTitles.length)
+      throw new Error("Missing semantic section-title role.");
 
     const helpers = [...document.querySelectorAll(".type-helper")];
     if (!helpers.length) throw new Error("Missing semantic helper role.");
@@ -141,13 +179,21 @@ async function auditLayout(page, viewportWidth) {
     ];
     for (const element of weightedText) {
       if (Number.parseInt(getComputedStyle(element).fontWeight, 10) > 600) {
-        throw new Error(`Typography role exceeds weight 600: ${element.textContent?.trim()}.`);
+        throw new Error(
+          `Typography role exceeds weight 600: ${element.textContent?.trim()}.`,
+        );
       }
     }
 
-    for (const header of document.querySelectorAll(".page-header, .section-header")) {
-      const copy = header.querySelector(":scope > .page-header-copy, :scope > .section-header-copy");
-      const action = header.querySelector(":scope > .page-header-action, :scope > .section-header-action");
+    for (const header of document.querySelectorAll(
+      ".page-header, .section-header",
+    )) {
+      const copy = header.querySelector(
+        ":scope > .page-header-copy, :scope > .section-header-copy",
+      );
+      const action = header.querySelector(
+        ":scope > .page-header-action, :scope > .section-header-action",
+      );
       if (!copy || !action) continue;
       const copyRect = copy.getBoundingClientRect();
       const actionRect = action.getBoundingClientRect();
@@ -172,11 +218,14 @@ async function auditLayout(page, viewportWidth) {
         style.lineHeight,
       ].join("|");
     };
-    const allMatch = (elements) => elements.every(
-      (element) => signature(element) === signature(elements[0]),
-    );
-    if (!allMatch(sectionTitles)) throw new Error("Section-title roles are inconsistent within the page.");
-    if (!allMatch(helpers)) throw new Error("Helper roles are inconsistent within the page.");
+    const allMatch = (elements) =>
+      elements.every(
+        (element) => signature(element) === signature(elements[0]),
+      );
+    if (!allMatch(sectionTitles))
+      throw new Error("Section-title roles are inconsistent within the page.");
+    if (!allMatch(helpers))
+      throw new Error("Helper roles are inconsistent within the page.");
 
     return {
       typography: {
@@ -191,16 +240,25 @@ async function auditLayout(page, viewportWidth) {
 function assertSharedTypography(expected, actual, routeLabel) {
   for (const role of ["pageTitle", "sectionTitle", "helper"]) {
     if (actual[role] !== expected[role]) {
-      throw new ScreenshotWorkflowError(`${routeLabel} does not share the ${role} typography role.`);
+      throw new ScreenshotWorkflowError(
+        `${routeLabel} does not share the ${role} typography role.`,
+      );
     }
   }
 }
 
 function assertStableHeader(before, after, routeLabel) {
   if (!before || !after) {
-    throw new ScreenshotWorkflowError(`${routeLabel} page header could not be measured.`);
+    throw new ScreenshotWorkflowError(
+      `${routeLabel} page header could not be measured.`,
+    );
   }
-  if (Math.abs(before.y - after.y) > 1 || Math.abs(before.height - after.height) > 1) {
-    throw new ScreenshotWorkflowError(`${routeLabel} page header shifted after settling.`);
+  if (
+    Math.abs(before.y - after.y) > 1 ||
+    Math.abs(before.height - after.height) > 1
+  ) {
+    throw new ScreenshotWorkflowError(
+      `${routeLabel} page header shifted after settling.`,
+    );
   }
 }

@@ -1,4 +1,5 @@
 "use client";
+import { useI18n } from "../components/LanguageProvider";
 
 import { Eye, EyeOff, LockKeyhole, Mail, Play } from "lucide-react";
 import { type FormEvent, useState } from "react";
@@ -11,10 +12,13 @@ type AuthResponse = {
 };
 
 export function LoginForm() {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [pendingAction, setPendingAction] = useState<"account" | "demo" | null>(null);
+  const [pendingAction, setPendingAction] = useState<"account" | "demo" | null>(
+    null,
+  );
   const [error, setError] = useState("");
 
   async function openDemo() {
@@ -25,7 +29,9 @@ export function LoginForm() {
       const response = await fetch("/api/auth/demo", { method: "POST" });
       const result = await readAuthResponse(response);
       if (!response.ok || !result.data?.user) {
-        throw new Error(result.error?.message ?? "Demo belum dapat dibuka. Coba lagi.");
+        throw new Error(
+          result.error?.message ?? "Demo belum dapat dibuka. Coba lagi.",
+        );
       }
 
       window.location.assign(getLoginDestination());
@@ -62,7 +68,9 @@ export function LoginForm() {
       });
       const result = await readAuthResponse(response);
       if (!response.ok || !result.data?.user) {
-        throw new Error(result.error?.message ?? "Email atau kata sandi tidak sesuai.");
+        throw new Error(
+          result.error?.message ?? "Email atau kata sandi tidak sesuai.",
+        );
       }
 
       window.location.assign(getLoginDestination());
@@ -87,10 +95,14 @@ export function LoginForm() {
         onClick={openDemo}
       >
         <Play aria-hidden="true" size={15} strokeWidth={1.9} />
-        <span>{pendingAction === "demo" ? "Membuka demo…" : "Coba demo"}</span>
+        <span>
+          {pendingAction === "demo" ? t("Membuka demo…") : t("Coba demo")}
+        </span>
       </ActionButton>
 
-      <div className="login-demo-divider"><span>atau masuk dengan akunmu</span></div>
+      <div className="login-demo-divider">
+        <span>{t("atau masuk dengan akunmu")}</span>
+      </div>
 
       <div className="login-field">
         <label htmlFor="login-email">Email</label>
@@ -112,7 +124,7 @@ export function LoginForm() {
       </div>
 
       <div className="login-field">
-        <label htmlFor="login-password">Kata sandi</label>
+        <label htmlFor="login-password">{t("Kata sandi")}</label>
         <div className="login-input-wrap">
           <LockKeyhole aria-hidden="true" size={18} strokeWidth={1.8} />
           <input
@@ -120,7 +132,7 @@ export function LoginForm() {
             name="password"
             type={showPassword ? "text" : "password"}
             autoComplete="current-password"
-            placeholder="Masukkan kata sandi"
+            placeholder={t("Masukkan kata sandi")}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             aria-describedby={error ? "login-error" : undefined}
@@ -129,7 +141,11 @@ export function LoginForm() {
           <button
             className="login-password-toggle"
             type="button"
-            aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+            aria-label={
+              showPassword
+                ? t("Sembunyikan kata sandi")
+                : t("Tampilkan kata sandi")
+            }
             aria-pressed={showPassword}
             onClick={() => setShowPassword((current) => !current)}
           >
@@ -142,19 +158,24 @@ export function LoginForm() {
         </div>
       </div>
 
-      {error ? (
+      {t(error) ? (
         <p className="login-error" id="login-error" role="alert">
-          {error}
+          {t(error)}
         </p>
       ) : null}
 
-      <ActionButton className="login-submit" size="auth" type="submit" disabled={pendingAction !== null}>
-        <span>{pendingAction === "account" ? "Masuk…" : "Masuk"}</span>
+      <ActionButton
+        className="login-submit"
+        size="auth"
+        type="submit"
+        disabled={pendingAction !== null}
+      >
+        <span>{pendingAction === "account" ? t("Masuk…") : t("Masuk")}</span>
         <CtaArrow />
       </ActionButton>
 
       <Link className="login-forgot-link" href="/lupa-kata-sandi">
-        Lupa kata sandi?
+        {t("Lupa kata sandi?")}
       </Link>
     </form>
   );
@@ -173,7 +194,7 @@ function getLoginDestination() {
 
 async function readAuthResponse(response: Response): Promise<AuthResponse> {
   try {
-    return await response.json() as AuthResponse;
+    return (await response.json()) as AuthResponse;
   } catch {
     return {};
   }

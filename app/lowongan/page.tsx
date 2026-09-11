@@ -11,8 +11,10 @@ export const metadata: Metadata = {
 
 export default function JobsPage() {
   return (
-    <AuthenticatedRoute><AppShell activeItem="Lowongan" mainClassName="jobs-main">
+    <AuthenticatedRoute>
+      <AppShell activeItem="Lowongan" mainClassName="jobs-main">
         <JobsWorkspace />
-    </AppShell></AuthenticatedRoute>
+      </AppShell>
+    </AuthenticatedRoute>
   );
 }

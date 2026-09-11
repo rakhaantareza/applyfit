@@ -32,7 +32,7 @@ test("server-renders ApplyFit with the shared production fonts", async () => {
   assert.match(html, /<title>Cara Fit Score dihitung \| ApplyFit<\/title>/i);
   assert.match(
     html,
-    /fonts\.googleapis\.com\/css2\?family=Inter:wght@400;500;600(?:&|&amp;)family=Geist\+Mono:wght@400;500;600(?:&|&amp;)display=swap/i,
+    /fonts\.googleapis\.com\/css2\?family=DM\+Sans:wght@400;500;600;700(?:&|&amp;)display=swap/i,
   );
   assert.match(html, /<h1>Cara Fit Score dihitung<\/h1>/i);
   assert.doesNotMatch(html, /__variable_plus_jakarta_sans/i);
@@ -75,8 +75,8 @@ test("Fit Score education uses one explainer and consistent Indonesian result la
   assert.match(html, /<h2[^>]*>Contoh perhitungan<\/h2>/i);
   assert.match(html, /87,5%/i);
 
-  assert.match(sidebarSource, /className="sidebar-fit-guide-expanded"/);
-  assert.match(sidebarSource, /className=\{`sidebar-fit-guide-collapsed nav-item/);
+  assert.match(sidebarSource, /className="sidebar-utility"/);
+  assert.match(sidebarSource, /className="nav-text">\{t\("Panduan Fit Score"\)\}/);
   assert.match(sidebarSource, /href="\/contoh-perhitungan"/);
   assert.match(sidebarSource, /Cara Fit Score dihitung/);
 
@@ -101,21 +101,21 @@ test("Fit Score education uses one explainer and consistent Indonesian result la
   ]) {
     assert.match(labelsSource, new RegExp(`${key}: "${label}"`));
   }
-  assert.match(listSource, /<option value="Proven">Terbukti<\/option>/);
-  assert.match(listSource, /<option value="Partial">Belum terbukti<\/option>/);
-  assert.match(listSource, /<option value="Learning">Sedang dipelajari<\/option>/);
-  assert.match(listSource, /<option value="Missing">Belum ada kecocokan<\/option>/);
+  assert.match(listSource, /<option value="Proven">\{t\("Terbukti"\)\}<\/option>/);
+  assert.match(listSource, /<option value="Partial">\{t\("Belum terbukti"\)\}<\/option>/);
+  assert.match(listSource, /<option value="Learning">\{t\("Sedang dipelajari"\)\}<\/option>/);
+  assert.match(listSource, /<option value="Missing">\{t\("Belum ada kecocokan"\)\}<\/option>/);
 });
 
 test("Ringkasan keeps one primary focus and conditional quiet continuations", async () => {
   const [source, css] = await Promise.all([
     readFile(new URL("../app/beranda/AdaptiveHomeDashboard.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+    readFile(new URL("../app/design-system.css", import.meta.url), "utf8"),
   ]);
 
   for (const copy of [
     "Profil karier",
-    "Portfolio &amp; Pengalaman",
+    "Portfolio & Pengalaman",
     "Profilmu akan dipakai kembali",
     "Lihat detail lowongan",
     "Cek lowongan berikutnya",
@@ -161,7 +161,8 @@ test("global navigation and job workspace use distinct scopes", async () => {
   assert.doesNotMatch(sidebarSource, /label:\s*"Skor Kecocokan"/);
   assert.doesNotMatch(sidebarSource, /Semua Lowongan/);
   assert.doesNotMatch(sidebarSource, /profileReadiness|Kelengkapan profil|readSidebarJson/);
-  assert.doesNotMatch(sidebarSource, /useAuthSession|sidebar-user|accountEmail/);
+  assert.doesNotMatch(sidebarSource, /sidebar-user|accountEmail/);
+  assert.match(sidebarSource, /mobile-menu-profile/);
 
   assert.match(
     workspaceNavSource,
@@ -227,7 +228,7 @@ test("shared layout families separate the app shell from focused job work", asyn
   ]);
 
   assert.match(appShellSource, /<AppSidebar activeItem=\{activeItem\}/);
-  assert.match(appShellSource, /<AppTopBar showSidebarControls \/>/);
+  assert.match(appShellSource, /<AppTopBar activeItem=\{activeItem\} showSidebarControls \/>/);
   assert.doesNotMatch(appShellSource, /defaultContexts|contextSegments|context\?:/);
   assert.match(homePageSource, /<AppShell activeItem="Ringkasan"/);
   assert.match(jobsPageSource, /<AppShell activeItem="Lowongan"/);
@@ -236,8 +237,8 @@ test("shared layout families separate the app shell from focused job work", asyn
   assert.match(focusShellSource, /backHref="\/lowongan"/);
   assert.match(focusShellSource, /context=\{\["Lowongan", jobContext\]\}/);
   assert.match(focusShellSource, /variant="focus"/);
-  assert.match(focusShellSource, /title \|\| "Lowongan"/);
-  assert.match(focusShellSource, /company \|\| "Memuat konteks lowongan/);
+  assert.match(focusShellSource, /const jobContext = title \?/);
+  assert.match(focusShellSource, /t\("Memuat konteks lowongan…"\)/);
   assert.match(focusShellSource, /<JobWorkspaceNav activeStep=\{activeStep\} jobId=\{jobId\}/);
   assert.doesNotMatch(detailSource, /job-detail-page-header/);
 
@@ -249,37 +250,37 @@ test("shared layout families separate the app shell from focused job work", asyn
   }
 });
 
-test("appearance foundation uses semantic tokens and persisted System, Light, and Dark preferences", async () => {
+test("light-only foundation retains semantic tokens and a persisted language preference", async () => {
   const [layoutSource, providerSource, topBarSource, sidebarSource, stylesSource] =
     await Promise.all([
       readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
-      readFile(new URL("../app/components/AppearanceProvider.tsx", import.meta.url), "utf8"),
+      readFile(new URL("../app/components/LanguageProvider.tsx", import.meta.url), "utf8"),
       readFile(new URL("../app/components/AppTopBar.tsx", import.meta.url), "utf8"),
       readFile(new URL("../app/components/AppSidebar.tsx", import.meta.url), "utf8"),
-      readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+      Promise.all([readFile(new URL("../app/globals.css", import.meta.url), "utf8"), readFile(new URL("../app/design-system.css", import.meta.url), "utf8")]).then(parts => parts.join("\n")),
     ]);
 
-  assert.match(layoutSource, /family=Inter:wght@400;500;600/);
-  assert.match(layoutSource, /<AppearanceProvider>/);
-  assert.match(providerSource, /applyfit-appearance/);
-  assert.match(providerSource, /prefers-color-scheme: dark/);
-  assert.match(providerSource, /"system" \| "light" \| "dark"/);
-  assert.match(providerSource, /localStorage\.removeItem\(appearanceStorageKey\)/);
+  assert.match(layoutSource, /family=DM\+Sans:wght@400;500;600;700/);
+  assert.match(layoutSource, /<LanguageProvider>/);
+  assert.match(providerSource, /applyfit-language/);
+  assert.doesNotMatch(layoutSource, /AppearanceProvider|prefers-color-scheme/);
+  assert.match(stylesSource, /color-scheme:\s*light/);
 
   assert.match(topBarSource, /className="app-topbar-brand"/);
   assert.match(topBarSource, /<AppSidebarToggle \/>/);
   assert.match(topBarSource, /context = \[\]/);
   assert.match(topBarSource, /context\.length > 0/);
   assert.match(topBarSource, /<AccountMenu \/>/);
-  for (const option of ["System", "Light", "Dark"]) {
-    assert.match(topBarSource, new RegExp(`label: ["']${option}["']`));
-  }
-  assert.doesNotMatch(sidebarSource, /useAuthSession|Keluar|email/i);
+  assert.match(topBarSource, /<LanguagePicker \/>/);
+  assert.doesNotMatch(topBarSource, /appearanceOptions|useAppearance/);
+  assert.match(sidebarSource, /useAuthSession/);
+  assert.match(sidebarSource, /mobile-menu-signout/);
+  assert.match(sidebarSource, /<SignOutButton/);
 
   for (const token of ["--background", "--surface", "--foreground", "--border", "--primary", "--accent", "--destructive"]) {
     assert.match(stylesSource, new RegExp(token));
   }
-  assert.match(stylesSource, /html\[data-theme="dark"\]/);
+  assert.doesNotMatch(stylesSource, /data-theme="dark"/);
   assert.doesNotMatch(stylesSource, /app-shell:has\(\.sidebar-collapsed\)[^{]*\.app-topbar-brand > span:last-child/);
   assert.doesNotMatch(stylesSource, /\.main-content \.page-container\s*{[^}]*margin-left:\s*0/);
   assert.match(stylesSource, /\.main-content \.page-container\s*{[^}]*max-width:\s*var\(--content-max\)/);
@@ -332,14 +333,19 @@ test("production worker exposes the saved-job creation entry point and form", as
   assert.equal(formResponse.status, 307);
   assert.match(formResponse.headers.get("location") ?? "", /^\/login\?next=%2Flowongan%2Fbaru$/);
 
-  const [listSource, formSource] = await Promise.all([
+  const [listSource, formSource, sourceField] = await Promise.all([
     readFile(new URL("../app/lowongan/JobsWorkspace.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/lowongan/baru/JobCreationForm.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/components/JobSourceField.tsx", import.meta.url), "utf8"),
   ]);
   assert.match(listSource, /href="\/lowongan\/baru"/i);
   assert.match(listSource, /Tambah lowongan/i);
+  assert.match(formSource, /<JobSourceField disabled=\{isBusy\}/);
+  assert.match(sourceField, /<select/);
+  assert.match(sourceField, /value="custom"/);
+  assert.match(sourceField, /type="hidden" name="source"/);
   for (const field of ["title", "company", "source", "location", "workArrangement", "rawDescription"]) {
-    assert.match(formSource, new RegExp(`name=["']${field}["']`, "i"));
+    assert.match(field === "source" ? sourceField : formSource, new RegExp(`name=["']${field}["']`, "i"));
   }
 });
 

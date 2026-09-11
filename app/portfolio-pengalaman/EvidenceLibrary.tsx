@@ -1,4 +1,9 @@
 "use client";
+import { useI18n } from "../components/LanguageProvider";
+import { CollectionIllustration } from "../components/CollectionIllustration";
+
+import { ExpandableText } from "../components/ExpandableText";
+import { RelationshipLane } from "../components/RelationshipLane";
 
 import {
   Award,
@@ -8,14 +13,12 @@ import {
   FolderKanban,
   GitBranch,
   Globe2,
-  LibraryBig,
   Link2,
   ListFilter,
   LoaderCircle,
   Pencil,
   Plus,
   Search,
-  SearchX,
   Trash2,
   X,
 } from "lucide-react";
@@ -78,6 +81,7 @@ export function EvidenceLibrary({
   initialEvidences,
   availableSkills,
 }: EvidenceLibraryProps) {
+  const { t } = useI18n();
   const [evidences, setEvidences] = useState(initialEvidences);
   const [editor, setEditor] = useState<EditorState>(null);
   const [draftTitle, setDraftTitle] = useState("");
@@ -92,7 +96,9 @@ export function EvidenceLibrary({
   const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [deletingEvidenceId, setDeletingEvidenceId] = useState<string | null>(null);
+  const [deletingEvidenceId, setDeletingEvidenceId] = useState<string | null>(
+    null,
+  );
   const titleId = useId();
   const typeId = useId();
   const descriptionId = useId();
@@ -102,30 +108,31 @@ export function EvidenceLibrary({
   const linkedSkillCount = new Set(
     evidences.flatMap((evidence) => evidence.skills.map((skill) => skill.id)),
   ).size;
-  const typeSummary = evidenceTypes.map((type) => ({
-    type,
-    count: evidences.filter((evidence) => evidence.type === type).length,
-  }));
   const skillOptions = Array.from(
-    new Map([
-      ...availableSkills,
-      ...evidences.flatMap((evidence) => evidence.skills),
-    ].map((skill) => [skill.id, skill])).values(),
+    new Map(
+      [
+        ...availableSkills,
+        ...evidences.flatMap((evidence) => evidence.skills),
+      ].map((skill) => [skill.id, skill]),
+    ).values(),
   ).sort((first, second) => first.name.localeCompare(second.name, "id-ID"));
   const normalizedSearchQuery = searchQuery.trim().toLocaleLowerCase("id-ID");
   const filteredEvidences = evidences.filter((evidence) => {
-    const matchesSearch = !normalizedSearchQuery || [
-      evidence.title,
-      evidence.description,
-      evidence.source ?? "",
-      evidence.type,
-      ...evidence.skills.map((skill) => skill.name),
-    ].some((value) =>
-      value.toLocaleLowerCase("id-ID").includes(normalizedSearchQuery),
-    );
+    const matchesSearch =
+      !normalizedSearchQuery ||
+      [
+        evidence.title,
+        evidence.description,
+        evidence.source ?? "",
+        evidence.type,
+        ...evidence.skills.map((skill) => skill.name),
+      ].some((value) =>
+        value.toLocaleLowerCase("id-ID").includes(normalizedSearchQuery),
+      );
     const matchesType = typeFilter === "Semua" || evidence.type === typeFilter;
     const matchesSkill =
-      skillFilter === "Semua" || evidence.skills.some((skill) => skill.id === skillFilter);
+      skillFilter === "Semua" ||
+      evidence.skills.some((skill) => skill.id === skillFilter);
 
     return matchesSearch && matchesType && matchesSkill;
   });
@@ -136,7 +143,9 @@ export function EvidenceLibrary({
   useEffect(() => {
     if (!editor) return;
 
-    const focusFrame = window.requestAnimationFrame(() => titleRef.current?.focus());
+    const focusFrame = window.requestAnimationFrame(() =>
+      titleRef.current?.focus(),
+    );
     return () => window.cancelAnimationFrame(focusFrame);
   }, [editor]);
 
@@ -198,10 +207,15 @@ export function EvidenceLibrary({
     setIsSaving(true);
     setError("");
     try {
-      const existingEvidence = editor?.mode === "edit"
-        ? evidences.find((evidence) => evidence.id === editor.evidenceId) ?? null
-        : null;
-      const backendType = toBackendType(draftType, existingEvidence?.backendType);
+      const existingEvidence =
+        editor?.mode === "edit"
+          ? (evidences.find((evidence) => evidence.id === editor.evidenceId) ??
+            null)
+          : null;
+      const backendType = toBackendType(
+        draftType,
+        existingEvidence?.backendType,
+      );
       const endpoint = existingEvidence
         ? `/api/evidences/${encodeURIComponent(existingEvidence.id)}`
         : "/api/evidences";
@@ -226,7 +240,9 @@ export function EvidenceLibrary({
         existingEvidence?.skills.map((skill) => skill.id) ?? [],
         draftSkillIds,
       );
-      const savedSkills = skillOptions.filter((skill) => draftSkillIds.includes(skill.id));
+      const savedSkills = skillOptions.filter((skill) =>
+        draftSkillIds.includes(skill.id),
+      );
       const savedItem: EvidenceItem = {
         id: saved.id,
         title: saved.title,
@@ -239,8 +255,11 @@ export function EvidenceLibrary({
       };
 
       if (existingEvidence) {
-        setEvidences((current) => current.map((evidence) =>
-          evidence.id === savedItem.id ? savedItem : evidence));
+        setEvidences((current) =>
+          current.map((evidence) =>
+            evidence.id === savedItem.id ? savedItem : evidence,
+          ),
+        );
         setAnnouncement(`${savedItem.title} berhasil diperbarui.`);
       } else {
         setEvidences((current) => [savedItem, ...current]);
@@ -262,16 +281,22 @@ export function EvidenceLibrary({
     setDeletingEvidenceId(evidence.id);
     setError("");
     try {
-      const response = await fetch(`/api/evidences/${encodeURIComponent(evidence.id)}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `/api/evidences/${encodeURIComponent(evidence.id)}`,
+        {
+          method: "DELETE",
+        },
+      );
       if (!response.ok && response.status !== 204) {
         const result = await readEvidenceResponse(response);
         throw new Error(result.error?.message ?? "Bukti belum dapat dihapus.");
       }
-      setEvidences((current) => current.filter((item) => item.id !== evidence.id));
+      setEvidences((current) =>
+        current.filter((item) => item.id !== evidence.id),
+      );
       setPendingDeleteId(null);
-      if (editor?.mode === "edit" && editor.evidenceId === evidence.id) setEditor(null);
+      if (editor?.mode === "edit" && editor.evidenceId === evidence.id)
+        setEditor(null);
       setAnnouncement(`${evidence.title} berhasil dihapus.`);
     } catch (requestError) {
       setError(
@@ -286,93 +311,96 @@ export function EvidenceLibrary({
 
   return (
     <>
-      <section className="evidence-overview" aria-labelledby="evidence-overview-title">
-        <div className="evidence-overview-copy">
-          <span className="evidence-overview-icon" aria-hidden="true">
-            <LibraryBig size={23} strokeWidth={1.8} />
-          </span>
-          <div>
-            <p className="eyebrow">Fondasi berbasis bukti</p>
-            <h2 className="type-section-title" id="evidence-overview-title">
-              {evidences.length} bukti mendukung {linkedSkillCount} skill
-            </h2>
-            <p className="type-helper">
-              Satu bukti dapat terhubung ke beberapa skill. Hubungan inilah yang
-              membantu ApplyFit menjelaskan status requirement secara transparan.
-            </p>
-          </div>
-        </div>
-
-        <div className="evidence-type-summary" aria-label="Ringkasan jenis bukti">
-          {typeSummary.map((item) => (
-            <span key={item.type}>
-              <strong>{item.count}</strong>
-              <small>{item.type}</small>
-            </span>
-          ))}
-        </div>
-      </section>
-
-      <section className="evidence-list-section" aria-labelledby="evidence-list-title">
+      <section
+        className="evidence-list-section"
+        aria-labelledby="evidence-list-title"
+      >
         <SectionHeader
-          title="Koleksi bukti profilmu"
-          titleId="evidence-list-title"
-          description={(
+          className="evidence-overview"
+          title={
             <>
-              Setiap item menampilkan konteks, skill yang didukung, dan sumber yang
-              dapat diperiksa bila tersedia.
+              {evidences.length} {t("portfolio & pengalaman")}
             </>
-          )}
-          action={(
-            <ActionButton className="evidence-add-button" type="button" onClick={openForm}>
+          }
+          description={
+            <>
+              {linkedSkillCount} {t("skill mendapat dukungan.")}
+            </>
+          }
+          titleId="evidence-list-title"
+          action={
+            <ActionButton
+              className="evidence-add-button"
+              type="button"
+              onClick={openForm}
+            >
               <Plus aria-hidden="true" size={16} strokeWidth={2} />
-              Tambah bukti
+              {t("Tambah portfolio")}
             </ActionButton>
-          )}
+          }
         />
 
         {editor ? (
           <form className="evidence-editor" onSubmit={handleSubmit}>
             <div className="evidence-editor-heading">
-              <strong>{editor.mode === "add" ? "Tambah bukti baru" : "Edit bukti"}</strong>
+              <strong>
+                {editor.mode === "add"
+                  ? t("Tambah bukti baru")
+                  : t("Edit bukti")}
+              </strong>
               <span>
                 {editor.mode === "add"
-                  ? "Tambahkan konteks dan hubungkan skill yang benar-benar didukung bukti ini."
-                  : "Perbarui konteks atau sesuaikan skill yang didukung bukti ini."}
+                  ? t(
+                      "Tambahkan konteks dan hubungkan skill yang benar-benar didukung bukti ini.",
+                    )
+                  : t(
+                      "Perbarui konteks atau sesuaikan skill yang didukung bukti ini.",
+                    )}
               </span>
             </div>
             <label htmlFor={titleId}>
-              <span>Judul bukti</span>
+              <span>{t("Judul bukti")}</span>
               <input
                 id={titleId}
                 ref={titleRef}
                 value={draftTitle}
                 onChange={(event) => setDraftTitle(event.target.value)}
-                placeholder="Contoh: Landing page event"
+                placeholder={t("Contoh: Landing page event")}
               />
             </label>
             <label htmlFor={typeId}>
-              <span>Jenis</span>
+              <span>{t("Jenis")}</span>
               <select
                 id={typeId}
                 value={draftType}
-                onChange={(event) => setDraftType(event.target.value as EvidenceType)}
+                onChange={(event) =>
+                  setDraftType(event.target.value as EvidenceType)
+                }
               >
-                {evidenceTypes.map((type) => <option key={type}>{type}</option>)}
+                {evidenceTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {t(type)}
+                  </option>
+                ))}
               </select>
             </label>
-            <label className="evidence-description-field" htmlFor={descriptionId}>
-              <span>Deskripsi</span>
+            <label
+              className="evidence-description-field"
+              htmlFor={descriptionId}
+            >
+              <span>{t("Deskripsi")}</span>
               <textarea
                 id={descriptionId}
                 value={draftDescription}
                 onChange={(event) => setDraftDescription(event.target.value)}
-                placeholder="Jelaskan hasil kerja dan kontribusimu"
+                placeholder={t("Jelaskan hasil kerja dan kontribusimu")}
                 rows={3}
               />
             </label>
             <label className="evidence-source-field" htmlFor={sourceId}>
-              <span>Tautan sumber <small>Opsional</small></span>
+              <span>
+                {t("Tautan sumber")} <small>{t("Opsional")}</small>
+              </span>
               <input
                 id={sourceId}
                 value={draftSource}
@@ -382,24 +410,33 @@ export function EvidenceLibrary({
               />
             </label>
             <fieldset className="evidence-skill-picker">
-              <legend>Skill yang didukung</legend>
+              <legend>{t("Skill yang didukung")}</legend>
               <div className="evidence-skill-picker-heading">
-                <span>Pilih satu atau beberapa skill dari profil kariermu.</span>
-                <strong>{draftSkillIds.length} dipilih</strong>
+                <span>
+                  {t("Pilih satu atau beberapa skill dari profil kariermu.")}
+                </span>
+                <strong>
+                  {draftSkillIds.length} {t("dipilih")}
+                </strong>
               </div>
               <div className="evidence-skill-options">
                 {skillOptions.map((skill) => {
                   const isSelected = draftSkillIds.includes(skill.id);
 
                   return (
-                    <label className={isSelected ? "selected" : undefined} key={skill.id}>
+                    <label
+                      className={isSelected ? "selected" : undefined}
+                      key={skill.id}
+                    >
                       <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => toggleDraftSkill(skill.id)}
                       />
                       <span aria-hidden="true">
-                        {isSelected ? <Check size={12} strokeWidth={2.3} /> : null}
+                        {isSelected ? (
+                          <Check size={12} strokeWidth={2.3} />
+                        ) : null}
                       </span>
                       {skill.name}
                     </label>
@@ -407,50 +444,81 @@ export function EvidenceLibrary({
                 })}
               </div>
               <small>
-                Bukti boleh disimpan tanpa skill dan dihubungkan kembali nanti.
+                {t(
+                  "Bukti boleh disimpan tanpa skill dan dihubungkan kembali nanti.",
+                )}
               </small>
             </fieldset>
             <div className="evidence-editor-actions">
-              {error ? <p role="alert">{error}</p> : <span />}
+              {t(error) ? <p role="alert">{t(error)}</p> : <span />}
               <div>
-                <ActionButton className="career-button secondary" variant="secondary" type="button" onClick={closeForm} disabled={isSaving}>
+                <ActionButton
+                  className="career-button secondary"
+                  variant="secondary"
+                  type="button"
+                  onClick={closeForm}
+                  disabled={isSaving}
+                >
                   <X aria-hidden="true" size={16} strokeWidth={1.9} />
-                  Batal
+                  {t("Batal")}
                 </ActionButton>
-                <ActionButton className="career-button primary" type="submit" disabled={isSaving}>
-                  {isSaving ? <LoaderCircle className="spin" aria-hidden="true" size={16} /> : <Check aria-hidden="true" size={16} strokeWidth={2} />}
-                  {isSaving ? "Menyimpan…" : "Simpan bukti"}
+                <ActionButton
+                  className="career-button primary"
+                  type="submit"
+                  disabled={isSaving}
+                >
+                  {isSaving ? (
+                    <LoaderCircle
+                      className="spin"
+                      aria-hidden="true"
+                      size={16}
+                    />
+                  ) : (
+                    <Check aria-hidden="true" size={16} strokeWidth={2} />
+                  )}
+                  {isSaving ? t("Menyimpan…") : t("Simpan bukti")}
                 </ActionButton>
               </div>
             </div>
           </form>
         ) : null}
 
-        {!editor && error ? <p className="evidence-manager-error" role="alert">{error}</p> : null}
+        {!editor && t(error) ? (
+          <p className="evidence-manager-error" role="alert">
+            {t(error)}
+          </p>
+        ) : null}
 
-        <div className="evidence-filter-panel" aria-label="Cari dan filter bukti">
+        <div
+          className="evidence-filter-panel"
+          aria-label={t("Cari dan filter bukti")}
+        >
           <label className="evidence-search-field">
-            <span className="sr-only">Cari bukti</span>
+            <span className="sr-only">{t("Cari bukti")}</span>
             <Search aria-hidden="true" size={16} strokeWidth={1.8} />
             <input
               type="search"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Cari judul, skill, atau sumber"
+              placeholder={t("Cari judul, skill, atau sumber")}
             />
           </label>
 
           <label className="evidence-filter-field">
             <ListFilter aria-hidden="true" size={15} strokeWidth={1.8} />
-            <span>Jenis</span>
+            <span>{t("Jenis")}</span>
             <select
               value={typeFilter}
               onChange={(event) =>
                 setTypeFilter(event.target.value as "Semua" | EvidenceType)
               }
             >
-              <option>Semua</option>
-              {evidenceTypes.map((type) => <option key={type}>{type}</option>)}
+              <option value={"Semua"}>{t("Semua")}</option>
+              {evidenceTypes.map((type) => (
+                <option key={type} value={type}>
+                  {t(type)}
+                </option>
+              ))}
             </select>
           </label>
 
@@ -461,17 +529,24 @@ export function EvidenceLibrary({
               value={skillFilter}
               onChange={(event) => setSkillFilter(event.target.value)}
             >
-              <option>Semua</option>
-              {skillOptions.map((skill) => <option key={skill.id} value={skill.id}>{skill.name}</option>)}
+              <option value={"Semua"}>{t("Semua")}</option>
+              {skillOptions.map((skill) => (
+                <option key={skill.id} value={skill.id}>
+                  {skill.name}
+                </option>
+              ))}
             </select>
           </label>
 
           <div className="evidence-filter-meta" aria-live="polite">
             <span>
-              Menampilkan <strong>{filteredEvidences.length}</strong> dari {evidences.length} bukti
+              {t("Menampilkan")} <strong>{filteredEvidences.length}</strong>{" "}
+              {t("dari")} {evidences.length} {t("bukti")}
             </span>
             {hasActiveFilters ? (
-              <button type="button" onClick={clearFilters}>Reset filter</button>
+              <button type="button" onClick={clearFilters}>
+                {t("Reset filter")}
+              </button>
             ) : null}
           </div>
         </div>
@@ -482,39 +557,52 @@ export function EvidenceLibrary({
             const isPendingDelete = pendingDeleteId === evidence.id;
 
             return (
-              <article className="evidence-row responsive-list-row" key={evidence.id}>
+              <article
+                className="evidence-row responsive-list-row relationship-row"
+                key={evidence.id}
+              >
                 <span className="evidence-type-icon" aria-hidden="true">
                   <TypeIcon size={19} strokeWidth={1.8} />
                 </span>
 
                 <div className="evidence-row-copy">
-                  <span className="evidence-type-label">{evidence.type}</span>
+                  <span className="evidence-type-label">
+                    {t(evidence.type)}
+                  </span>
                   <h3 className="type-primary-title">{evidence.title}</h3>
-                  <p>{evidence.description}</p>
+                  <ExpandableText text={evidence.description} />
                 </div>
 
-                <div className="evidence-skill-links" aria-label={`Skill untuk ${evidence.title}`}>
+                <RelationshipLane
+                  className="evidence-skill-links"
+                  aria-label={t(`Skill untuk ${evidence.title}`)}
+                >
                   <span>
                     <Link2 aria-hidden="true" size={14} strokeWidth={1.8} />
-                    Skill terkait
+                    {t("Mendukung")}
                   </span>
                   <div>
-                    {evidence.skills.length ? evidence.skills.map((skill) => (
-                      <span key={skill.id}>{skill.name}</span>
-                    )) : <small>Belum dihubungkan</small>}
+                    {evidence.skills.length ? (
+                      evidence.skills.map((skill) => (
+                        <span key={skill.id}>{skill.name}</span>
+                      ))
+                    ) : (
+                      <small>{t("Belum dihubungkan")}</small>
+                    )}
                   </div>
-                </div>
+                </RelationshipLane>
 
                 <div className="evidence-source">
                   {evidence.source ? (
                     <span>
-                      <ExternalLink aria-hidden="true" size={14} strokeWidth={1.8} />
+                      <ExternalLink
+                        aria-hidden="true"
+                        size={14}
+                        strokeWidth={1.8}
+                      />
                       {evidence.source}
                     </span>
-                  ) : (
-                    <span>Catatan internal</span>
-                  )}
-                  <small>{evidence.updatedAt}</small>
+                  ) : null}
                 </div>
 
                 <div className="evidence-row-actions">
@@ -522,40 +610,55 @@ export function EvidenceLibrary({
                     <div
                       className="evidence-delete-confirmation"
                       role="group"
-                      aria-label={`Hapus ${evidence.title}`}
+                      aria-label={t(`Hapus ${evidence.title}`)}
                     >
-                      <span>Hapus bukti?</span>
-                      <button type="button" onClick={() => setPendingDeleteId(null)}>
-                        Batal
+                      <span>{t("Hapus bukti?")}</span>
+                      <button
+                        type="button"
+                        onClick={() => setPendingDeleteId(null)}
+                      >
+                        {t("Batal")}
                       </button>
                       <button
-                        className="danger"
+                        className="danger ui-record-action ui-record-action--delete"
                         type="button"
                         disabled={deletingEvidenceId === evidence.id}
                         onClick={() => deleteEvidence(evidence)}
                       >
-                        {deletingEvidenceId === evidence.id ? "Menghapus…" : "Hapus"}
+                        {deletingEvidenceId === evidence.id
+                          ? t("Menghapus…")
+                          : t("Hapus")}
                       </button>
                     </div>
                   ) : (
                     <>
                       <IconButton
+                        className="ui-record-action ui-record-action--edit"
                         type="button"
                         aria-label={`Edit ${evidence.title}`}
                         onClick={() => openEditForm(evidence)}
                       >
-                        <Pencil aria-hidden="true" size={15} strokeWidth={1.9} />
+                        <Pencil
+                          aria-hidden="true"
+                          size={15}
+                          strokeWidth={1.9}
+                        />
                       </IconButton>
                       <IconButton
+                        className="ui-record-action ui-record-action--delete"
                         tone="destructive"
                         type="button"
-                        aria-label={`Hapus ${evidence.title}`}
+                        aria-label={t(`Hapus ${evidence.title}`)}
                         onClick={() => {
                           setPendingDeleteId(evidence.id);
                           setEditor(null);
                         }}
                       >
-                        <Trash2 aria-hidden="true" size={15} strokeWidth={1.9} />
+                        <Trash2
+                          aria-hidden="true"
+                          size={15}
+                          strokeWidth={1.9}
+                        />
                       </IconButton>
                     </>
                   )}
@@ -565,31 +668,42 @@ export function EvidenceLibrary({
           })}
           {!filteredEvidences.length ? (
             <div className="evidence-empty-state">
-              <SearchX aria-hidden="true" size={22} strokeWidth={1.7} />
+              <CollectionIllustration
+                kind={hasActiveFilters ? "search" : "portfolio"}
+              />
               <div>
                 <strong>
                   {hasActiveFilters
-                    ? "Tidak ada bukti yang cocok"
-                    : "Portfolio & Pengalaman masih kosong"}
+                    ? t("Tidak ada bukti yang cocok")
+                    : t("Portfolio & Pengalaman masih kosong")}
                 </strong>
                 <p>
                   {hasActiveFilters
-                    ? "Coba ubah kata pencarian atau longgarkan filter yang dipilih."
-                    : "Tambahkan hasil kerja atau pengalaman yang mendukung skill profilmu."}
+                    ? t(
+                        "Coba ubah kata pencarian atau longgarkan filter yang dipilih.",
+                      )
+                    : t(
+                        "Tambahkan hasil kerja atau pengalaman yang mendukung skill profilmu.",
+                      )}
                 </p>
               </div>
               <button
+                className="ui-button ui-button--primary ui-button--default"
                 type="button"
                 onClick={hasActiveFilters ? clearFilters : openForm}
               >
-                {hasActiveFilters ? "Tampilkan semua bukti" : "Tambah bukti"}
+                {hasActiveFilters
+                  ? t("Tampilkan semua bukti")
+                  : t("Tambah bukti")}
               </button>
             </div>
           ) : null}
         </div>
       </section>
 
-      <span className="sr-only" aria-live="polite">{announcement}</span>
+      <span className="sr-only" aria-live="polite">
+        {t(announcement)}
+      </span>
     </>
   );
 }
@@ -621,7 +735,10 @@ function toBackendType(
   type: EvidenceType,
   currentType?: BackendEvidenceType,
 ): BackendEvidenceType {
-  if (type === "Pengalaman" && (currentType === "work" || currentType === "internship")) {
+  if (
+    type === "Pengalaman" &&
+    (currentType === "work" || currentType === "internship")
+  ) {
     return currentType;
   }
   return {
@@ -654,30 +771,37 @@ async function syncEvidenceSkills(
   const additions = nextSkillIds.filter((skillId) => !current.has(skillId));
 
   const responses = await Promise.all([
-    ...additions.map((skillId) => fetch(
-      `/api/evidences/${encodeURIComponent(evidenceId)}/skills`,
-      {
+    ...additions.map((skillId) =>
+      fetch(`/api/evidences/${encodeURIComponent(evidenceId)}/skills`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ skillId }),
-      },
-    )),
-    ...removals.map((skillId) => fetch(
-      `/api/evidences/${encodeURIComponent(evidenceId)}/skills/${encodeURIComponent(skillId)}`,
-      { method: "DELETE" },
-    )),
+      }),
+    ),
+    ...removals.map((skillId) =>
+      fetch(
+        `/api/evidences/${encodeURIComponent(evidenceId)}/skills/${encodeURIComponent(skillId)}`,
+        { method: "DELETE" },
+      ),
+    ),
   ]);
 
-  const failedResponse = responses.find((response) => !response.ok && response.status !== 204);
+  const failedResponse = responses.find(
+    (response) => !response.ok && response.status !== 204,
+  );
   if (failedResponse) {
     const result = await readEvidenceResponse(failedResponse);
-    throw new Error(result.error?.message ?? "Hubungan bukti dan skill belum dapat disimpan.");
+    throw new Error(
+      result.error?.message ?? "Hubungan bukti dan skill belum dapat disimpan.",
+    );
   }
 }
 
-async function readEvidenceResponse(response: Response): Promise<EvidenceResponse> {
+async function readEvidenceResponse(
+  response: Response,
+): Promise<EvidenceResponse> {
   try {
-    return await response.json() as EvidenceResponse;
+    return (await response.json()) as EvidenceResponse;
   } catch {
     return {};
   }

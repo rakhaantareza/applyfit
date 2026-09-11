@@ -33,7 +33,11 @@ const FEATURED_OUTPUT_PATH = path.join(
   "portfolio",
   "applyfit-featured.png",
 );
-const JOB_WORKSPACE_OUTPUT_DIRECTORY = path.join(SCREENSHOT_ROOT, "portfolio", "job-workspace");
+const JOB_WORKSPACE_OUTPUT_DIRECTORY = path.join(
+  SCREENSHOT_ROOT,
+  "portfolio",
+  "job-workspace",
+);
 
 let browser;
 let context;
@@ -42,7 +46,6 @@ try {
   const configuredBaseUrl = getBaseUrl(DEFAULT_BASE_URL);
   const baseUrl = await ensureDevelopmentServer(configuredBaseUrl);
   if (!(await fileExists(AUTH_STATE_PATH))) throw expiredStateError();
-
 
   browser = await chromium.launch(SCREENSHOT_BROWSER_LAUNCH_OPTIONS);
   context = await browser.newContext({
@@ -70,7 +73,10 @@ try {
     await openPortfolioRoute(page, baseUrl, route);
     await validateWorkspaceJob(page, route, job);
 
-    const outputPath = path.join(JOB_WORKSPACE_OUTPUT_DIRECTORY, `${route.slug}.png`);
+    const outputPath = path.join(
+      JOB_WORKSPACE_OUTPUT_DIRECTORY,
+      `${route.slug}.png`,
+    );
     await page.screenshot({
       animations: "disabled",
       caret: "hide",
@@ -83,15 +89,23 @@ try {
 
   const analysisRoute = workspaceRoutes.at(-1);
   if (!analysisRoute || analysisRoute.kind !== "analysis") {
-    throw new ScreenshotWorkflowError("The portfolio analysis route is not configured last.");
+    throw new ScreenshotWorkflowError(
+      "The portfolio analysis route is not configured last.",
+    );
   }
-  const { fontReport, region } = await captureFeaturedAnalysis(page, analysisRoute, job);
+  const { fontReport, region } = await captureFeaturedAnalysis(
+    page,
+    analysisRoute,
+    job,
+  );
 
   console.log(
     `Captured 4 authenticated job-workspace screenshots for ${job.title} at ${job.company}.`,
   );
   console.log(`Resolved demo job ID at runtime: ${job.id}.`);
-  console.log(`Featured analysis: ${path.relative(process.cwd(), FEATURED_OUTPUT_PATH)}.`);
+  console.log(
+    `Featured analysis: ${path.relative(process.cwd(), FEATURED_OUTPUT_PATH)}.`,
+  );
   console.log(
     `Output dimensions: ${PORTFOLIO_VIEWPORT_WIDTH * PORTFOLIO_DEVICE_SCALE_FACTOR}x${region.height * PORTFOLIO_DEVICE_SCALE_FACTOR}.`,
   );
@@ -130,7 +144,6 @@ async function openPortfolioRoute(page, baseUrl, route) {
   }
 }
 
-
 async function validateWorkspaceJob(page, route, job) {
   await requireExactText(
     page.locator(route.jobTitleSelector).first(),
@@ -146,13 +159,19 @@ async function validateWorkspaceJob(page, route, job) {
     );
   }
 
-  await requireExactText(page.locator(".topbar h1"), "Skor Kecocokan", "page heading");
+  await requireExactText(
+    page.locator(".topbar h1"),
+    "Skor Kecocokan",
+    "page heading",
+  );
   await requireExactText(
     page.locator(".analyzed-job-heading > span"),
     job.company,
     "analyzed company",
   );
-  const scoreText = (await page.locator(".score-ring strong").textContent())?.trim();
+  const scoreText = (
+    await page.locator(".score-ring strong").textContent()
+  )?.trim();
   const score = Number(scoreText?.replaceAll(".", "").replace(",", "."));
   if (!scoreText || !Number.isFinite(score) || score < 0 || score > 100) {
     throw new ScreenshotWorkflowError(
@@ -168,7 +187,10 @@ async function captureFeaturedAnalysis(page, analysisRoute, job) {
     width: PORTFOLIO_VIEWPORT_WIDTH,
     height: region.height,
   });
-  const fontReport = await settleResponsiveLayout(page, `${analysisRoute.label} featured viewport`);
+  const fontReport = await settleResponsiveLayout(
+    page,
+    `${analysisRoute.label} featured viewport`,
+  );
 
   region = await measureFeaturedRegion(page);
   if (page.viewportSize()?.height !== region.height) {
@@ -176,7 +198,10 @@ async function captureFeaturedAnalysis(page, analysisRoute, job) {
       width: PORTFOLIO_VIEWPORT_WIDTH,
       height: region.height,
     });
-    await settleResponsiveLayout(page, `${analysisRoute.label} featured viewport`);
+    await settleResponsiveLayout(
+      page,
+      `${analysisRoute.label} featured viewport`,
+    );
     region = await measureFeaturedRegion(page);
   }
 
@@ -209,8 +234,12 @@ async function requireExactText(locator, expected, label) {
 async function measureFeaturedRegion(page) {
   const bounds = await page.evaluate(() => {
     window.scrollTo(0, 0);
-    const attention = document.querySelector(".attention-section")?.getBoundingClientRect();
-    const requirements = document.querySelector(".requirements-panel")?.getBoundingClientRect();
+    const attention = document
+      .querySelector(".attention-section")
+      ?.getBoundingClientRect();
+    const requirements = document
+      .querySelector(".requirements-panel")
+      ?.getBoundingClientRect();
     if (!attention || !requirements) return null;
     return {
       attentionBottom: attention.bottom,
@@ -224,7 +253,9 @@ async function measureFeaturedRegion(page) {
     );
   }
 
-  const minimumHeight = Math.ceil(bounds.attentionBottom + MIN_REGION_BOTTOM_PADDING);
+  const minimumHeight = Math.ceil(
+    bounds.attentionBottom + MIN_REGION_BOTTOM_PADDING,
+  );
   const maximumHeight = Math.floor(bounds.requirementsTop) - 1;
   if (minimumHeight > maximumHeight) {
     throw new ScreenshotWorkflowError(

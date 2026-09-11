@@ -1,3 +1,6 @@
+"use client";
+import { useI18n } from "../components/LanguageProvider";
+
 import type { ExampleRequirement } from "./ExampleRequirementList";
 
 type FinalScoreCalculationProps = {
@@ -19,8 +22,8 @@ export function calculateExampleScore(requirements: ExampleRequirement[]) {
   return { currentPoints, maximumPoints, percentage };
 }
 
-function formatNumber(value: number) {
-  return new Intl.NumberFormat("id-ID", {
+function formatNumber(value: number, language = "id") {
+  return new Intl.NumberFormat(language === "en" ? "en-GB" : "id-ID", {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   }).format(value);
@@ -29,29 +32,33 @@ function formatNumber(value: number) {
 export function FinalScoreCalculation({
   requirements,
 }: FinalScoreCalculationProps) {
+  const { t, language } = useI18n();
   const { currentPoints, maximumPoints, percentage } =
     calculateExampleScore(requirements);
 
   return (
-    <div className="final-equation" aria-label="Rincian perhitungan skor akhir">
+    <div
+      className="final-equation"
+      aria-label={t("Rincian perhitungan skor akhir")}
+    >
       <div>
-        <small>Total poin saat ini</small>
-        <strong>{formatNumber(currentPoints)}</strong>
+        <small>{t("Total poin saat ini")}</small>
+        <strong>{formatNumber(currentPoints, language)}</strong>
       </div>
       <span aria-hidden="true">÷</span>
       <div>
-        <small>Total poin maksimum</small>
-        <strong>{formatNumber(maximumPoints)}</strong>
+        <small>{t("Total poin maksimum")}</small>
+        <strong>{formatNumber(maximumPoints, language)}</strong>
       </div>
       <span aria-hidden="true">×</span>
       <div>
-        <small>Persentase</small>
+        <small>{t("Persentase")}</small>
         <strong>100</strong>
       </div>
       <span aria-hidden="true">=</span>
       <div className="final-score">
-        <small>Skor akhir</small>
-        <strong>{formatNumber(percentage)}%</strong>
+        <small>{t("Skor akhir")}</small>
+        <strong>{formatNumber(percentage, language)}%</strong>
       </div>
     </div>
   );

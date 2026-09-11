@@ -7,7 +7,7 @@ const APP_ROUTE_PROBE_PATH = "/beranda";
 const ROUTE_ERROR_SELECTOR = [
   ".app-shell .career-profile-state.error",
   ".app-shell .persisted-job-state.error",
-  ".app-shell [role=\"alert\"]",
+  '.app-shell [role="alert"]',
 ].join(", ");
 
 export class ScreenshotWorkflowError extends Error {
@@ -29,7 +29,11 @@ export function getBaseUrl(defaultBaseUrl) {
     );
   }
 
-  if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) {
+  if (
+    !["http:", "https:"].includes(url.protocol) ||
+    url.username ||
+    url.password
+  ) {
     throw new ScreenshotWorkflowError(
       "BASE_URL must use http(s) and must not contain credentials.",
     );
@@ -80,7 +84,9 @@ async function isApplyFitRouteResponse(response, candidate) {
     if (!location) return false;
 
     const redirectUrl = new URL(location, candidate);
-    return redirectUrl.origin === candidate && redirectUrl.pathname === "/login";
+    return (
+      redirectUrl.origin === candidate && redirectUrl.pathname === "/login"
+    );
   }
 
   if (!response.ok) return false;
@@ -144,10 +150,12 @@ export async function resolveScreenshotJob(request, baseUrl) {
   const jobsBody = await readJsonResponse(jobsResponse);
   const jobs = Array.isArray(jobsBody?.data?.jobs)
     ? jobsBody.data.jobs.filter(
-      (job) =>
-        typeof job?.id === "string" && job.id &&
-        typeof job?.title === "string" && typeof job?.company === "string",
-    )
+        (job) =>
+          typeof job?.id === "string" &&
+          job.id &&
+          typeof job?.title === "string" &&
+          typeof job?.company === "string",
+      )
     : [];
   if (!jobsResponse.ok() || jobs.length === 0) {
     throw new ScreenshotWorkflowError(
@@ -167,7 +175,8 @@ export async function resolveScreenshotJob(request, baseUrl) {
     if (!(Number(requirementsBody?.data?.total) > 0)) continue;
 
     const mappingResponse = await request.get(
-      new URL(`/api/jobs/${encodedJobId}/requirements/mapping-summary`, baseUrl).href,
+      new URL(`/api/jobs/${encodedJobId}/requirements/mapping-summary`, baseUrl)
+        .href,
       { failOnStatusCode: false },
     );
     if (mappingResponse.ok()) return job;
@@ -197,7 +206,9 @@ export async function openAuthenticatedRoute(page, baseUrl, route) {
   let response;
 
   try {
-    response = await page.goto(targetUrl.href, { waitUntil: "domcontentloaded" });
+    response = await page.goto(targetUrl.href, {
+      waitUntil: "domcontentloaded",
+    });
   } catch (error) {
     throw new ScreenshotWorkflowError(
       `Failed to load ${route.label} at ${targetUrl.href}: ${errorMessage(error)}`,
@@ -239,7 +250,9 @@ export async function openUnauthenticatedRoute(page, baseUrl, route) {
   let response;
 
   try {
-    response = await page.goto(targetUrl.href, { waitUntil: "domcontentloaded" });
+    response = await page.goto(targetUrl.href, {
+      waitUntil: "domcontentloaded",
+    });
   } catch (error) {
     throw new ScreenshotWorkflowError(
       `Failed to load ${route.label} at ${targetUrl.href}: ${errorMessage(error)}`,
@@ -260,7 +273,9 @@ export async function openUnauthenticatedRoute(page, baseUrl, route) {
 
   try {
     await page.locator(route.readySelector).waitFor({ state: "visible" });
-    await page.waitForLoadState("networkidle", { timeout: NAVIGATION_TIMEOUT_MS });
+    await page.waitForLoadState("networkidle", {
+      timeout: NAVIGATION_TIMEOUT_MS,
+    });
   } catch (error) {
     throw new ScreenshotWorkflowError(
       `${route.label} did not reach its unauthenticated ready state within ${NAVIGATION_TIMEOUT_MS / 1000} seconds.`,
@@ -300,7 +315,8 @@ async function waitForAuthenticatedRoute(page, route) {
         const errorElement = document.querySelector(errorSelector);
         if (errorElement) {
           return {
-            message: errorElement.textContent?.trim() || "Unknown application error",
+            message:
+              errorElement.textContent?.trim() || "Unknown application error",
             status: "error",
           };
         }
@@ -350,14 +366,17 @@ async function waitForFonts(page, routeLabel) {
       const loadResults = await Promise.all(
         fontProbes.map(async (probe) => ({
           family: probe.family,
-          loadedCount: (await document.fonts.load(probe.descriptor, probe.sample)).length,
+          loadedCount: (
+            await document.fonts.load(probe.descriptor, probe.sample)
+          ).length,
         })),
       );
 
       // Cover every additional face currently needed by rendered content.
       await document.fonts.ready;
 
-      const normalizeFamily = (family) => family.replaceAll('"', "").replaceAll("'", "");
+      const normalizeFamily = (family) =>
+        family.replaceAll('"', "").replaceAll("'", "");
       const loadedFamilies = [...document.fonts]
         .filter((face) => face.status === "loaded")
         .map((face) => normalizeFamily(face.family));
@@ -382,17 +401,20 @@ async function waitForFonts(page, routeLabel) {
     );
   }
 
-  const missingFamilies = SCREENSHOT_FONT_PROBES
-    .filter((probe) => {
-      const result = report.loadResults.find((entry) => entry.family === probe.family);
-      return !result?.loadedCount || !report.loadedFamilies.includes(probe.family);
-    })
-    .map((probe) => probe.family);
+  const missingFamilies = SCREENSHOT_FONT_PROBES.filter((probe) => {
+    const result = report.loadResults.find(
+      (entry) => entry.family === probe.family,
+    );
+    return (
+      !result?.loadedCount || !report.loadedFamilies.includes(probe.family)
+    );
+  }).map((probe) => probe.family);
 
   if (report.status !== "loaded" || missingFamilies.length > 0) {
-    const detail = missingFamilies.length > 0
-      ? ` Missing application font faces: ${missingFamilies.join(", ")}.`
-      : "";
+    const detail =
+      missingFamilies.length > 0
+        ? ` Missing application font faces: ${missingFamilies.join(", ")}.`
+        : "";
     throw new ScreenshotWorkflowError(
       `Application fonts were not fully loaded for ${routeLabel}; refusing to capture fallback typography.${detail}`,
     );
@@ -404,14 +426,18 @@ async function waitForFonts(page, routeLabel) {
 async function throwIfRouteErrorVisible(page, routeLabel) {
   const errorLocator = page.locator(ROUTE_ERROR_SELECTOR).first();
   if (await errorLocator.isVisible().catch(() => false)) {
-    const message = (await errorLocator.textContent())?.trim() || "Unknown application error";
+    const message =
+      (await errorLocator.textContent())?.trim() || "Unknown application error";
     throw new ScreenshotWorkflowError(
       `${routeLabel} displayed an application error: ${message}`,
     );
   }
 }
 
-export async function settleResponsiveLayout(page, routeLabel = "the current page") {
+export async function settleResponsiveLayout(
+  page,
+  routeLabel = "the current page",
+) {
   const fontReport = await waitForFonts(page, routeLabel);
 
   const layoutIsStable = await page.evaluate(async () => {
@@ -421,14 +447,16 @@ export async function settleResponsiveLayout(page, routeLabel = "the current pag
         .map((image) => image.decode?.().catch(() => {})),
     );
 
-    const nextFrame = () => new Promise((resolve) => window.requestAnimationFrame(resolve));
+    const nextFrame = () =>
+      new Promise((resolve) => window.requestAnimationFrame(resolve));
     const layoutSignature = () => {
       const root = document.documentElement;
       const body = document.body;
       const elementMetrics = [...body.querySelectorAll("*")]
         .filter(
           (element) =>
-            element instanceof HTMLElement && element.getClientRects().length > 0,
+            element instanceof HTMLElement &&
+            element.getClientRects().length > 0,
         )
         .map((element) => [
           element.offsetLeft,
@@ -502,12 +530,15 @@ export function responseErrorMessage(body, fallback) {
 export function isVerificationFailure(response, body) {
   const code = typeof body?.error?.code === "string" ? body.error.code : "";
   const message = responseErrorMessage(body, "");
-  return response.status() === 403 || /verif|verify|confirm/i.test(`${code} ${message}`);
+  return (
+    response.status() === 403 ||
+    /verif|verify|confirm/i.test(`${code} ${message}`)
+  );
 }
 
 export function expiredStateError() {
   return new ScreenshotWorkflowError(
-    "Stored authentication is missing, invalid, or expired. Run \"npm run screenshots:auth\" again, then retry \"npm run screenshots\".",
+    'Stored authentication is missing, invalid, or expired. Run "npm run screenshots:auth" again, then retry "npm run screenshots".',
   );
 }
 

@@ -31,14 +31,14 @@ export const SCREENSHOT_BROWSER_LAUNCH_OPTIONS = {
 // screenshots from silently capturing Arial/monospace fallback glyphs.
 export const SCREENSHOT_FONT_PROBES = [
   {
-    family: "Inter",
-    descriptor: '400 16px "Inter"',
+    family: "DM Sans",
+    descriptor: '400 16px "DM Sans"',
     sample: "ApplyFit Analisis",
   },
   {
-    family: "Geist Mono",
-    descriptor: '400 16px "Geist Mono"',
-    sample: "ApplyFit 0123456789",
+    family: "DM Sans",
+    descriptor: '600 32px "DM Sans"',
+    sample: "ApplyFit Profil",
   },
 ];
 
@@ -128,8 +128,8 @@ export function buildJobScreenshotRoutes(jobId) {
       label: "Persyaratan",
       slug: "persyaratan",
       path: `${jobPath}/persyaratan`,
-      readySelector: ".requirement-review-overview",
-      jobTitleSelector: ".requirement-review-overview dd",
+      readySelector: ".requirement-review-list-section",
+      jobTitleSelector: ".shell-breadcrumb-current",
     },
     {
       label: "Cocokkan Profil",

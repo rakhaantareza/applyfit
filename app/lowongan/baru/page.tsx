@@ -1,59 +1,104 @@
+import { Message } from "../../components/LanguageProvider";
 import type { Metadata } from "next";
 import { FileSearch, Save, ScanSearch } from "lucide-react";
 import { AppShell } from "../../components/AppShell";
+import { PageHeader } from "../../components/ContentHeaders";
 import { InlineBackLink } from "../../components/InlineBackLink";
 import { JobCreationForm } from "./JobCreationForm";
 import { AuthenticatedRoute } from "../../components/AuthenticatedRoute";
 
 export const metadata: Metadata = {
   title: "Tambah Lowongan",
-  description: "Simpan konteks lowongan baru sebelum meninjau requirement di ApplyFit.",
+  description:
+    "Simpan konteks lowongan baru sebelum meninjau requirement di ApplyFit.",
 };
 
 export default function NewJobPage() {
   return (
-    <AuthenticatedRoute><AppShell activeItem="Lowongan" mainClassName="new-job-main">
+    <AuthenticatedRoute>
+      <AppShell activeItem="Lowongan" mainClassName="new-job-main">
         <div className="page-container new-job-page">
-          <header className="new-job-header">
+          <div className="new-job-header">
             <InlineBackLink href="/lowongan">
-              Kembali ke semua lowongan
+              <Message>{"Kembali ke semua lowongan"}</Message>
             </InlineBackLink>
-            <div>
-              <p className="eyebrow">Lowongan baru</p>
-              <h1>Simpan konteks pekerjaan</h1>
-              <p>
-                Masukkan informasi dari lowongan aslinya. ApplyFit akan menyimpannya
-                sebagai satu konteks pekerjaan yang terpisah sebelum Persyaratan diperiksa.
-              </p>
-            </div>
-          </header>
+            <PageHeader
+              title={<Message>{"Tambah lowongan"}</Message>}
+              description={
+                <Message>
+                  {"Simpan informasi dan deskripsi dari lowongan aslinya."}
+                </Message>
+              }
+            />
+          </div>
 
           <div className="new-job-layout">
             <JobCreationForm />
 
-            <aside className="new-job-guidance" aria-labelledby="new-job-next-title">
-              <p className="eyebrow">Setelah disimpan</p>
-              <h2 id="new-job-next-title">Lanjutkan dengan konteks yang jelas</h2>
+            <aside
+              className="new-job-guidance"
+              aria-labelledby="new-job-next-title"
+            >
+              <h2 id="new-job-next-title">
+                <Message>{"Setelah tersimpan"}</Message>
+              </h2>
               <ol>
                 <li>
-                  <span><Save aria-hidden="true" size={16} strokeWidth={1.8} /></span>
-                  <div><strong>Lowongan tersimpan</strong><p>Role dan perusahaan menjadi konteks utama.</p></div>
+                  <span>
+                    <Save aria-hidden="true" size={16} strokeWidth={1.8} />
+                  </span>
+                  <div>
+                    <strong>
+                      <Message>{"Lowongan tersimpan"}</Message>
+                    </strong>
+                    <p>
+                      <Message>{"Buka kembali dari daftar Lowongan."}</Message>
+                    </p>
+                  </div>
                 </li>
                 <li>
-                  <span><FileSearch aria-hidden="true" size={16} strokeWidth={1.8} /></span>
-                  <div><strong>Ekstrak requirement</strong><p>Deskripsi diubah menjadi draft syarat terstruktur.</p></div>
+                  <span>
+                    <FileSearch
+                      aria-hidden="true"
+                      size={16}
+                      strokeWidth={1.8}
+                    />
+                  </span>
+                  <div>
+                    <strong>
+                      <Message>{"Ambil persyaratan"}</Message>
+                    </strong>
+                    <p>
+                      <Message>
+                        {"Susun persyaratan dari deskripsi lowongan."}
+                      </Message>
+                    </p>
+                  </div>
                 </li>
                 <li>
-                  <span><ScanSearch aria-hidden="true" size={16} strokeWidth={1.8} /></span>
-                  <div><strong>Periksa sebelum analisis</strong><p>Kamu tetap memegang kendali atas hasil ekstraksi.</p></div>
+                  <span>
+                    <ScanSearch
+                      aria-hidden="true"
+                      size={16}
+                      strokeWidth={1.8}
+                    />
+                  </span>
+                  <div>
+                    <strong>
+                      <Message>{"Periksa sebelum analisis"}</Message>
+                    </strong>
+                    <p>
+                      <Message>
+                        {"Periksa hasilnya, lalu hubungkan dengan skillmu."}
+                      </Message>
+                    </p>
+                  </div>
                 </li>
               </ol>
-              <p className="new-job-guidance-note">
-                Menyimpan lowongan tidak menghasilkan rekomendasi untuk melamar atau melewatkannya.
-              </p>
             </aside>
           </div>
         </div>
-    </AppShell></AuthenticatedRoute>
+      </AppShell>
+    </AuthenticatedRoute>
   );
 }

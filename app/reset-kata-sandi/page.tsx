@@ -1,3 +1,4 @@
+import { Message } from "../components/LanguageProvider";
 import type { Metadata } from "next";
 import { AuthBrandPanel } from "../components/AuthBrandPanel";
 import { PasswordResetForm } from "./PasswordResetForm";
@@ -21,8 +22,14 @@ export default async function PasswordResetPage({
       <section className="auth-form-panel" aria-labelledby="reset-title">
         <div className="login-card">
           <div className="login-heading">
-            <h2 id="reset-title">Buat kata sandi baru</h2>
-            <p>Masukkan kode dari emailmu, lalu buat kata sandi baru.</p>
+            <h2 id="reset-title">
+              <Message>{"Buat kata sandi baru"}</Message>
+            </h2>
+            <p>
+              <Message>
+                {"Masukkan kode dari emailmu, lalu buat kata sandi baru."}
+              </Message>
+            </p>
           </div>
 
           <PasswordResetForm initialEmail={initialEmail} />

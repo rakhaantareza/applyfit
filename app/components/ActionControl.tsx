@@ -1,8 +1,5 @@
 import { ArrowRight } from "lucide-react";
-import type {
-  ButtonHTMLAttributes,
-  ComponentPropsWithoutRef,
-} from "react";
+import type { ButtonHTMLAttributes, ComponentPropsWithoutRef } from "react";
 import { StableLink } from "./StableLink";
 
 export type ActionVariant =
@@ -76,7 +73,9 @@ export function IconButton({
         `ui-icon-button--${size}`,
         `ui-icon-button--${tone}`,
         className,
-      ].filter(Boolean).join(" ")}
+      ]
+        .filter(Boolean)
+        .join(" ")}
       type={type}
     />
   );
@@ -103,5 +102,7 @@ function actionClassName(
     variant === "text" ? "" : `ui-button--${variant}`,
     variant === "text" ? "" : `ui-button--${size}`,
     className,
-  ].filter(Boolean).join(" ");
+  ]
+    .filter(Boolean)
+    .join(" ");
 }

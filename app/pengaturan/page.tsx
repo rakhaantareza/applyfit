@@ -1,5 +1,7 @@
+import { Message } from "../components/LanguageProvider";
 import type { Metadata } from "next";
 import { AppShell } from "../components/AppShell";
+import { PageHeader } from "../components/ContentHeaders";
 import { AccountSettings } from "./AccountSettings";
 import { AuthenticatedRoute } from "../components/AuthenticatedRoute";
 
@@ -10,17 +12,18 @@ export const metadata: Metadata = {
 
 export default function AccountSettingsPage() {
   return (
-    <AuthenticatedRoute><AppShell activeItem="Pengaturan" mainClassName="account-settings-main">
+    <AuthenticatedRoute>
+      <AppShell activeItem="Pengaturan" mainClassName="account-settings-main">
         <div className="page-container account-settings-page">
-          <header className="account-settings-page-header">
-            <div>
-              <p className="eyebrow">Akun dan keamanan</p>
-              <h1>Pengaturan akun</h1>
-              <p>Kelola identitas login secara terpisah dari arah dan profil kariermu.</p>
-            </div>
-          </header>
+          <PageHeader
+            title={<Message>{"Pengaturan"}</Message>}
+            description={
+              <Message>{"Nama, foto, dan keamanan akunmu."}</Message>
+            }
+          />
           <AccountSettings />
         </div>
-    </AppShell></AuthenticatedRoute>
+      </AppShell>
+    </AuthenticatedRoute>
   );
 }

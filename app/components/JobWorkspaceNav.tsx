@@ -1,3 +1,6 @@
+"use client";
+import { useI18n } from "./LanguageProvider";
+
 import { StableLink as Link } from "./StableLink";
 
 export type JobWorkspaceStep = "detail" | "requirements" | "match" | "analysis";
@@ -16,11 +19,12 @@ export function JobWorkspaceNav({
   activeStep: JobWorkspaceStep;
   jobId: string;
 }) {
+  const { t } = useI18n();
   const jobHref = `/lowongan/${encodeURIComponent(jobId)}`;
 
   return (
-    <nav className="job-workspace-nav" aria-label="Navigasi lowongan">
-      {workspaceSteps.map((step) => {
+    <nav className="job-workspace-nav" aria-label={t("Navigasi lowongan")}>
+      {workspaceSteps.map((step, index) => {
         const isActive = step.id === activeStep;
         return (
           <Link
@@ -29,7 +33,10 @@ export function JobWorkspaceNav({
             aria-current={isActive ? "page" : undefined}
             key={step.id}
           >
-            {step.label}
+            <span className="workspace-step-index" aria-hidden="true">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <span>{t(step.label)}</span>
           </Link>
         );
       })}

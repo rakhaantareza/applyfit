@@ -1,8 +1,10 @@
 "use client";
+import { useI18n } from "../../components/LanguageProvider";
 
-import { AlertCircle, Clock3 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { JobFocusShell } from "../../components/JobFocusShell";
+import { BrandMotif } from "../../components/BrandMotif";
 import { ActionLink, CtaArrow } from "../../components/ActionControl";
 import { InlineBackLink } from "../../components/InlineBackLink";
 import { JobDescriptionEditor } from "./JobDescriptionEditor";
@@ -21,6 +23,7 @@ type PersistedJob = {
 };
 
 export function PersistedJobDetail({ jobId }: { jobId: string }) {
+  const { t, language } = useI18n();
   const [job, setJob] = useState<PersistedJob | null>(null);
   const [requirementCount, setRequirementCount] = useState(0);
   const [error, setError] = useState("");
@@ -29,7 +32,9 @@ export function PersistedJobDetail({ jobId }: { jobId: string }) {
     let active = true;
     void Promise.all([
       fetch(`/api/jobs/${encodeURIComponent(jobId)}`, { cache: "no-store" }),
-      fetch(`/api/jobs/${encodeURIComponent(jobId)}/requirements`, { cache: "no-store" }),
+      fetch(`/api/jobs/${encodeURIComponent(jobId)}/requirements`, {
+        cache: "no-store",
+      }),
     ])
       .then(async ([jobResponse, requirementsResponse]) => {
         const [jobResult, requirementsResult] = await Promise.all([
@@ -37,19 +42,28 @@ export function PersistedJobDetail({ jobId }: { jobId: string }) {
           readRequirementsResponse(requirementsResponse),
         ]);
         if (!jobResponse.ok || !jobResult.data?.job) {
-          throw new Error(jobResult.error?.message ?? "Detail lowongan belum dapat dimuat.");
+          throw new Error(
+            jobResult.error?.message ?? "Detail lowongan belum dapat dimuat.",
+          );
         }
         if (active) {
           setJob(jobResult.data.job);
           setRequirementCount(
-            requirementsResponse.ok ? requirementsResult.data?.total ?? 0 : 0,
+            requirementsResponse.ok ? (requirementsResult.data?.total ?? 0) : 0,
           );
         }
       })
       .catch((requestError) => {
-        if (active) setError(requestError instanceof Error ? requestError.message : "Detail lowongan belum dapat dimuat.");
+        if (active)
+          setError(
+            requestError instanceof Error
+              ? requestError.message
+              : "Detail lowongan belum dapat dimuat.",
+          );
       });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [jobId]);
 
   if (!job) return <PersistedJobState jobId={jobId} message={error} />;
@@ -71,67 +85,138 @@ export function PersistedJobDetail({ jobId }: { jobId: string }) {
       mainClassName="job-detail-main"
       title={job.title}
     >
-        <div className="page-container job-detail-page">
-          <JobInfoEditor initialJob={info} jobId={job.id} />
+      <div className="page-container job-detail-page">
+        <JobInfoEditor initialJob={info} jobId={job.id} allowEditing={false} />
 
-          <section className="job-detail-content" aria-label="Isi lowongan">
-            <JobDescriptionEditor
-              initialDescription={job.rawDescription}
-              jobId={job.id}
-              reviewHref={`/lowongan/${job.id}/persyaratan`}
-            />
-            <aside className="job-detail-aside" aria-label="Status lowongan">
-              <div><p className="eyebrow">Langkah berikutnya</p><span className={`job-stage ${requirementCount ? "review" : "draft"}`}>{requirementCount ? "Siap diperiksa" : "Draft tersimpan"}</span><p>{requirementCount ? "Periksa requirement tersimpan sebelum melanjutkan ke Cocokkan Profil." : "Ekstrak requirement dari deskripsi, lalu periksa hasilnya sebelum analisis."}</p></div>
-              <dl>
-                <div><dt>Requirement tersimpan</dt><dd>{requirementCount || "Belum ada"}</dd></div>
-                <div><dt>Disimpan</dt><dd>{formatDate(job.createdAt)}</dd></div>
-                <div><dt>Aktivitas terakhir</dt><dd>{formatDate(job.updatedAt)}</dd></div>
-              </dl>
-              <p className="job-detail-source-note"><Clock3 aria-hidden="true" size={13} strokeWidth={1.8} />Konteks ini berasal dari informasi yang kamu simpan.</p>
-              {requirementCount ? (
-                <ActionLink className="career-button primary" href={`/lowongan/${job.id}/persyaratan`}>
-                  Buka Persyaratan
-                  <CtaArrow />
-                </ActionLink>
-              ) : null}
-            </aside>
-          </section>
-        </div>
+        <section className="job-detail-content" aria-label={t("Isi lowongan")}>
+          <JobDescriptionEditor
+            initialDescription={job.rawDescription}
+            hasExistingRequirements={requirementCount > 0}
+            jobId={job.id}
+            reviewHref={`/lowongan/${job.id}/persyaratan`}
+          />
+          <aside className="job-detail-aside" aria-label={t("Status lowongan")}>
+            <span className="job-detail-accent" aria-hidden="true">
+              <BrandMotif />
+            </span>
+            <div className="job-next-step">
+              <p className="eyebrow">{t("Langkah berikutnya")}</p>
+              <span
+                className={`job-stage ${requirementCount ? "review" : "draft"}`}
+              >
+                {requirementCount ? t("Siap diperiksa") : t("Draft tersimpan")}
+              </span>
+              <p>
+                {requirementCount
+                  ? t("Periksa persyaratan sebelum lanjut ke Cocokkan Profil.")
+                  : t(
+                      "Ambil persyaratan dari deskripsi, lalu periksa hasilnya sebelum analisis.",
+                    )}
+              </p>
+            </div>
+            <dl>
+              <div>
+                <dt>{t("Persyaratan tersimpan")}</dt>
+                <dd>{requirementCount || t("Belum ada")}</dd>
+              </div>
+              <div>
+                <dt>{t("Disimpan")}</dt>
+                <dd>{formatDate(job.createdAt, language)}</dd>
+              </div>
+              <div>
+                <dt>{t("Aktivitas terakhir")}</dt>
+                <dd>{formatDate(job.updatedAt, language)}</dd>
+              </div>
+            </dl>
+            {requirementCount ? (
+              <ActionLink
+                className="career-button primary"
+                href={`/lowongan/${job.id}/persyaratan`}
+              >
+                {t("Buka Persyaratan")}
+                <CtaArrow />
+              </ActionLink>
+            ) : null}
+          </aside>
+        </section>
+      </div>
     </JobFocusShell>
   );
 }
 
-function PersistedJobState({ jobId, message }: { jobId: string; message: string }) {
+function PersistedJobState({
+  jobId,
+  message,
+}: {
+  jobId: string;
+  message: string;
+}) {
+  const { t } = useI18n();
   return (
-    <JobFocusShell activeStep="detail" jobId={jobId} mainClassName="job-detail-main">
-        <div className="page-container job-detail-page">
-          {message ? (
-            <div className="persisted-job-state error">
-              <AlertCircle aria-hidden="true" size={22} />
-              <strong>{message}</strong>
-              <InlineBackLink href="/lowongan">Kembali ke semua lowongan</InlineBackLink>
-            </div>
-          ) : null}
-        </div>
+    <JobFocusShell
+      activeStep="detail"
+      jobId={jobId}
+      mainClassName="job-detail-main"
+    >
+      <div className="page-container job-detail-page">
+        {message ? (
+          <div className="persisted-job-state error">
+            <AlertCircle aria-hidden="true" size={22} />
+            <strong>{t(message)}</strong>
+            <InlineBackLink href="/lowongan">
+              {t("Kembali ke semua lowongan")}
+            </InlineBackLink>
+          </div>
+        ) : null}
+      </div>
     </JobFocusShell>
   );
 }
 
 function getInitials(company: string) {
-  return company.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]?.toLocaleUpperCase("id-ID")).join("") || "AF";
+  return (
+    company
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((word) => word[0]?.toLocaleUpperCase("id-ID"))
+      .join("") || "AF"
+  );
 }
 
-function formatDate(value: string) {
+function formatDate(value: string, language = "id") {
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "Baru saja" : new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" }).format(date);
+  return Number.isNaN(date.getTime())
+    ? "Baru saja"
+    : new Intl.DateTimeFormat(language === "en" ? "en-GB" : "id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }).format(date);
 }
 
-type JobResponse = { data?: { job?: PersistedJob }; error?: { message?: string } };
-type RequirementsResponse = { data?: { total: number }; error?: { message?: string } };
+type JobResponse = {
+  data?: { job?: PersistedJob };
+  error?: { message?: string };
+};
+type RequirementsResponse = {
+  data?: { total: number };
+  error?: { message?: string };
+};
 async function readJobResponse(response: Response): Promise<JobResponse> {
-  try { return await response.json() as JobResponse; } catch { return {}; }
+  try {
+    return (await response.json()) as JobResponse;
+  } catch {
+    return {};
+  }
 }
 
-async function readRequirementsResponse(response: Response): Promise<RequirementsResponse> {
-  try { return await response.json() as RequirementsResponse; } catch { return {}; }
+async function readRequirementsResponse(
+  response: Response,
+): Promise<RequirementsResponse> {
+  try {
+    return (await response.json()) as RequirementsResponse;
+  } catch {
+    return {};
+  }
 }

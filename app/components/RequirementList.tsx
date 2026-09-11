@@ -1,11 +1,9 @@
 "use client";
+import { useI18n } from "./LanguageProvider";
 
 import { useMemo, useState } from "react";
 import { RequirementDetail } from "./RequirementDetail";
-import type {
-  Requirement,
-  RequirementStatus,
-} from "../types/fit-analysis";
+import type { Requirement, RequirementStatus } from "../types/fit-analysis";
 
 export type { Requirement } from "../types/fit-analysis";
 
@@ -17,7 +15,9 @@ type StatusFilter = "Semua status" | RequirementStatus;
 type PriorityFilter = "Semua prioritas" | Requirement["priority"];
 
 export function RequirementList({ requirements }: RequirementListProps) {
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("Semua status");
+  const { t } = useI18n();
+  const [statusFilter, setStatusFilter] =
+    useState<StatusFilter>("Semua status");
   const [priorityFilter, setPriorityFilter] =
     useState<PriorityFilter>("Semua prioritas");
 
@@ -25,7 +25,8 @@ export function RequirementList({ requirements }: RequirementListProps) {
     () =>
       requirements.filter((requirement) => {
         const matchesStatus =
-          statusFilter === "Semua status" || requirement.status === statusFilter;
+          statusFilter === "Semua status" ||
+          requirement.status === statusFilter;
         const matchesPriority =
           priorityFilter === "Semua prioritas" ||
           requirement.priority === priorityFilter;
@@ -38,7 +39,8 @@ export function RequirementList({ requirements }: RequirementListProps) {
   const scorableRequirementCount = useMemo(
     () =>
       requirements.filter(
-        (requirement) => requirement.kind === "Skill" || requirement.kind === "Tool",
+        (requirement) =>
+          requirement.kind === "Skill" || requirement.kind === "Tool",
       ).length,
     [requirements],
   );
@@ -58,11 +60,12 @@ export function RequirementList({ requirements }: RequirementListProps) {
           ◌
         </span>
         <div>
-          <p className="eyebrow">Skor belum tersedia</p>
-          <h3>Belum ada persyaratan Skill atau Tool</h3>
+          <p className="eyebrow">{t("Skor belum tersedia")}</p>
+          <h3>{t("Belum ada persyaratan Skill atau Tool")}</h3>
           <p>
-            Persyaratan Education dan Experience tetap tersimpan sebagai konteks, tetapi
-            Fit Score baru dapat dihitung setelah ada syarat berbasis Skill atau Tool.
+            {t(
+              "Persyaratan Education dan Experience tetap tersimpan sebagai konteks, tetapi Fit Score baru dapat dihitung setelah ada syarat berbasis Skill atau Tool.",
+            )}
           </p>
         </div>
       </div>
@@ -71,59 +74,70 @@ export function RequirementList({ requirements }: RequirementListProps) {
 
   return (
     <>
-      <div className="requirement-filters" aria-label="Filter persyaratan">
+      <div className="requirement-filters" aria-label={t("Filter persyaratan")}>
         <div className="filter-fields">
           <label>
             <select
-              aria-label="Filter status persyaratan"
+              aria-label={t("Filter status persyaratan")}
               value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
+              onChange={(event) =>
+                setStatusFilter(event.target.value as StatusFilter)
+              }
             >
-              <option>Semua status</option>
-              <option value="Proven">Terbukti</option>
-              <option value="Partial">Belum terbukti</option>
-              <option value="Learning">Sedang dipelajari</option>
-              <option value="Missing">Belum ada kecocokan</option>
+              <option value={"Semua status"}>{t("Semua status")}</option>
+              <option value="Proven">{t("Terbukti")}</option>
+              <option value="Partial">{t("Belum terbukti")}</option>
+              <option value="Learning">{t("Sedang dipelajari")}</option>
+              <option value="Missing">{t("Belum ada kecocokan")}</option>
             </select>
           </label>
           <label>
             <select
-              aria-label="Filter prioritas persyaratan"
+              aria-label={t("Filter prioritas persyaratan")}
               value={priorityFilter}
               onChange={(event) =>
                 setPriorityFilter(event.target.value as PriorityFilter)
               }
             >
-              <option>Semua prioritas</option>
-              <option>Wajib</option>
-              <option>Preferensi</option>
+              <option value={"Semua prioritas"}>{t("Semua prioritas")}</option>
+              <option value={"Wajib"}>{t("Wajib")}</option>
+              <option value={"Preferensi"}>{t("Preferensi")}</option>
             </select>
           </label>
         </div>
         <div className="filter-result">
           <span aria-live="polite">
-            {filteredRequirements.length} dari {requirements.length} persyaratan
+            {filteredRequirements.length} {t("dari")} {requirements.length}{" "}
+            {t("persyaratan")}
           </span>
           {hasActiveFilter && (
             <button type="button" onClick={resetFilters}>
-              Reset filter
+              {t("Reset filter")}
             </button>
           )}
         </div>
       </div>
 
       <div className="requirements-list">
-        {filteredRequirements.map((requirement) => (
-          <RequirementDetail requirement={requirement} key={`${requirement.name}-${requirement.priority}`} />
-        ))}
+        {[...filteredRequirements]
+          .sort(
+            (a, b) =>
+              Number(a.status === "Missing") - Number(b.status === "Missing"),
+          )
+          .map((requirement) => (
+            <RequirementDetail
+              requirement={requirement}
+              key={`${requirement.name}-${requirement.priority}`}
+            />
+          ))}
 
         {filteredRequirements.length === 0 && (
           <div className="empty-filter-state">
             <span aria-hidden="true">⌕</span>
-            <h3>Tidak ada persyaratan yang cocok</h3>
-            <p>Coba ubah status atau prioritas yang dipilih.</p>
+            <h3>{t("Tidak ada persyaratan yang cocok")}</h3>
+            <p>{t("Coba ubah status atau prioritas yang dipilih.")}</p>
             <button type="button" onClick={resetFilters}>
-              Tampilkan semua
+              {t("Tampilkan semua")}
             </button>
           </div>
         )}

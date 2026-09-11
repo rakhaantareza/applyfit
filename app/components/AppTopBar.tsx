@@ -1,15 +1,9 @@
 "use client";
+import { useI18n } from "./LanguageProvider";
 
 /* eslint-disable @next/next/no-img-element -- Account avatars can use user-provided HTTPS hosts. */
 
-import {
-  LogOut,
-  Monitor,
-  Moon,
-  Settings,
-  Sun,
-  type LucideIcon,
-} from "lucide-react";
+import { Settings } from "lucide-react";
 import Link from "next/link";
 import { Fragment, useEffect, useRef, useState } from "react";
 import {
@@ -18,38 +12,32 @@ import {
   useAuthSession,
 } from "./AuthSessionProvider";
 import {
+  appNavigation,
+  type AppSidebarActiveItem,
   AppMobileMenuButton,
   AppSidebarToggle,
 } from "./AppSidebar";
 import { InlineBackLink } from "./InlineBackLink";
-import {
-  type AppearancePreference,
-  useAppearance,
-} from "./AppearanceProvider";
+import { BrandMotif } from "./BrandMotif";
+import { SignOutButton } from "./SignOutButton";
+import { LanguagePicker } from "./LanguagePicker";
 
 type AppTopBarProps = {
+  activeItem?: AppSidebarActiveItem;
   backHref?: string;
   context?: readonly string[];
   showSidebarControls?: boolean;
   variant?: "app" | "focus";
 };
 
-const appearanceOptions: Array<{
-  icon: LucideIcon;
-  label: string;
-  value: AppearancePreference;
-}> = [
-  { icon: Monitor, label: "System", value: "system" },
-  { icon: Sun, label: "Light", value: "light" },
-  { icon: Moon, label: "Dark", value: "dark" },
-];
-
 export function AppTopBar({
+  activeItem,
   backHref,
   context = [],
   showSidebarControls = false,
   variant = "app",
 }: AppTopBarProps) {
+  const { t } = useI18n();
   return (
     <header className={`app-topbar app-topbar-${variant}`}>
       <div className="app-topbar-leading">
@@ -57,21 +45,46 @@ export function AppTopBar({
           className="app-topbar-brand"
           href="/beranda"
           prefetch={false}
-          aria-label="ApplyFit beranda"
+          aria-label={t("ApplyFit beranda")}
         >
-          <span className="brand-mark" aria-hidden="true">A</span>
+          <BrandMotif className="brand-logo" />
           <span>ApplyFit</span>
         </Link>
         {showSidebarControls ? (
           <div className="app-topbar-navigation-controls">
             <AppSidebarToggle />
-            <AppMobileMenuButton />
           </div>
         ) : null}
       </div>
 
+      {variant === "app" && showSidebarControls ? (
+        <nav className="global-navigation" aria-label={t("Navigasi utama")}>
+          {appNavigation.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              prefetch={false}
+              aria-current={activeItem === item.label ? "page" : undefined}
+            >
+              {t(item.label)}
+            </Link>
+          ))}
+          <Link
+            className="global-navigation-guide"
+            href="/contoh-perhitungan"
+            prefetch={false}
+            aria-label={t("Cara Fit Score dihitung")}
+            aria-current={
+              activeItem === "Cara Fit Score dihitung" ? "page" : undefined
+            }
+          >
+            {t("Panduan")}
+          </Link>
+        </nav>
+      ) : null}
+
       {context.length > 0 ? (
-        <nav className="app-topbar-context" aria-label="Konteks halaman">
+        <nav className="app-topbar-context" aria-label={t("Konteks halaman")}>
           {context.map((segment, index) => (
             <Fragment key={`${segment}-${index}`}>
               {index > 0 ? (
@@ -80,16 +93,16 @@ export function AppTopBar({
                 </span>
               ) : null}
               {index === 0 && backHref ? (
-                <InlineBackLink href={backHref}>
-                  {segment}
-                </InlineBackLink>
+                <InlineBackLink href={backHref}>{t(segment)}</InlineBackLink>
               ) : (
                 <span
-                  className={index === context.length - 1
-                    ? "shell-breadcrumb-current"
-                    : undefined}
+                  className={
+                    index === context.length - 1
+                      ? "shell-breadcrumb-current"
+                      : undefined
+                  }
                 >
-                  {segment}
+                  {t(segment)}
                 </span>
               )}
             </Fragment>
@@ -97,21 +110,24 @@ export function AppTopBar({
         </nav>
       ) : null}
 
-      <AccountMenu />
+      <div className="topbar-tools">
+        <LanguagePicker />
+        <AccountMenu />
+        {showSidebarControls ? <AppMobileMenuButton /> : null}
+      </div>
     </header>
   );
 }
 
 function AccountMenu() {
-  const { appearance, setAppearance } = useAppearance();
+  const { t } = useI18n();
+
   const { user, loading } = useAuthSession();
   const accountName = loading ? "Memuat akun…" : getAuthDisplayName(user);
   const accountEmail = user?.email ?? "Sesi belum tersedia";
   const avatarUrl = user?.profile?.avatar_url?.trim() || null;
   const initials = getAccountInitials(accountName);
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [accountError, setAccountError] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -134,31 +150,14 @@ function AccountMenu() {
     };
   }, [isOpen]);
 
-  async function logOutSession() {
-    setAccountError("");
-    setIsLoggingOut(true);
-    try {
-      const response = await fetch("/api/auth/sign-out", { method: "POST" });
-      if (!response.ok && response.status !== 204) {
-        throw new Error("Sesi belum dapat diakhiri.");
-      }
-      window.location.assign("/login");
-    } catch (requestError) {
-      setAccountError(
-        requestError instanceof Error
-          ? requestError.message
-          : "Sesi belum dapat diakhiri.",
-      );
-      setIsLoggingOut(false);
-    }
-  }
-
   return (
     <div className="topbar-account" ref={menuRef}>
       <button
         className="topbar-account-trigger"
         type="button"
-        aria-label={`${isOpen ? "Tutup" : "Buka"} menu akun ${accountName}`}
+        aria-label={t(
+          `${isOpen ? t("Tutup") : t("Buka")} menu akun ${accountName}`,
+        )}
         aria-expanded={isOpen}
         aria-haspopup="menu"
         aria-controls="topbar-account-menu"
@@ -172,7 +171,11 @@ function AccountMenu() {
       </button>
 
       {isOpen ? (
-        <div className="topbar-account-menu" id="topbar-account-menu" role="menu">
+        <div
+          className="topbar-account-menu"
+          id="topbar-account-menu"
+          role="menu"
+        >
           <div className="topbar-account-identity">
             <AccountAvatar
               avatarUrl={avatarUrl}
@@ -185,48 +188,17 @@ function AccountMenu() {
             </span>
           </div>
 
-          <Link href="/pengaturan" prefetch={false} role="menuitem" onClick={() => setIsOpen(false)}>
+          <Link
+            href="/pengaturan"
+            prefetch={false}
+            role="menuitem"
+            onClick={() => setIsOpen(false)}
+          >
             <Settings aria-hidden="true" size={16} strokeWidth={1.8} />
-            Pengaturan
+            {t("Pengaturan")}
           </Link>
 
-          <div className="appearance-menu-group" aria-label="Tampilan">
-            <span>Tampilan</span>
-            <div className="appearance-options">
-              {appearanceOptions.map((option) => {
-                const Icon = option.icon;
-                const isActive = option.value === appearance;
-                return (
-                  <button
-                    className={isActive ? "active" : undefined}
-                    key={option.value}
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked={isActive}
-                    onClick={() => setAppearance(option.value)}
-                  >
-                    <Icon aria-hidden="true" size={14} strokeWidth={1.8} />
-                    {option.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {accountError ? (
-            <p className="topbar-account-error" role="alert">{accountError}</p>
-          ) : null}
-
-          <button
-            className="topbar-signout"
-            type="button"
-            role="menuitem"
-            disabled={isLoggingOut}
-            onClick={logOutSession}
-          >
-            <LogOut aria-hidden="true" size={16} strokeWidth={1.8} />
-            {isLoggingOut ? "Mengakhiri sesi…" : "Keluar"}
-          </button>
+          <SignOutButton menuItem />
         </div>
       ) : null}
     </div>
@@ -242,10 +214,11 @@ function AccountAvatar({
   initials: string;
   name: string;
 }) {
+  const { t } = useI18n();
   return (
     <span
       className={`avatar${avatarUrl ? " has-image" : ""}`}
-      aria-label={avatarUrl ? `Foto profil ${name}` : undefined}
+      aria-label={avatarUrl ? t(`Foto profil ${name}`) : undefined}
       aria-hidden={avatarUrl ? undefined : true}
     >
       {avatarUrl ? <img src={avatarUrl} alt="" /> : initials}
