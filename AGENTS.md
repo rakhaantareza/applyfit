@@ -19,12 +19,16 @@ Use the repository documentation with this priority:
    - Primary source of truth for approved ApplyFit product behavior, UX, information architecture, user flow, and user-facing terminology.
    - During an active refinement milestone, the current implementation may temporarily lag behind this document.
 
-2. `docs/prd-v1.0.md`
+2. `docs/visual-system.md`
+   - Sole active reference for typography, colors, composition, responsive behavior, shared UI components, and visual checks.
+   - Keep it aligned with approved product behavior and current UI; remove superseded design instructions rather than appending contradictory overrides.
+
+3. `docs/prd-v1.0.md`
    - Archived historical reference for the v1.0.0 Core MVP.
    - Use it for historical context only.
    - Never use it to override current decisions in `docs/product-spec.md`.
 
-3. `docs/roadmap.md`
+4. `docs/roadmap.md`
    - Future ideas and possible enhancements.
    - Roadmap items are not implementation scope unless the user explicitly promotes or requests them.
 
@@ -48,6 +52,15 @@ Preserve these product invariants unless the user explicitly changes them:
 - Prefer removing redundant cards, badges, labels, copy, and motion over adding decoration to solve hierarchy.
 - Do not implement items from `docs/roadmap.md` opportunistically.
 
+## UI implementation conventions
+
+- Reuse `ActionControl`, `CollectionIllustration`, and `EmptyCollectionState`; keep readiness checkpoint proportions consistent.
+- Empty collections have one relevant primary action. Avoid duplicate destinations, irrelevant filters, and zero-count decoration.
+- Keep icon-only edit/delete entry actions distinct from text confirmation buttons. Batal stays left of Hapus; preserve keyboard focus and existing cancellation behavior.
+- Pointer hover preserves button borders and dimensions, adds no underline, and retains arrow motion with reduced-motion support.
+- UI refactors preserve API behavior, persisted data, authentication, matching, and scoring.
+- Validate relevant states and responsive boundaries, not just populated desktop pages. Use the checks documented in `docs/visual-system.md`.
+
 ## Working-tree and validation discipline
 
 - Preserve unrelated user changes already present in the working tree. Do not revert, overwrite, stage, or reformat unrelated files just to complete the current task.
@@ -69,6 +82,7 @@ The approved product direction is **review-first**, not manual-first.
 - Advanced semantic matching, transferable-skill inference, AI-assisted relevance ranking, and similar higher-ambiguity behavior remain roadmap work unless explicitly requested.
 
 <!-- INSFORGE:START -->
+
 ## InsForge backend
 
 This project uses [InsForge](https://insforge.dev): an all-in-one, open-source Postgres-based backend (BaaS) that gives this app a database, authentication, file storage, edge functions, realtime, an AI model gateway, and payments through one platform.

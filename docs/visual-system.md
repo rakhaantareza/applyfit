@@ -17,7 +17,7 @@ for meaningful progress or navigation; they are not a repeated page decoration.
 - `ContentHeaders` owns page and section hierarchy; `ActionControl` retains shared
   control semantics, variants, focus, and disabled behavior.
 - `AppShell`, `AppTopBar`, and `AppSidebar` share the same navigation destinations.
-  Desktop has horizontal navigation; tablet a fixed compact rail; mobile a drawer.
+  Desktop has horizontal navigation; tablet a fixed compact rail; mobile bottom navigation and a utility drawer.
 - `JobFocusShell` and `JobWorkspaceNav` provide context and job-specific chapters.
 - `RelationshipLane` connects supporting information in portfolio, matching,
   and expanded analysis. `ConnectionPath` presents the ordered model in auth.
@@ -30,7 +30,7 @@ retain readable white text. Status meanings remain explicit in copy.
 
 The cobalt navigation band and four meeting shapes provide a recurring signature.
 `BrandMotif` is a quiet reference to requirement, skill, evidence, and fit; it appears
-in page headers, empty collections, and auth. It does not imply completion or add
+as cropped accents in selected cards and auth. Empty collections use contextual CollectionIllustration artwork. It does not imply completion or add
 new metrics. Search and filter controls share surfaces, focus treatment, and radii.
 The references were [Jobstreet](https://id.jobstreet.com/) and
 [Dealls](https://dealls.com/): consistent branded navigation and supporting shapes,
@@ -46,7 +46,7 @@ recreate the page on language changes.
 | Area                   | Composition                                                                   |
 | ---------------------- | ----------------------------------------------------------------------------- |
 | Shell                  | Typographic brand, horizontal desktop destinations, quiet account menu        |
-| Ringkasan              | Full-width greeting, active job dossier, contrasting score panel              |
+| Ringkasan              | Full-width greeting, one readiness checkpoint, real score when available      |
 | Profil                 | Blue career-direction card beside an open skill index                         |
 | Portfolio & Pengalaman | Two-column collection of works; support relationships in each footer          |
 | Lowongan               | Self-contained job cards with context and actual requirement state            |
@@ -63,8 +63,7 @@ becomes a single column on mobile. The job workflow keeps its clear return path.
 
 ## Type and geometry
 
-DM Sans handles headings, body text, controls, and numerals. Serif and monospace
-are no longer loaded. Titles use a restrained 28–36px scale, body text 15–16px,
+DM Sans handles headings, body text, controls, and numerals. Titles use a restrained 28–36px scale, body text 15–16px,
 and secondary metadata 12–14px. Mobile form text stays at 16px. Controls have 8px
 corners; grouped surfaces use 12–16px corners. Whitespace and tonal contrast carry
 hierarchy. Avoid both repeated separator lines and unnecessary nested cards.
@@ -110,3 +109,15 @@ For CSS cleanup, run the UI script with --snapshot=before, then --snapshot=after
 Priority controls keep their intrinsic width at every viewport. At 1024–1199px, requirement cards use two rows: the requirement text spans the content width, followed by compact priority controls with review status and actions aligned to the right. Deletion confirmation gets its own row. Tablet and mobile retain their dedicated layouts, and selection mode keeps the checkbox separate from the text.
 
 Run `node scripts/screenshots/requirements-responsive.mjs` to check list, edit, delete-confirmation, and selection states at 12 widths from 360 to 1440px. The script blocks writes and checks priority-control width and clipped controls. Set `QA_WIDTHS` to a comma-separated list when running `npm run qa:ui` to inspect additional breakpoints; the standard widths remain unchanged. Responsive review includes boundary widths around 768, 1024, 1100, and 1200px, not only named device presets.
+
+## Readiness illustrations
+
+Skill empty states and Ringkasan checkpoints use CollectionIllustration, sharing the paper, cobalt, and muted sand palette of Portfolio and Lowongan. Use contextual profile, skills, portfolio, jobs, requirements, matching, or analysis artwork instead of the ApplyFit logo or a warning icon for ordinary incomplete data. Illustrations are decorative; headings, stage labels, and action text communicate the actual state. Completed analysis retains the real score, including zero, without a placeholder illustration.
+
+Early Ringkasan checkpoints share SummaryCheckpoint: concise context and copy beside one illustrated action panel. Job-progress cards use the same proportions, with workflow progress below. Narrow screens stack these areas. Secondary links must not repeat the primary destination. Run `node scripts/screenshots/checkpoints-qa.mjs` to inspect twelve dashboard states and empty Skill, Portfolio, and Lowongan collections at 390, 768, 1024, and 1440px. Responses are browser fixtures and writes are intercepted.
+
+## Empty collection composition and actions
+
+EmptyCollectionState owns the illustration, heading, description, spacing, and action layout for Profil skill, Portfolio, and Lowongan empty states. Show one add action; hide collection counts and filters when no collection data exists. An open add editor replaces the empty-state prompt. Filtered zero results retain filter recovery actions. All button variants and text CTAs remain free of underlines on hover and keyboard focus; preserve focus indicators and arrow motion.
+
+Delete confirmations use readable 14px copy above two equal-width text actions: Batal on the left and Hapus on the right, with minimum 44px targets. Do not reuse icon-only record-action classes for confirmation buttons. Keep the existing job modal focus management and cancellation behavior. Run `node scripts/screenshots/delete-qa.mjs` to check all four deletion entry points at 390, 768, 1024, and 1440px without deleting data.

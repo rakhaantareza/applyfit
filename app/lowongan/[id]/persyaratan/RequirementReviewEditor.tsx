@@ -533,13 +533,14 @@ export function RequirementReviewEditor({
                       >
                         <span>{t("Hapus requirement?")}</span>
                         <button
+                          className="ui-button ui-button--secondary ui-button--default"
                           type="button"
                           onClick={() => setPendingDeleteId(null)}
                         >
                           {t("Batal")}
                         </button>
                         <button
-                          className="danger ui-record-action ui-record-action--delete"
+                          className="danger ui-button ui-button--destructive ui-button--default"
                           type="button"
                           onClick={() => deleteRequirement(requirement)}
                         >

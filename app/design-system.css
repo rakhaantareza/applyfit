@@ -3991,9 +3991,6 @@ body :is(.skill-empty-state, .evidence-empty-state) {
   background: var(--surface);
   border-radius: 16px;
 }
-body :is(.skill-empty-state, .evidence-empty-state) .brand-motif {
-  width: 86px;
-}
 body :is(.skill-empty-state, .evidence-empty-state) strong {
   font-size: 18px;
   line-height: 1.4;
@@ -4005,16 +4002,6 @@ body :is(.skill-empty-state, .evidence-empty-state) p {
   max-width: 380px;
   margin: 6px 0 0;
   color: var(--foreground-muted);
-}
-body :is(.skill-empty-state, .evidence-empty-state) button {
-  min-height: 44px;
-  border: 0;
-  border-radius: 10px;
-  padding: 10px 18px;
-  background: var(--primary-subtle);
-  color: var(--primary);
-  font-size: 14px;
-  font-weight: 600;
 }
 body .profile-skill-list:has(.skill-empty-state),
 body .evidence-library-list:has(.evidence-empty-state) {
@@ -5602,16 +5589,7 @@ html
 html body .summary-work-action .ui-button:is(:hover, :focus-visible) {
   background: var(--foreground-inverse) !important;
 }
-html
-  body
-  :is(
-    .evidence-delete-confirmation,
-    .skill-delete-confirmation,
-    .requirement-delete-confirmation
-  )
-  button:is(:hover, :focus-visible) {
-  background: transparent !important;
-}
+
 @media (prefers-reduced-motion: reduce) {
   html body .ui-record-action,
   html body .ui-record-action svg {
@@ -6007,4 +5985,153 @@ body .account-identity-card .account-form-footer {
   body .account-identity-card .account-identity-preview {
     padding: 4px 0 0;
   }
+}
+
+/* A single empty-state hierarchy across skills, portfolio, and saved jobs. */
+html body .empty-collection-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-height: 360px;
+  padding: 40px 24px;
+  background: var(--surface);
+  border: 0;
+  border-radius: 16px;
+  text-align: center;
+}
+html body .empty-collection-state > .collection-illustration {
+  width: 180px;
+  max-width: 100%;
+  margin: 0;
+}
+html body .empty-collection-copy {
+  max-width: 440px;
+}
+html body .empty-collection-copy h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+html body .empty-collection-copy p {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--foreground-muted);
+}
+html body .empty-collection-state > .ui-button {
+  flex: none;
+  width: auto;
+  max-width: 100%;
+  min-height: 44px;
+}
+body .summary-current-work:not(.completed) .summary-work-layout {
+  grid-template-columns: minmax(0, 1fr) 220px;
+  align-items: center;
+  gap: 32px;
+}
+body .summary-current-work:not(.completed) .summary-work-action {
+  background: var(--primary-subtle);
+  padding: 20px;
+  gap: 16px;
+}
+body .summary-checkpoint .summary-work-copy h2 {
+  font-size: 24px;
+  line-height: 1.35;
+}
+html body :is(button, .ui-button, .ui-icon-button, .ui-text-cta),
+html
+  body
+  :is(button, .ui-button, .ui-icon-button, .ui-text-cta):is(
+    :hover,
+    :focus-visible,
+    :active
+  ),
+html body .summary-secondary-nav a:is(:hover, :focus-visible) {
+  text-decoration: none;
+}
+@media (max-width: 767px) {
+  html body .empty-collection-state {
+    padding: 28px 20px;
+    min-height: 320px;
+  }
+  body .summary-current-work:not(.completed) .summary-work-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  body .summary-checkpoint .summary-work-copy h2 {
+    font-size: 22px;
+  }
+}
+
+body .summary-work-action > .collection-illustration {
+  width: 160px;
+  margin: 0 auto;
+}
+/* The shared skill empty state owns the card padding without a duplicate header. */
+body .profile-skills-section:has(.skill-empty-state),
+body .profile-skills-section:has(.skill-empty-state) .profile-skill-list {
+  padding: 0;
+  margin: 0;
+}
+
+/* Confirmation copy and text actions share one layout across collection rows. */
+html
+  body
+  :is(
+    .skill-delete-confirmation,
+    .evidence-delete-confirmation,
+    .requirement-delete-confirmation
+  ) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  gap: 12px;
+  width: 240px;
+  max-width: 100%;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--surface);
+}
+html
+  body
+  :is(
+    .skill-delete-confirmation,
+    .evidence-delete-confirmation,
+    .requirement-delete-confirmation
+  )
+  > span {
+  grid-column: 1 / -1;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+html
+  body
+  :is(
+    .skill-delete-confirmation,
+    .evidence-delete-confirmation,
+    .requirement-delete-confirmation
+  )
+  > .ui-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  height: auto;
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  justify-content: center;
+}
+html body .skill-row-menu > div:has(.skill-delete-confirmation) {
+  width: 242px;
+  max-width: calc(100vw - 48px);
+  padding: 0;
+  border-radius: 12px;
 }

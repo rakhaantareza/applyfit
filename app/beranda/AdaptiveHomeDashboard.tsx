@@ -1,5 +1,5 @@
 "use client";
-import { BrandMotif } from "../components/BrandMotif";
+import { CollectionIllustration } from "../components/CollectionIllustration";
 import { useI18n } from "../components/LanguageProvider";
 
 import { AlertCircle, Check } from "lucide-react";
@@ -69,6 +69,7 @@ type CurrentWork = {
   analysis: RecentAnalysis | null;
 };
 type FoundationGap = {
+  illustration: "profile" | "skills" | "portfolio";
   title: string;
   description: string;
   href: string;
@@ -196,7 +197,6 @@ export function AdaptiveHomeDashboard() {
       {dashboard.kind === "onboarding" ? (
         <>
           <FirstLoginOnboarding />
-          <OnboardingFlowPreview />
         </>
       ) : null}
       {dashboard.kind === "foundation" ? (
@@ -205,7 +205,6 @@ export function AdaptiveHomeDashboard() {
             profile={dashboard.profile}
             gap={dashboard.gap}
           />
-          <FoundationContextLink gap={dashboard.gap} />
         </>
       ) : null}
       {dashboard.kind === "jobs" ? (
@@ -221,47 +220,58 @@ export function AdaptiveHomeDashboard() {
   );
 }
 
-function FirstLoginOnboarding() {
-  const { t } = useI18n();
+function SummaryCheckpoint({
+  title,
+  description,
+  kind,
+  href,
+  action,
+  context,
+}: {
+  title: string;
+  description: string;
+  kind: "profile" | "skills" | "portfolio" | "jobs";
+  href: string;
+  action: string;
+  context?: string;
+}) {
   return (
-    <section
-      className="summary-current-work summary-current-work-empty"
-      aria-labelledby="first-login-title"
-    >
-      <SectionHeader
-        className="summary-work-header"
-        title={t("Buat profil kariermu")}
-        titleId="first-login-title"
-        description={t(
-          "Tambahkan target role dan bidang karier sebagai dasar untuk mencocokkan lowongan.",
-        )}
-        action={
+    <section className="summary-current-work summary-checkpoint">
+      {context ? (
+        <p className="summary-work-context type-metadata">{context}</p>
+      ) : null}
+      <div className="summary-work-layout">
+        <div className="summary-work-copy">
+          <h2 className="type-section-title">{title}</h2>
+          <p className="summary-next-copy">{description}</p>
+        </div>
+        <div className="summary-work-action">
+          <CollectionIllustration kind={kind} />
           <ActionLink
             className="career-button primary summary-primary-action"
-            href="/profil-karier"
+            href={href}
           >
-            {t("Buat profil karier")}
+            {action}
             <CtaArrow />
           </ActionLink>
-        }
-      />
+        </div>
+      </div>
     </section>
   );
 }
 
-function OnboardingFlowPreview() {
+function FirstLoginOnboarding() {
   const { t } = useI18n();
   return (
-    <section
-      className="summary-secondary summary-flow-preview"
-      aria-label={t("Alur awal ApplyFit")}
-    >
-      <ol>
-        <li>{t("Profil karier")}</li>
-        <li>{t("Portfolio & Pengalaman")}</li>
-        <li>{t("Lowongan")}</li>
-      </ol>
-    </section>
+    <SummaryCheckpoint
+      kind="profile"
+      title={t("Buat profil kariermu")}
+      description={t(
+        "Tambahkan target role dan bidang karier sebagai dasar untuk mencocokkan lowongan.",
+      )}
+      href="/profil-karier"
+      action={t("Buat profil karier")}
+    />
   );
 }
 
@@ -273,28 +283,15 @@ function CurrentWorkSection({
   const { t, language } = useI18n();
   if (!currentWork) {
     return (
-      <section
-        className="summary-current-work summary-current-work-empty"
-        aria-labelledby="current-work-title"
-      >
-        <SectionHeader
-          className="summary-work-header"
-          title={t("Tambahkan lowongan pertamamu")}
-          titleId="current-work-title"
-          description={t(
-            "Simpan deskripsinya agar persyaratan bisa diperiksa dan dicocokkan dengan profilmu.",
-          )}
-          action={
-            <ActionLink
-              className="career-button primary summary-primary-action"
-              href="/lowongan/baru"
-            >
-              {t("Tambah lowongan")}
-              <CtaArrow />
-            </ActionLink>
-          }
-        />
-      </section>
+      <SummaryCheckpoint
+        kind="jobs"
+        title={t("Tambahkan lowongan pertamamu")}
+        description={t(
+          "Simpan deskripsinya agar persyaratan bisa diperiksa dan dicocokkan dengan profilmu.",
+        )}
+        href="/lowongan/baru"
+        action={t("Tambah lowongan")}
+      />
     );
   }
 
@@ -327,9 +324,15 @@ function CurrentWorkSection({
           <p className="summary-next-copy">{t(currentWork.description)}</p>
         </div>
         <div className="summary-work-action">
-          <span className="card-brand-accent" aria-hidden="true">
-            <BrandMotif />
-          </span>
+          {!currentWork.analysis ? (
+            <CollectionIllustration
+              kind={
+                currentWork.activeStep === "detail"
+                  ? "jobs"
+                  : currentWork.activeStep
+              }
+            />
+          ) : null}
           {currentWork.analysis ? (
             <div
               className="summary-fit-score"
@@ -389,57 +392,18 @@ function CareerFoundationSection({
   gap: FoundationGap;
 }) {
   const { t } = useI18n();
-  const targetRole = profile.targetRole.trim();
-  const careerField = profile.careerField.trim();
-
+  const context = [profile.targetRole.trim(), profile.careerField.trim()]
+    .filter(Boolean)
+    .join(" · ");
   return (
-    <section
-      className="summary-foundation"
-      aria-labelledby="career-foundation-title"
-    >
-      <div className="summary-foundation-heading">
-        <SectionHeader
-          title={t("Dasar karier")}
-          titleId="career-foundation-title"
-        />
-        <h3 className="type-primary-title">
-          {targetRole || t("Profil kariermu")}
-        </h3>
-        {careerField ? <p>{careerField}</p> : null}
-      </div>
-
-      <div className="summary-gap">
-        <AlertCircle aria-hidden="true" size={18} strokeWidth={1.8} />
-        <div>
-          <strong>{t(gap.title)}</strong>
-          <p>{t(gap.description)}</p>
-          <ActionLink
-            className="career-button primary summary-primary-action"
-            href={gap.href}
-          >
-            {t(gap.linkLabel)}
-            <CtaArrow />
-          </ActionLink>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FoundationContextLink({ gap }: { gap: FoundationGap }) {
-  const { t } = useI18n();
-  if (gap.href === "/profil-karier") return null;
-
-  return (
-    <nav
-      className="summary-secondary summary-secondary-nav"
-      aria-label={t("Konteks dasar karier")}
-    >
-      <ActionLink variant="text" href="/profil-karier">
-        {t("Lihat profil karier")}
-        <CtaArrow />
-      </ActionLink>
-    </nav>
+    <SummaryCheckpoint
+      kind={gap.illustration}
+      title={t(gap.title)}
+      description={t(gap.description)}
+      href={gap.href}
+      action={t(gap.linkLabel)}
+      context={context}
+    />
   );
 }
 
@@ -451,39 +415,17 @@ function JobStateSecondary({
   jobs: Job[];
 }) {
   const { t, language } = useI18n();
-  if (!currentWork) {
-    return (
-      <section
-        className="summary-secondary summary-secondary-copy"
-        aria-labelledby="profile-reuse-title"
-      >
-        <SectionHeader
-          title={t("Profilmu akan dipakai kembali")}
-          titleId="profile-reuse-title"
-          description={t(
-            "Profil dan portfolio yang sudah kamu buat akan digunakan saat mencocokkan setiap lowongan.",
-          )}
-        />
-      </section>
-    );
-  }
+  if (!currentWork) return null;
 
   if (!currentWork.isCompleted) {
-    const hasMultipleJobs = jobs.length > 1;
+    if (jobs.length < 2) return null;
     return (
       <nav
         className="summary-secondary summary-secondary-nav"
         aria-label={t("Akses lowongan")}
       >
-        <ActionLink
-          variant="text"
-          href={
-            hasMultipleJobs ? "/lowongan" : `/lowongan/${currentWork.job.id}`
-          }
-        >
-          {hasMultipleJobs
-            ? t("Lihat semua lowongan")
-            : t("Lihat detail lowongan")}
+        <ActionLink variant="text" href="/lowongan">
+          {t("Lihat semua lowongan")}
           <CtaArrow />
         </ActionLink>
       </nav>
@@ -662,6 +604,7 @@ function buildFoundationGap(data: DashboardData): FoundationGap | null {
 
   if (!hasCareerDirection) {
     return {
+      illustration: "profile",
       title: "Lengkapi arah kariermu",
       description:
         "Tambahkan target role dan bidang karier agar profilmu punya konteks yang jelas.",
@@ -672,6 +615,7 @@ function buildFoundationGap(data: DashboardData): FoundationGap | null {
 
   if (data.skills.length === 0) {
     return {
+      illustration: "skills",
       title: "Tambahkan skill utama",
       description:
         "Catat skill yang ingin kamu bandingkan dengan persyaratan lowongan.",
@@ -682,6 +626,7 @@ function buildFoundationGap(data: DashboardData): FoundationGap | null {
 
   if (data.evidences.length === 0) {
     return {
+      illustration: "portfolio",
       title: "Skillmu belum punya pendukung",
       description:
         "Tambahkan project, pengalaman, sertifikat, portfolio, atau GitHub yang relevan.",

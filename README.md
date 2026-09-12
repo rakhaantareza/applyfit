@@ -38,15 +38,15 @@ Rather than producing an opaque recommendation, ApplyFit turns a job description
 
 ## Technology stack
 
-| Area | Technology |
-| --- | --- |
-| Language | TypeScript |
-| Frontend | React 19, Vinext, Vite, custom CSS, Plus Jakarta Sans, and Lucide icons |
-| Backend | Server-side route handlers and domain services |
-| Authentication | InsForge Auth |
-| Database | InsForge PostgreSQL |
-| AI extraction | OpenRouter through an OpenAI-compatible client |
-| Quality | ESLint and automated Node.js tests |
+| Area           | Technology                                                    |
+| -------------- | ------------------------------------------------------------- |
+| Language       | TypeScript                                                    |
+| Frontend       | React 19, Vinext, Vite, custom CSS, DM Sans, and Lucide icons |
+| Backend        | Server-side route handlers and domain services                |
+| Authentication | InsForge Auth                                                 |
+| Database       | InsForge PostgreSQL                                           |
+| AI extraction  | OpenRouter through an OpenAI-compatible client                |
+| Quality        | ESLint and automated Node.js tests                            |
 
 ## Local setup
 
@@ -93,15 +93,9 @@ npm run screenshots
 
 `npm run screenshots` keeps the demo-account workspace captures in their authenticated context, then uses a separate context without stored authentication to capture `/login`, `/daftar`, and `/lupa-kata-sandi`.
 
-For deterministic Dark-theme review of authenticated workspace pages, run:
+ApplyFit uses one light appearance with warm paper surfaces and cobalt accents.
 
-```bash
-npm run screenshots:dark
-```
-
-The Dark command sets ApplyFit's explicit appearance preference before application scripts run and writes responsive Ringkasan and Profil Karier captures under `screenshots/dark/` without changing the default screenshot folders.
-
-To capture the high-density portfolio job workflow, run:
+To capture the portfolio job workflow, run:
 
 ```bash
 npm run screenshots:portfolio
@@ -127,15 +121,15 @@ It emits no files; strict checking includes application code, route handlers, te
 and the worker entry point. `npm test` builds the production output and runs all
 TypeScript and JavaScript test files in `tests/`.
 
-## Future Improvements
+## Documentation
 
-- Career role, industry, and skill autocomplete.
-- A shared skill taxonomy with canonical skill normalization.
-- Improved multilingual job requirement extraction.
-- A tighter Skill ↔ Evidence workflow.
-- Smarter structured job input.
-- A consistent design system across forms, dropdowns, selectors, and UI states.
-- Job posting import from a URL.
+- [Product specification](docs/product-spec.md): approved behavior, navigation, and terminology.
+- [Visual system](docs/visual-system.md): current appearance, shared components, responsive rules, and UI checks.
+- [Repository conventions](AGENTS.md): contribution, validation, and release rules.
+- [Roadmap](docs/roadmap.md): future candidates, not implementation scope.
+- [Historical v1.0 PRD](docs/prd-v1.0.md): archived release context, not current design guidance.
+
+For empty collections and readiness checkpoints, run `node scripts/screenshots/checkpoints-qa.mjs`. For delete confirmations, run `node scripts/screenshots/delete-qa.mjs`. Both use the ignored demo authentication state and prevent data-changing requests.
 
 ## Release
 

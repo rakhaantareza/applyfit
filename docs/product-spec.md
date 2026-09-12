@@ -36,9 +36,9 @@ ApplyFit should help users understand their current fit. It must not decide whet
 
 ### Current visual direction
 
-The current visual redesign uses the approved warm-paper and blue-ink palette with horizontal desktop navigation. DM Sans, soft grouped surfaces, and touch-friendly layouts supersede the earlier serif-and-rules treatment. The user explicitly authorized replacing previous visual guidelines. `docs/visual-system.md` describes the current shared system; product behavior below remains authoritative.
+The approved visual system uses warm-paper surfaces, cobalt accents, DM Sans, horizontal desktop navigation, and touch-friendly controls. `docs/visual-system.md` describes the current shared system; product behavior below remains authoritative.
 
-Ringkasan places its greeting beside the current work on wide screens. Profil places career direction beside the skill collection. These context columns stack on smaller screens. Portfolio collections use connected support lanes; saved jobs use responsive cards with a search field and stage filter. Review-complete connections may be collapsed, and missing analysis rows are presented last without changing their scoring or review semantics.
+Ringkasan places a full-width greeting above one primary checkpoint card. Profil places career direction beside the skill collection. These context columns stack on smaller screens. Portfolio collections use connected support lanes; saved jobs use responsive cards with a search field and stage filter. Review-complete connections may be collapsed, and missing analysis rows are presented last without changing their scoring or review semantics.
 
 ### Experience north star
 
@@ -52,8 +52,8 @@ Use these principles when making visual or structural decisions:
 - **One primary focus per screen.** The user should immediately understand what they are doing and what comes next.
 - **Typography and spacing carry hierarchy.** Do not solve every hierarchy problem with another card, badge, or colored container.
 - **Persistent navigation only when useful.** Focused workflows may use a different shell from general app navigation.
-- **Fewer surfaces.** Prefer whitespace, dividers, and natural grouping over stacks of rounded cards.
-- **Brand through restraint.** Forest green establishes identity; lime is punctuation, not a highlighter applied everywhere.
+- **Fewer surfaces.** Use whitespace and natural grouping; reserve lines for navigation or meaningful relationships.
+- **Brand through restraint.** Cobalt establishes identity on warm-paper surfaces; contextual illustrations use the shared palette.
 - **Progressive disclosure.** Show detail when it becomes useful instead of front-loading everything.
 - **No decorative productivity metrics.** A metric should exist only if it helps orientation or the next decision.
 - **The UI should disappear behind the task.** Users should spend their attention on requirements, skills, portfolio items, and gaps rather than the interface itself.
@@ -741,9 +741,7 @@ Prefer user meaning over implementation meaning.
 
 ## 14. Visual Foundation and Interaction Principles
 
-The current redesign supersedes previous typography, color, surface, composition,
-and desktop-sidebar prescriptions. See [the visual system](visual-system.md) for
-the implemented direction and shared component ownership.
+See [the visual system](visual-system.md) for current presentation rules, shared component ownership, responsive behavior, and visual validation.
 
 DM Sans carries headings, body text, controls, and score numerals. Soft surfaces
 and whitespace replace repeated decorative rules. Warm paper and blue ink define
@@ -768,6 +766,32 @@ progressive disclosure.
 
 ---
 
+### Mobile navigation refinement
+
+The mobile top bar shows only the ApplyFit motif wordmark and menu button. The drawer contains profile access, language selection, the Fit Score guide, settings, and sign-out. Primary destinations remain in the bottom navigation without duplication in the drawer. The job workspace retains its job tabs and provides the same utility drawer. The meeting motif serves as the logo and favicon; decorative instances are cropped accents in selected cards rather than page headings.
+
+### Approved controls and collection actions
+
+Button hover preserves the original border, dimensions, and resting shadow. Do not add a border, outline, ring, stronger shadow, or underline on pointer hover. Keep the keyboard focus-visible indicator.
+
+Filled buttons may darken slightly. Transparent secondary buttons receive only a subtle background tint; their text color stays unchanged. The light Lihat analisis CTA retains readable blue text. Arrow CTAs retain their 3px arrow translation with reduced-motion support; other icons stay still.
+
+Edit/delete entry actions are icon-only, have accessible names and at least 44px touch targets, and remain transparent without borders or shadows. Hover changes their ink subtly. Destructive confirmations use readable copy and explicit Batal/Hapus text actions in one row. Confirmation buttons must not inherit icon-only entry-action styling. Cancel and save share a two-column row, cancel left and save right.
+
+Saved-job cards provide Edit and Delete beside Lihat detail. Edit opens an inline information form; successful saves update the card locally. Delete requires confirmation and removes the card only after the existing API succeeds. Failed requests retain the item and show an error. The Detail header is read-only; description editing remains beside its section title on all screen sizes.
+
+Job sources use a shared optional dropdown: LinkedIn, JobStreet, Glints, Kalibrr, Indeed, Karir.com, Dealls, company career sites, Instagram, Telegram, WhatsApp, and Lainnya — isi sendiri. Custom values and drafts survive option and language changes. This does not import jobs from these services.
+
+Empty skill, job, portfolio, and search states use contextual illustrations and concise guidance. Ringkasan uses the same illustration family for incomplete career foundations and job-workflow checkpoints. The artwork follows the next action; actual progress and scores remain communicated by text and data. Search fields share the standard compound-input focus treatment without a second outline on the inner input.
+
+Identity settings group the introduction, avatar, and live name preview beside the form. Use spacing rather than decorative dividers. The layout reflows on tablet and mobile. Account persistence and security settings remain unchanged.
+
+### Consistent readiness and empty states
+
+Ringkasan presents each readiness checkpoint with one primary next action and consistent card proportions. Omit secondary actions that lead to the same destination, and avoid repeating profile guidance already covered by the primary card. Other saved jobs remain accessible when relevant. Empty skill, portfolio, and job collections share an illustration, concise heading, explanation, and one add action. Hide irrelevant filters and zero-count summaries until collection data exists. While the add editor is open, hide the empty-state add prompt. Button links do not gain underlines on hover or focus; keyboard focus remains visible.
+
+---
+
 ## 15. Current Implementation Boundaries
 
 The current product refinement may include:
@@ -775,9 +799,9 @@ The current product refinement may include:
 - Visual foundation reset around the calm-workspace north star.
 - DM Sans typography across headings, body, controls, and score numerals.
 - Refined color, spacing, surface, border, radius, and base component tokens.
-- Compact global app shell/sidebar refinement.
+- Responsive global navigation refinement.
 - Focused job-workspace shell that does not require the full global sidebar.
-- Global IA/sidebar restructuring.
+- Global information architecture refinement.
 - Job workspace contextual navigation.
 - Copy simplification.
 - Portfolio & Pengalaman terminology and hierarchy improvements.
@@ -827,29 +851,10 @@ Implementation details such as exact database columns, indexes, migrations, owne
 Repository documentation should be interpreted in this order:
 
 1. `docs/product-spec.md` — current product source of truth.
-2. `docs/prd-v1.0.md` — archived v1.0 Core MVP context.
-3. `docs/roadmap.md` — future candidates only.
+2. `docs/visual-system.md` — current design and shared presentation rules.
+3. `docs/prd-v1.0.md` — archived v1.0 Core MVP context only.
+4. `docs/roadmap.md` — future candidates only.
 
 If these documents conflict, follow `docs/product-spec.md`.
 
 Roadmap items must not be implemented solely because they appear in `docs/roadmap.md`.
-
-### Mobile navigation refinement
-
-The mobile top bar shows only the ApplyFit motif wordmark and menu button. The drawer contains profile access, language selection, the Fit Score guide, settings, and sign-out. Primary destinations remain in the bottom navigation without duplication in the drawer. The job workspace retains its job tabs and provides the same utility drawer. The meeting motif serves as the logo and favicon; decorative instances are cropped accents in selected cards rather than page headings.
-
-### Approved controls and collection actions
-
-Button hover preserves the original border, dimensions, and resting shadow. Do not add a border, outline, ring, stronger shadow, or underline on pointer hover. Keep the keyboard focus-visible indicator.
-
-Filled buttons may darken slightly. Transparent secondary buttons receive only a subtle background tint; their text color stays unchanged. The light Lihat analisis CTA retains readable blue text. Arrow CTAs retain their 3px arrow translation with reduced-motion support; other icons stay still.
-
-Edit/delete entry actions are icon-only, have accessible names and at least 44px touch targets, and remain transparent without borders or shadows. Hover changes their ink subtly. Destructive confirmation buttons retain explicit text. Cancel and save share a two-column row, cancel left and save right.
-
-Saved-job cards provide Edit and Delete beside Lihat detail. Edit opens an inline information form; successful saves update the card locally. Delete requires confirmation and removes the card only after the existing API succeeds. Failed requests retain the item and show an error. The Detail header is read-only; description editing remains beside its section title on all screen sizes.
-
-Job sources use a shared optional dropdown: LinkedIn, JobStreet, Glints, Kalibrr, Indeed, Karir.com, Dealls, company career sites, Instagram, Telegram, WhatsApp, and Lainnya — isi sendiri. Custom values and drafts survive option and language changes. This does not import jobs from these services.
-
-Empty job, portfolio, and search states use contextual illustrations and concise guidance. Search fields share the standard compound-input focus treatment without a second outline on the inner input.
-
-Identity settings group the introduction, avatar, and live name preview beside the form. Use spacing rather than decorative dividers. The layout reflows on tablet and mobile. Account persistence and security settings remain unchanged.

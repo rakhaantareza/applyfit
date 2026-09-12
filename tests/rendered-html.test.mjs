@@ -114,16 +114,19 @@ test("Ringkasan keeps one primary focus and conditional quiet continuations", as
   ]);
 
   for (const copy of [
-    "Profil karier",
-    "Portfolio & Pengalaman",
-    "Profilmu akan dipakai kembali",
-    "Lihat detail lowongan",
+    "Buat profil kariermu",
+    "Tambahkan skill utama",
+    "Skillmu belum punya pendukung",
+    "Tambahkan lowongan pertamamu",
     "Cek lowongan berikutnya",
     "Lowongan terbaru",
     "Lihat semua lowongan",
   ]) {
     assert.match(source, new RegExp(copy));
   }
+  assert.match(source, /function SummaryCheckpoint/);
+  assert.match(source, /if \(jobs\.length < 2\) return null/);
+  assert.doesNotMatch(source, /FoundationContextLink|OnboardingFlowPreview|Lihat detail lowongan|Profilmu akan dipakai kembali/);
   assert.match(source, /jobs\.length === 1/);
   assert.match(source, /\.slice\(0, 3\)/);
   assert.match(source, /if \(!currentWork\.isCompleted\)/);
@@ -356,7 +359,13 @@ test("saved-job empty states stay focused and deletion requires confirmation", a
     readFile(new URL("../app/lowongan/[id]/JobInfoEditor.tsx", import.meta.url), "utf8"),
   ]);
 
-  assert.match(jobsSource, /className="page-empty-state jobs-zero-state"/);
+  assert.match(jobsSource, /<EmptyCollectionState/);
+  assert.match(jobsSource, /className="jobs-zero-state"/);
+  assert.match(jobsSource, /<JobsPageHeader showAction=\{false\}/);
+  const emptyStateSource = await readFile(new URL("../app/components/EmptyCollectionState.tsx", import.meta.url), "utf8");
+  assert.match(emptyStateSource, /<CollectionIllustration kind=\{kind\}/);
+  assert.match(emptyStateSource, /<h2 id=\{titleId\}>\{title\}<\/h2>/);
+  assert.match(emptyStateSource, /\{action\}/);
   assert.match(fitScoreSource, /className="page-empty-state fit-score-empty"/);
   assert.match(jobInfoSource, /Hapus lowongan/);
   assert.match(jobInfoSource, /role="alertdialog"/);

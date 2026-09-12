@@ -1,6 +1,6 @@
 "use client";
 import { useI18n } from "../components/LanguageProvider";
-import { BrandMotif } from "../components/BrandMotif";
+import { EmptyCollectionState } from "../components/EmptyCollectionState";
 
 import {
   Check,
@@ -254,24 +254,30 @@ export function SkillManager({
   return (
     <section
       className="profile-skills-section"
-      aria-labelledby="profile-skills-title"
+      aria-labelledby={
+        skills.length || editor ? "profile-skills-title" : "skills-empty-title"
+      }
     >
-      <SectionHeader
-        title="Skill"
-        titleId="profile-skills-title"
-        description={t("Skill yang kamu punya atau lagi kamu pelajari.")}
-        action={
-          <ActionButton
-            className="skill-add-button"
-            variant="secondary"
-            type="button"
-            onClick={openAddEditor}
-          >
-            <Plus aria-hidden="true" size={16} strokeWidth={2} />
-            {t("Tambah skill")}
-          </ActionButton>
-        }
-      />
+      {skills.length > 0 || editor ? (
+        <SectionHeader
+          title="Skill"
+          titleId="profile-skills-title"
+          description={t("Skill yang kamu punya atau lagi kamu pelajari.")}
+          action={
+            skills.length > 0 && !editor ? (
+              <ActionButton
+                className="skill-add-button"
+                variant="secondary"
+                type="button"
+                onClick={openAddEditor}
+              >
+                <Plus aria-hidden="true" size={16} strokeWidth={2} />
+                {t("Tambah skill")}
+              </ActionButton>
+            ) : null
+          }
+        />
+      ) : null}
 
       {!editor && t(error) ? (
         <p className="skill-manager-error" role="alert">
@@ -384,13 +390,14 @@ export function SkillManager({
                       >
                         <span>{t("Hapus skill ini?")}</span>
                         <button
+                          className="ui-button ui-button--secondary ui-button--default"
                           type="button"
                           onClick={() => setPendingDeleteId(null)}
                         >
                           {t("Batal")}
                         </button>
                         <button
-                          className="danger ui-record-action ui-record-action--delete"
+                          className="danger ui-button ui-button--destructive ui-button--default"
                           type="button"
                           disabled={deletingSkillId === skill.id}
                           onClick={() => deleteSkill(skill)}
@@ -443,15 +450,20 @@ export function SkillManager({
           );
         })}
 
-        {skills.length === 0 ? (
-          <div className="skill-empty-state">
-            <BrandMotif />
-            <strong>{t("Belum ada skill")}</strong>
-            <p>{t("Tambahkan skill yang sedang kamu bangun.")}</p>
-            <button type="button" onClick={openAddEditor}>
-              {t("Tambah skill")}
-            </button>
-          </div>
+        {skills.length === 0 && !editor ? (
+          <EmptyCollectionState
+            className="skill-empty-state"
+            titleId="skills-empty-title"
+            kind="skills"
+            title={t("Belum ada skill")}
+            description={t("Tambahkan skill yang sedang kamu bangun.")}
+            action={
+              <ActionButton onClick={openAddEditor}>
+                <Plus aria-hidden="true" size={16} />
+                {t("Tambah skill")}
+              </ActionButton>
+            }
+          />
         ) : null}
       </div>
 

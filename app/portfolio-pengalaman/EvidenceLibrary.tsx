@@ -1,6 +1,6 @@
 "use client";
 import { useI18n } from "../components/LanguageProvider";
-import { CollectionIllustration } from "../components/CollectionIllustration";
+import { EmptyCollectionState } from "../components/EmptyCollectionState";
 
 import { ExpandableText } from "../components/ExpandableText";
 import { RelationshipLane } from "../components/RelationshipLane";
@@ -313,32 +313,34 @@ export function EvidenceLibrary({
     <>
       <section
         className="evidence-list-section"
-        aria-labelledby="evidence-list-title"
+        aria-labelledby={evidences.length ? "evidence-list-title" : undefined}
       >
-        <SectionHeader
-          className="evidence-overview"
-          title={
-            <>
-              {evidences.length} {t("portfolio & pengalaman")}
-            </>
-          }
-          description={
-            <>
-              {linkedSkillCount} {t("skill mendapat dukungan.")}
-            </>
-          }
-          titleId="evidence-list-title"
-          action={
-            <ActionButton
-              className="evidence-add-button"
-              type="button"
-              onClick={openForm}
-            >
-              <Plus aria-hidden="true" size={16} strokeWidth={2} />
-              {t("Tambah portfolio")}
-            </ActionButton>
-          }
-        />
+        {evidences.length > 0 ? (
+          <SectionHeader
+            className="evidence-overview"
+            title={
+              <>
+                {evidences.length} {t("portfolio & pengalaman")}
+              </>
+            }
+            description={
+              <>
+                {linkedSkillCount} {t("skill mendapat dukungan.")}
+              </>
+            }
+            titleId="evidence-list-title"
+            action={
+              <ActionButton
+                className="evidence-add-button"
+                type="button"
+                onClick={openForm}
+              >
+                <Plus aria-hidden="true" size={16} strokeWidth={2} />
+                {t("Tambah portfolio")}
+              </ActionButton>
+            }
+          />
+        ) : null}
 
         {editor ? (
           <form className="evidence-editor" onSubmit={handleSubmit}>
@@ -489,67 +491,69 @@ export function EvidenceLibrary({
           </p>
         ) : null}
 
-        <div
-          className="evidence-filter-panel"
-          aria-label={t("Cari dan filter bukti")}
-        >
-          <label className="evidence-search-field">
-            <span className="sr-only">{t("Cari bukti")}</span>
-            <Search aria-hidden="true" size={16} strokeWidth={1.8} />
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder={t("Cari judul, skill, atau sumber")}
-            />
-          </label>
+        {evidences.length > 0 ? (
+          <div
+            className="evidence-filter-panel"
+            aria-label={t("Cari dan filter bukti")}
+          >
+            <label className="evidence-search-field">
+              <span className="sr-only">{t("Cari bukti")}</span>
+              <Search aria-hidden="true" size={16} strokeWidth={1.8} />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder={t("Cari judul, skill, atau sumber")}
+              />
+            </label>
 
-          <label className="evidence-filter-field">
-            <ListFilter aria-hidden="true" size={15} strokeWidth={1.8} />
-            <span>{t("Jenis")}</span>
-            <select
-              value={typeFilter}
-              onChange={(event) =>
-                setTypeFilter(event.target.value as "Semua" | EvidenceType)
-              }
-            >
-              <option value={"Semua"}>{t("Semua")}</option>
-              {evidenceTypes.map((type) => (
-                <option key={type} value={type}>
-                  {t(type)}
-                </option>
-              ))}
-            </select>
-          </label>
+            <label className="evidence-filter-field">
+              <ListFilter aria-hidden="true" size={15} strokeWidth={1.8} />
+              <span>{t("Jenis")}</span>
+              <select
+                value={typeFilter}
+                onChange={(event) =>
+                  setTypeFilter(event.target.value as "Semua" | EvidenceType)
+                }
+              >
+                <option value={"Semua"}>{t("Semua")}</option>
+                {evidenceTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {t(type)}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <label className="evidence-filter-field">
-            <Link2 aria-hidden="true" size={15} strokeWidth={1.8} />
-            <span>Skill</span>
-            <select
-              value={skillFilter}
-              onChange={(event) => setSkillFilter(event.target.value)}
-            >
-              <option value={"Semua"}>{t("Semua")}</option>
-              {skillOptions.map((skill) => (
-                <option key={skill.id} value={skill.id}>
-                  {skill.name}
-                </option>
-              ))}
-            </select>
-          </label>
+            <label className="evidence-filter-field">
+              <Link2 aria-hidden="true" size={15} strokeWidth={1.8} />
+              <span>Skill</span>
+              <select
+                value={skillFilter}
+                onChange={(event) => setSkillFilter(event.target.value)}
+              >
+                <option value={"Semua"}>{t("Semua")}</option>
+                {skillOptions.map((skill) => (
+                  <option key={skill.id} value={skill.id}>
+                    {skill.name}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <div className="evidence-filter-meta" aria-live="polite">
-            <span>
-              {t("Menampilkan")} <strong>{filteredEvidences.length}</strong>{" "}
-              {t("dari")} {evidences.length} {t("bukti")}
-            </span>
-            {hasActiveFilters ? (
-              <button type="button" onClick={clearFilters}>
-                {t("Reset filter")}
-              </button>
-            ) : null}
+            <div className="evidence-filter-meta" aria-live="polite">
+              <span>
+                {t("Menampilkan")} <strong>{filteredEvidences.length}</strong>{" "}
+                {t("dari")} {evidences.length} {t("bukti")}
+              </span>
+              {hasActiveFilters && filteredEvidences.length > 0 ? (
+                <button type="button" onClick={clearFilters}>
+                  {t("Reset filter")}
+                </button>
+              ) : null}
+            </div>
           </div>
-        </div>
+        ) : null}
 
         <div className="evidence-library-list">
           {filteredEvidences.map((evidence) => {
@@ -614,13 +618,14 @@ export function EvidenceLibrary({
                     >
                       <span>{t("Hapus bukti?")}</span>
                       <button
+                        className="ui-button ui-button--secondary ui-button--default"
                         type="button"
                         onClick={() => setPendingDeleteId(null)}
                       >
                         {t("Batal")}
                       </button>
                       <button
-                        className="danger ui-record-action ui-record-action--delete"
+                        className="danger ui-button ui-button--destructive ui-button--default"
                         type="button"
                         disabled={deletingEvidenceId === evidence.id}
                         onClick={() => deleteEvidence(evidence)}
@@ -666,37 +671,37 @@ export function EvidenceLibrary({
               </article>
             );
           })}
-          {!filteredEvidences.length ? (
-            <div className="evidence-empty-state">
-              <CollectionIllustration
-                kind={hasActiveFilters ? "search" : "portfolio"}
-              />
-              <div>
-                <strong>
+          {!filteredEvidences.length && !editor ? (
+            <EmptyCollectionState
+              className="evidence-empty-state"
+              kind={hasActiveFilters ? "search" : "portfolio"}
+              title={
+                hasActiveFilters
+                  ? t("Tidak ada bukti yang cocok")
+                  : t("Portfolio & Pengalaman masih kosong")
+              }
+              description={
+                hasActiveFilters
+                  ? t(
+                      "Coba ubah kata pencarian atau longgarkan filter yang dipilih.",
+                    )
+                  : t(
+                      "Tambahkan hasil kerja atau pengalaman yang mendukung skill profilmu.",
+                    )
+              }
+              action={
+                <ActionButton
+                  onClick={hasActiveFilters ? clearFilters : openForm}
+                >
+                  {!hasActiveFilters ? (
+                    <Plus aria-hidden="true" size={16} />
+                  ) : null}
                   {hasActiveFilters
-                    ? t("Tidak ada bukti yang cocok")
-                    : t("Portfolio & Pengalaman masih kosong")}
-                </strong>
-                <p>
-                  {hasActiveFilters
-                    ? t(
-                        "Coba ubah kata pencarian atau longgarkan filter yang dipilih.",
-                      )
-                    : t(
-                        "Tambahkan hasil kerja atau pengalaman yang mendukung skill profilmu.",
-                      )}
-                </p>
-              </div>
-              <button
-                className="ui-button ui-button--primary ui-button--default"
-                type="button"
-                onClick={hasActiveFilters ? clearFilters : openForm}
-              >
-                {hasActiveFilters
-                  ? t("Tampilkan semua bukti")
-                  : t("Tambah bukti")}
-              </button>
-            </div>
+                    ? t("Tampilkan semua bukti")
+                    : t("Tambah portfolio")}
+                </ActionButton>
+              }
+            />
           ) : null}
         </div>
       </section>

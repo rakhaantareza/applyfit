@@ -1,4 +1,5 @@
 "use client";
+import { EmptyCollectionState } from "../components/EmptyCollectionState";
 import { useI18n } from "../components/LanguageProvider";
 
 import {
@@ -270,23 +271,21 @@ function JobsEmptyWorkspace() {
     <div className="page-container jobs-page">
       <JobsPageHeader showAction={false} />
 
-      <section
-        className="page-empty-state jobs-zero-state"
-        aria-labelledby="jobs-empty-title"
-      >
-        <CollectionIllustration kind="jobs" />
-        <p className="eyebrow">{t("Mulai dari satu lowongan")}</p>
-        <h2 id="jobs-empty-title">{t("Belum ada lowongan tersimpan")}</h2>
-        <p>
-          {t(
-            "Simpan lowongan yang ingin kamu pahami, lalu periksa Persyaratan secara bertahap.",
-          )}
-        </p>
-        <ActionLink className="jobs-add-button" href="/lowongan/baru">
-          <Plus aria-hidden="true" size={16} strokeWidth={2} />
-          {t("Tambah lowongan")}
-        </ActionLink>
-      </section>
+      <EmptyCollectionState
+        className="jobs-zero-state"
+        kind="jobs"
+        titleId="jobs-empty-title"
+        title={t("Belum ada lowongan tersimpan")}
+        description={t(
+          "Simpan lowongan yang ingin kamu pahami, lalu periksa Persyaratan secara bertahap.",
+        )}
+        action={
+          <ActionLink className="jobs-add-button" href="/lowongan/baru">
+            <Plus aria-hidden="true" size={16} />
+            {t("Tambah lowongan")}
+          </ActionLink>
+        }
+      />
     </div>
   );
 }

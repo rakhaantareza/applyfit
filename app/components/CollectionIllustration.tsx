@@ -1,8 +1,18 @@
+export type CollectionIllustrationKind =
+  | "jobs"
+  | "portfolio"
+  | "search"
+  | "profile"
+  | "skills"
+  | "requirements"
+  | "matching"
+  | "analysis";
+
 /** Original paper-and-ink illustrations for empty collections and searches. */
 export function CollectionIllustration({
   kind,
 }: {
-  kind: "jobs" | "portfolio" | "search";
+  kind: CollectionIllustrationKind;
 }) {
   return (
     <svg
@@ -67,7 +77,7 @@ export function CollectionIllustration({
             strokeLinecap="round"
           />
         </>
-      ) : (
+      ) : kind === "portfolio" || kind === "search" ? (
         <>
           <path
             d="M57 66a8 8 0 0 1 8-8h34l12 13h62a8 8 0 0 1 8 8v62H57V66Z"
@@ -127,7 +137,129 @@ export function CollectionIllustration({
             </g>
           )}
         </>
+      ) : (
+        <ReadinessArtwork kind={kind} />
       )}
     </svg>
+  );
+}
+
+/** Decorative artwork: the surrounding heading describes the actual state. */
+function ReadinessArtwork({
+  kind,
+}: {
+  kind: Exclude<CollectionIllustrationKind, "jobs" | "portfolio" | "search">;
+}) {
+  if (kind === "matching") {
+    return (
+      <g stroke="#4056d8" strokeWidth="2" strokeLinejoin="round">
+        <path d="M91 85h58" strokeDasharray="5 5" />
+        <rect x="49" y="48" width="65" height="91" rx="9" fill="#fffefa" />
+        <rect x="137" y="62" width="58" height="77" rx="9" fill="#c5ccf4" />
+        <circle cx="81" cy="77" r="12" fill="#ddd3a8" stroke="none" />
+        <path
+          d="M64 106h33m-33 12h22M153 97h26m-26 13h18"
+          stroke="#adb8ef"
+          strokeLinecap="round"
+        />
+        <circle cx="126" cy="94" r="16" fill="#4056d8" />
+        <path
+          d="m121 95-2 2a4 4 0 0 0 6 6l3-3m1-7 2-2a4 4 0 0 0-6-6l-3 3m1 7 6-6"
+          stroke="#fffefa"
+          strokeLinecap="round"
+        />
+      </g>
+    );
+  }
+  return (
+    <>
+      <rect
+        x="65"
+        y="43"
+        width="106"
+        height="111"
+        rx="10"
+        transform="rotate(-7 65 43)"
+        fill="#c5ccf4"
+        stroke="#4056d8"
+        strokeWidth="2"
+      />
+      <rect
+        x="77"
+        y="34"
+        width="106"
+        height="112"
+        rx="10"
+        fill="#fffefa"
+        stroke="#4056d8"
+        strokeWidth="2"
+      />
+      {kind === "profile" ? (
+        <>
+          <circle cx="111" cy="70" r="14" fill="#ddd3a8" />
+          <path d="M90 104c0-23 42-23 42 0" fill="#4056d8" />
+          <path
+            d="M144 66h22m-22 14h16M95 124h66"
+            stroke="#adb8ef"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+        </>
+      ) : kind === "skills" ? (
+        <>
+          <rect x="94" y="51" width="31" height="31" rx="7" fill="#4056d8" />
+          <rect x="135" y="51" width="31" height="31" rx="7" fill="#c5ccf4" />
+          <rect x="94" y="92" width="31" height="31" rx="7" fill="#c5ccf4" />
+          <rect x="135" y="92" width="31" height="31" rx="7" fill="#ddd3a8" />
+          <path
+            d="m109 57 7 9-7 9-7-9 7-9"
+            stroke="#fffefa"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M145 108h12m-6-6v12"
+            stroke="#4056d8"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </>
+      ) : kind === "requirements" ? (
+        <>
+          <rect x="96" y="51" width="42" height="9" rx="4" fill="#4056d8" />
+          {[80, 101, 122].map((y) => (
+            <g key={y}>
+              <rect
+                x="96"
+                y={y - 5}
+                width="10"
+                height="10"
+                rx="3"
+                fill="#ddd3a8"
+              />
+              <path
+                d={"M116 " + y + "h46"}
+                stroke="#adb8ef"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+            </g>
+          ))}
+        </>
+      ) : (
+        <>
+          <path
+            d="M96 56h51"
+            stroke="#adb8ef"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <rect x="98" y="99" width="15" height="25" rx="4" fill="#c5ccf4" />
+          <rect x="121" y="84" width="15" height="40" rx="4" fill="#ddd3a8" />
+          <rect x="144" y="70" width="15" height="54" rx="4" fill="#4056d8" />
+        </>
+      )}
+    </>
   );
 }
