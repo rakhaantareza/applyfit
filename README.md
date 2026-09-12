@@ -6,7 +6,9 @@ Rather than producing an opaque recommendation, ApplyFit turns a job description
 
 ![ApplyFit core flow: Job Requirement to Skills to Evidence to Fit Score](docs/assets/applyfit-core-flow.png)
 
-**Current release:** `v1.0.0` — **ApplyFit Phase 1 Core MVP**
+**Current release:** `v1.1.0` — responsive workspace and readiness refinements.
+
+See [release notes and deployment](docs/releases.md).
 
 ## Core workflow
 

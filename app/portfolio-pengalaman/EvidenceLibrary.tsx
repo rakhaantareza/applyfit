@@ -1,4 +1,5 @@
 "use client";
+import { DeleteConfirmation } from "../components/DeleteConfirmation";
 import { useI18n } from "../components/LanguageProvider";
 import { EmptyCollectionState } from "../components/EmptyCollectionState";
 
@@ -611,30 +612,20 @@ export function EvidenceLibrary({
 
                 <div className="evidence-row-actions">
                   {isPendingDelete ? (
-                    <div
+                    <DeleteConfirmation
                       className="evidence-delete-confirmation"
-                      role="group"
-                      aria-label={t(`Hapus ${evidence.title}`)}
-                    >
-                      <span>{t("Hapus bukti?")}</span>
-                      <button
-                        className="ui-button ui-button--secondary ui-button--default"
-                        type="button"
-                        onClick={() => setPendingDeleteId(null)}
-                      >
-                        {t("Batal")}
-                      </button>
-                      <button
-                        className="danger ui-button ui-button--destructive ui-button--default"
-                        type="button"
-                        disabled={deletingEvidenceId === evidence.id}
-                        onClick={() => deleteEvidence(evidence)}
-                      >
-                        {deletingEvidenceId === evidence.id
+                      label={t(`Hapus ${evidence.title}`)}
+                      question={t("Hapus bukti?")}
+                      cancelLabel={t("Batal")}
+                      confirmLabel={
+                        deletingEvidenceId === evidence.id
                           ? t("Menghapus…")
-                          : t("Hapus")}
-                      </button>
-                    </div>
+                          : t("Hapus")
+                      }
+                      pending={deletingEvidenceId === evidence.id}
+                      onCancel={() => setPendingDeleteId(null)}
+                      onConfirm={() => deleteEvidence(evidence)}
+                    />
                   ) : (
                     <>
                       <IconButton

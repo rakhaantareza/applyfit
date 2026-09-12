@@ -1,4 +1,5 @@
 "use client";
+import { DeleteConfirmation } from "../components/DeleteConfirmation";
 import { useI18n } from "../components/LanguageProvider";
 import { EmptyCollectionState } from "../components/EmptyCollectionState";
 
@@ -383,30 +384,20 @@ export function SkillManager({
                   </summary>
                   <div>
                     {isPendingDelete ? (
-                      <div
+                      <DeleteConfirmation
                         className="skill-delete-confirmation"
-                        role="group"
-                        aria-label={t(`Hapus ${skill.name}`)}
-                      >
-                        <span>{t("Hapus skill ini?")}</span>
-                        <button
-                          className="ui-button ui-button--secondary ui-button--default"
-                          type="button"
-                          onClick={() => setPendingDeleteId(null)}
-                        >
-                          {t("Batal")}
-                        </button>
-                        <button
-                          className="danger ui-button ui-button--destructive ui-button--default"
-                          type="button"
-                          disabled={deletingSkillId === skill.id}
-                          onClick={() => deleteSkill(skill)}
-                        >
-                          {deletingSkillId === skill.id
+                        label={t(`Hapus ${skill.name}`)}
+                        question={t("Hapus skill ini?")}
+                        cancelLabel={t("Batal")}
+                        confirmLabel={
+                          deletingSkillId === skill.id
                             ? t("Menghapus…")
-                            : t("Hapus")}
-                        </button>
-                      </div>
+                            : t("Hapus")
+                        }
+                        pending={deletingSkillId === skill.id}
+                        onCancel={() => setPendingDeleteId(null)}
+                        onConfirm={() => deleteSkill(skill)}
+                      />
                     ) : (
                       <>
                         <button

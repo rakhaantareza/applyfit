@@ -1,4 +1,5 @@
 "use client";
+import { DeleteConfirmation } from "../../../components/DeleteConfirmation";
 import { useI18n } from "../../../components/LanguageProvider";
 
 import {
@@ -526,27 +527,15 @@ export function RequirementReviewEditor({
                 {!isSelectionMode ? (
                   <div className="requirement-row-actions">
                     {isPendingDelete ? (
-                      <div
+                      <DeleteConfirmation
                         className="requirement-delete-confirmation"
-                        role="group"
-                        aria-label={t(`Hapus requirement: ${requirement.text}`)}
-                      >
-                        <span>{t("Hapus requirement?")}</span>
-                        <button
-                          className="ui-button ui-button--secondary ui-button--default"
-                          type="button"
-                          onClick={() => setPendingDeleteId(null)}
-                        >
-                          {t("Batal")}
-                        </button>
-                        <button
-                          className="danger ui-button ui-button--destructive ui-button--default"
-                          type="button"
-                          onClick={() => deleteRequirement(requirement)}
-                        >
-                          {t("Hapus")}
-                        </button>
-                      </div>
+                        label={t(`Hapus requirement: ${requirement.text}`)}
+                        question={t("Hapus requirement?")}
+                        cancelLabel={t("Batal")}
+                        confirmLabel={t("Hapus")}
+                        onCancel={() => setPendingDeleteId(null)}
+                        onConfirm={() => deleteRequirement(requirement)}
+                      />
                     ) : (
                       <>
                         <IconButton

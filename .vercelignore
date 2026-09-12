@@ -1,0 +1,20 @@
+# Local credentials, authenticated screenshots, and development artifacts.
+.env*
+!.env.example
+.insforge/
+.playwright/
+.codex/
+.agent/
+.agents/
+.wrangler/
+.vinext/
+.vercel/
+node_modules/
+dist/
+.next/
+work/
+outputs/
+screenshots/
+coverage/
+*.tsbuildinfo
+*.log
