@@ -48,7 +48,9 @@ try {
     ["guide", "/contoh-perhitungan", "h1"],
   ];
   const page = await context.newPage();
-  for (const width of [390, 768, 1024, 1440]) {
+  for (const width of (process.env.QA_WIDTHS ?? "390,768,1024,1440")
+    .split(",")
+    .map(Number)) {
     await page.setViewportSize({ width, height: 900 });
     for (const [name, path, ready] of routes) {
       await page.goto(base + path);

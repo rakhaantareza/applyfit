@@ -104,3 +104,9 @@ Presentation preserves existing editors, authentication, APIs, ownership, and de
 Run npm run lint, npm run build, and the render/i18n tests for UI changes. npm run qa:ui captures 11 authenticated routes at 390, 768, 1024, and 1440 CSS pixels and checks document overflow. It uses the existing ignored demo authentication state and blocks data-changing requests.
 
 For CSS cleanup, run the UI script with --snapshot=before, then --snapshot=after to compare computed styles. Screenshots and reports remain ignored under screenshots/ui-qa/. The dedicated button and source QA scripts cover hover/focus behavior and intercepted source payloads. A successful route capture alone does not establish coverage of every editor or error state.
+
+## Responsive requirement review
+
+Priority controls keep their intrinsic width at every viewport. At 1024–1199px, requirement cards use two rows: the requirement text spans the content width, followed by compact priority controls with review status and actions aligned to the right. Deletion confirmation gets its own row. Tablet and mobile retain their dedicated layouts, and selection mode keeps the checkbox separate from the text.
+
+Run `node scripts/screenshots/requirements-responsive.mjs` to check list, edit, delete-confirmation, and selection states at 12 widths from 360 to 1440px. The script blocks writes and checks priority-control width and clipped controls. Set `QA_WIDTHS` to a comma-separated list when running `npm run qa:ui` to inspect additional breakpoints; the standard widths remain unchanged. Responsive review includes boundary widths around 768, 1024, 1100, and 1200px, not only named device presets.
