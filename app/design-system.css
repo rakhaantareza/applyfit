@@ -4888,22 +4888,17 @@ body .evidence-empty-state .ui-button--primary {
   color: white;
 }
 .job-source-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-  align-self: start;
+  display: contents;
 }
 .job-source-field > label {
+  min-width: 0;
+  align-self: start;
   display: grid;
   gap: 8px;
 }
 .job-source-field label > span {
   font-size: 14px;
   font-weight: 500;
-}
-.job-source-field .job-source-custom {
-  margin-top: 6px;
 }
 .job-source-field :is(select, input:not([type="hidden"])) {
   width: 100%;

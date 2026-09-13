@@ -7,7 +7,7 @@ export const english: Record<string, string> = {
   "Tidak ada lowongan yang cocok": "No matching jobs",
   "Coba kata pencarian atau tahap lainnya.": "Try another search or stage.",
   "Pilih sumber": "Choose a source",
-  "Lainnya — isi sendiri": "Other — enter a source",
+  Lainnya: "Other",
   "Nama sumber": "Source name",
   "Tulis nama situs, media, atau referensi":
     "Enter a website, channel, or referral",

@@ -247,7 +247,7 @@ Avoid turning the page into a generic saved-jobs dashboard with redundant summar
 
 ## 7. Job Workspace
 
-Job sources use a dropdown of familiar portals and media (LinkedIn, JobStreet, Glints, Kalibrr, Indeed, Karir.com, Dealls, company careers sites, Instagram, Telegram, WhatsApp), followed by **Lainnya — isi sendiri**. Custom sources retain the existing free-text storage format. Empty job and portfolio collections use original illustrations; filtered empty results use a distinct search illustration.
+Job sources use a dropdown of familiar portals and media (LinkedIn, JobStreet, Glints, Kalibrr, Indeed, Karir.com, Dealls, company careers sites, Instagram, Telegram, WhatsApp), followed by **Lainnya**. Custom sources retain the existing free-text storage format. Empty job and portfolio collections use original illustrations; filtered empty results use a distinct search illustration.
 
 ### 7.1 Detail
 
@@ -780,7 +780,7 @@ Edit/delete entry actions are icon-only, have accessible names and at least 44px
 
 Saved-job cards provide Edit and Delete beside Lihat detail. Edit opens an inline information form; successful saves update the card locally. Delete requires confirmation and removes the card only after the existing API succeeds. Failed requests retain the item and show an error. The Detail header is read-only; description editing remains beside its section title on all screen sizes.
 
-Job sources use a shared optional dropdown: LinkedIn, JobStreet, Glints, Kalibrr, Indeed, Karir.com, Dealls, company career sites, Instagram, Telegram, WhatsApp, and Lainnya — isi sendiri. Custom values and drafts survive option and language changes. This does not import jobs from these services.
+Job sources use a shared optional dropdown: LinkedIn, JobStreet, Glints, Kalibrr, Indeed, Karir.com, Dealls, company career sites, Instagram, Telegram, WhatsApp, and Lainnya. Custom values and drafts survive option and language changes. This does not import jobs from these services.
 
 Empty skill, job, portfolio, and search states use contextual illustrations and concise guidance. Ringkasan uses the same illustration family for incomplete career foundations and job-workflow checkpoints. The artwork follows the next action; actual progress and scores remain communicated by text and data. Search fields share the standard compound-input focus treatment without a second outline on the inner input.
 

@@ -39,26 +39,27 @@ export function JobSourceField({
   return (
     <div className="job-source-field">
       <label htmlFor={id}>
-        <span>{t("Sumber")}</span>
+        <span id={`${id}-label`}>{t("Sumber")}</span>
+        <select
+          id={id}
+          aria-labelledby={`${id}-label`}
+          value={selection}
+          disabled={disabled}
+          onChange={(event) => {
+            const next = event.target.value;
+            setSelection(next);
+            onChange?.(next === "custom" ? custom : next);
+          }}
+        >
+          <option value="">{t("Pilih sumber")}</option>
+          {sources.map((source) => (
+            <option key={source} value={source}>
+              {t(source)}
+            </option>
+          ))}
+          <option value="custom">{t("Lainnya")}</option>
+        </select>
       </label>
-      <select
-        id={id}
-        value={selection}
-        disabled={disabled}
-        onChange={(event) => {
-          const next = event.target.value;
-          setSelection(next);
-          onChange?.(next === "custom" ? custom : next);
-        }}
-      >
-        <option value="">{t("Pilih sumber")}</option>
-        {sources.map((source) => (
-          <option key={source} value={source}>
-            {t(source)}
-          </option>
-        ))}
-        <option value="custom">{t("Lainnya — isi sendiri")}</option>
-      </select>
       {selection === "custom" ? (
         <label className="job-source-custom">
           <span>{t("Nama sumber")}</span>
