@@ -1,56 +1,48 @@
 # ApplyFit
 
-ApplyFit is an evidence-based career-readiness web application that helps job seekers understand how their current skills and proof of work align with a specific role before they apply.
+**Understand your fit before you apply.**
 
-Rather than producing an opaque recommendation, ApplyFit turns a job description into reviewable requirements, connects those requirements to the user's skills and evidence, and presents a transparent Fit Score. The product explains readiness while leaving the decision to apply entirely with the user.
+ApplyFit is an evidence-based career-readiness app for fresh graduates, early-career jobseekers, and career switchers. It turns a job description into reviewable requirements, connects them with the user's skills and portfolio or experience, then presents an explainable Fit Score.
 
-![ApplyFit core flow: Job Requirement to Skills to Evidence to Fit Score](docs/assets/applyfit-core-flow.png)
+ApplyFit helps users see what is already supported and what is still missing. It does not decide whether they should apply.
 
-**Current release:** `v1.1.0` — responsive workspace and readiness refinements.
+![ApplyFit analysis workspace](docs/assets/applyfit-analysis.png)
 
-See [release notes and deployment](docs/releases.md).
+## How it works
 
-## Core workflow
+**Job Requirement -> Skill -> Portfolio & Experience -> Fit Analysis**
 
-1. **Job Posting** — Save a role and its job description.
-2. **Requirement Extraction** — Use AI to transform the description into structured requirement drafts.
-3. **Requirement Review** — Review and refine the extracted requirements before analysis.
-4. **Skill & Evidence Mapping** — Connect requirements to career-profile skills and supporting evidence.
-5. **Explainable Fit Score** — Understand readiness through a transparent, requirement-level analysis.
+1. Build a reusable career profile with target roles and skills.
+2. Add projects, work experience, certificates, GitHub, or other supporting evidence.
+3. Save a job and extract its requirements with AI assistance.
+4. Review the requirements and resolve any ambiguous skill connections.
+5. Explore a deterministic Fit Score with requirement-level explanations and visible gaps.
 
-## Phase 1 Core MVP
+## Highlights
 
-- Secure account registration, sign-in, email verification, session management, and password recovery.
-- Account settings and a dedicated career profile for career direction and skills.
-- Evidence Library for projects, certifications, work experience, internships, GitHub, and portfolio proof.
-- Skill-to-evidence relationships that keep readiness grounded in real work.
-- Saved-job management with role, company, source, location, work arrangement, and job-description context.
-- AI-assisted requirement extraction followed by user-controlled review and refinement.
-- Automatic and manual requirement-to-skill mapping.
-- Clear readiness states and an explainable Fit Score breakdown.
-- Adaptive onboarding, recent-analysis states, responsive navigation, and protected user flows.
+- AI-assisted requirement extraction with user review before analysis.
+- Safe, obvious skill matches are connected automatically; manual linking remains available for unresolved cases.
+- Portfolio and experience connected to a skill can be reused across multiple jobs.
+- Explainable readiness states and deterministic scoring instead of an opaque recommendation.
+- Focused job workspace: **Detail -> Persyaratan -> Cocokkan Profil -> Analisis**.
+- Responsive Indonesian and English interface for desktop, tablet, and mobile.
+- Secure authentication, email verification, password recovery, and account settings.
 
-## Product principles
+## Interface
 
-- **Evidence over claims.** Readiness should be supported by work the user can point to.
-- **Explainability over magic scores.** Users should understand what contributes to their analysis.
-- **AI assists; deterministic rules score.** AI helps structure job requirements, while scoring remains predictable and reviewable.
-- **The user decides.** ApplyFit describes readiness without deciding whether someone should apply.
-- **Every score has job context.** Readiness is evaluated for a specific saved role, not as a universal rating.
+The current interface is designed as a calm working space: warm-paper surfaces, cobalt accents, restrained typography, and fewer dashboard-style elements. Global career information stays separate from the focused workflow for each saved job.
 
-## Technology stack
+## Tech stack
 
-| Area           | Technology                                                    |
-| -------------- | ------------------------------------------------------------- |
-| Language       | TypeScript                                                    |
-| Frontend       | React 19, Vinext, Vite, custom CSS, DM Sans, and Lucide icons |
-| Backend        | Server-side route handlers and domain services                |
-| Authentication | InsForge Auth                                                 |
-| Database       | InsForge PostgreSQL                                           |
-| AI extraction  | OpenRouter through an OpenAI-compatible client                |
-| Quality        | ESLint and automated Node.js tests                            |
+| Area | Technology |
+| --- | --- |
+| Frontend | React 19, TypeScript, Vinext, Vite, custom CSS |
+| Backend | Server-side route handlers and domain services |
+| Authentication & database | InsForge Auth and PostgreSQL |
+| AI extraction | OpenRouter through an OpenAI-compatible client |
+| Quality | ESLint, TypeScript, Node.js tests, Playwright UI checks |
 
-## Local setup
+## Local development
 
 ### Requirements
 
@@ -58,7 +50,7 @@ See [release notes and deployment](docs/releases.md).
 - npm
 - Access to the required InsForge and AI services
 
-### Install and run
+### Setup
 
 ```bash
 git clone https://github.com/rakhaantareza/applyfit.git
@@ -67,49 +59,9 @@ npm install
 npm run dev
 ```
 
-Configure required service credentials in an ignored local environment file. Never commit credentials or local environment values.
+Configure the required credentials in `.env.local`. Never commit credentials or local environment values.
 
-### Responsive screenshots
-
-ApplyFit uses one manually registered and verified demo account for local authenticated screenshots. Add these values to the ignored `.env.local` file; never commit the password:
-
-```bash
-DEMO_EMAIL=demo-account@example.com
-DEMO_PASSWORD=your-local-demo-password
-# Optional; defaults to http://127.0.0.1:3000
-BASE_URL=http://127.0.0.1:3000
-```
-
-After installing dependencies, install the single supported browser once:
-
-```bash
-npx playwright install chromium
-```
-
-With `npm run dev` running at `BASE_URL`, create or refresh the reusable authenticated state through ApplyFit's real login form, then generate all approved responsive screenshots:
-
-```bash
-npm run screenshots:auth
-npm run screenshots
-```
-
-`npm run screenshots` keeps the demo-account workspace captures in their authenticated context, then uses a separate context without stored authentication to capture `/login`, `/daftar`, and `/lupa-kata-sandi`.
-
-ApplyFit uses one light appearance with warm paper surfaces and cobalt accents.
-
-To capture the portfolio job workflow, run:
-
-```bash
-npm run screenshots:portfolio
-```
-
-The portfolio command resolves an existing demo-account job with persisted
-requirements at runtime, then writes detail, requirement-review, evidence-mapping,
-and analysis images for that same job under `screenshots/portfolio/job-workspace/`.
-
-The authenticated state is stored at `.playwright/auth/demo.json`; screenshots are written under `screenshots/<route>/<viewport-width>.png`. Both locations are gitignored because the state may contain session credentials and the images are local review artifacts. Re-run `npm run screenshots:auth` whenever the saved session expires.
-
-### Validate
+### Validation
 
 ```bash
 npm run lint
@@ -118,27 +70,22 @@ npm test
 npm run build
 ```
 
-The typecheck command checks the full repository without incremental-cache reuse.
-It emits no files; strict checking includes application code, route handlers, tests,
-and the worker entry point. `npm test` builds the production output and runs all
-TypeScript and JavaScript test files in `tests/`.
+For responsive visual checks, see the commands and viewport coverage in [docs/visual-system.md](docs/visual-system.md).
 
 ## Documentation
 
-- [Product specification](docs/product-spec.md): approved behavior, navigation, and terminology.
-- [Visual system](docs/visual-system.md): current appearance, shared components, responsive rules, and UI checks.
-- [Repository conventions](AGENTS.md): contribution, validation, and release rules.
-- [Roadmap](docs/roadmap.md): future candidates, not implementation scope.
-- [Historical v1.0 PRD](docs/prd-v1.0.md): archived release context, not current design guidance.
-
-For empty collections and readiness checkpoints, run `node scripts/screenshots/checkpoints-qa.mjs`. For delete confirmations, run `node scripts/screenshots/delete-qa.mjs`. Both use the ignored demo authentication state and prevent data-changing requests.
+- [Product specification](docs/product-spec.md) - approved behavior, navigation, and terminology.
+- [Visual system](docs/visual-system.md) - current interface, responsive rules, and UI checks.
+- [Release notes](docs/releases.md) - version and deployment history.
+- [Roadmap](docs/roadmap.md) - possible future enhancements, not current scope.
+- [Repository conventions](AGENTS.md) - contribution and validation rules.
 
 ## Release
 
-`v1.0.0` marks **ApplyFit Phase 1 — Core MVP**, the first stable portfolio release.
+Current release: `v1.1.0`. Versioning follows semantic versioning; product phases are documented separately from release numbers.
 
 ## Usage notice
 
-Copyright © 2026 Rakha Antareza. All rights reserved.
+Copyright (c) 2026 Rakha Antareza. All rights reserved.
 
 This source code is publicly available for portfolio and evaluation purposes only. No permission is granted to copy, modify, distribute, sublicense, or use this project commercially without explicit permission from the copyright holder.
