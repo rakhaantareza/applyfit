@@ -858,3 +858,5 @@ Repository documentation should be interpreted in this order:
 If these documents conflict, follow `docs/product-spec.md`.
 
 Roadmap items must not be implemented solely because they appear in `docs/roadmap.md`.
+
+Portfolio and Lowongan place their add action in the page header when collections contain data. Empty collections keep their sole add action inside the empty state. Lowongan omits the redundant “Lowongan tersimpan” subheading. Demo workspaces show a compact muted card above the page content, without a decorative divider; the read-only explanation stays readable.

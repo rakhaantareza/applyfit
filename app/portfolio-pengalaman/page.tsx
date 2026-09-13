@@ -1,7 +1,5 @@
-import { Message } from "../components/LanguageProvider";
 import type { Metadata } from "next";
 import { AppShell } from "../components/AppShell";
-import { PageHeader } from "../components/ContentHeaders";
 import { EvidenceLibraryWorkspace } from "./EvidenceLibraryWorkspace";
 import { AuthenticatedRoute } from "../components/AuthenticatedRoute";
 
@@ -19,16 +17,6 @@ export default function EvidenceLibraryPage() {
         mainClassName="evidence-main"
       >
         <div className="page-container evidence-library-page">
-          <PageHeader
-            title={<Message>{"Portfolio & Pengalaman"}</Message>}
-            description={
-              <>
-                <Message>
-                  {"Hasil kerja dan pengalaman yang mendukung skillmu."}
-                </Message>
-              </>
-            }
-          />
           <EvidenceLibraryWorkspace />
         </div>
       </AppShell>

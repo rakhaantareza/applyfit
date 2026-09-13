@@ -1,6 +1,7 @@
 "use client";
 import { useI18n } from "../components/LanguageProvider";
 
+import { PageHeader } from "../components/ContentHeaders";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ActionButton } from "../components/ActionControl";
@@ -92,22 +93,37 @@ export function EvidenceLibraryWorkspace() {
     };
   }, []);
 
-  if (loading) return <WorkspaceLoadingState rows={4} />;
+  const header = (
+    <PageHeader
+      title={t("Portfolio & Pengalaman")}
+      description={t("Hasil kerja dan pengalaman yang mendukung skillmu.")}
+    />
+  );
+  if (loading)
+    return (
+      <>
+        {header}
+        <WorkspaceLoadingState rows={4} />
+      </>
+    );
 
   if (error) {
     return (
-      <div className="career-profile-state error" role="alert">
-        <AlertCircle aria-hidden="true" size={22} />
-        <strong>{t(error)}</strong>
-        <ActionButton
-          size="compact"
-          variant="secondary"
-          type="button"
-          onClick={() => window.location.reload()}
-        >
-          {t("Coba lagi")}
-        </ActionButton>
-      </div>
+      <>
+        {header}
+        <div className="career-profile-state error" role="alert">
+          <AlertCircle aria-hidden="true" size={22} />
+          <strong>{t(error)}</strong>
+          <ActionButton
+            size="compact"
+            variant="secondary"
+            type="button"
+            onClick={() => window.location.reload()}
+          >
+            {t("Coba lagi")}
+          </ActionButton>
+        </div>
+      </>
     );
   }
 

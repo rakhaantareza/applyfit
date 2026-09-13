@@ -7633,7 +7633,9 @@ hr {
   gap: 8px;
   line-height: 1.45;
   margin: 0 auto 18px;
-  padding: 0 2px 10px;
+  padding: 10px 14px;
+  background: var(--surface-subtle);
+  border-radius: 12px;
   width: 100%;
 }
 
@@ -7643,14 +7645,6 @@ hr {
 
 .demo-workspace-notice-focus {
   max-width: var(--job-shell-width);
-}
-
-.demo-workspace-notice::after {
-  background: var(--border);
-  content: "";
-  flex: 1 1 auto;
-  height: 1px;
-  margin-left: 4px;
 }
 
 .demo-workspace-notice > svg {
@@ -7663,7 +7657,7 @@ hr {
 }
 
 .demo-workspace-notice strong {
-  color: var(--foreground);
+  color: var(--foreground-muted);
   font-weight: var(--weight-medium);
 }
 

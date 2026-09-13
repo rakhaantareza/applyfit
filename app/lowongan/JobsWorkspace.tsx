@@ -18,7 +18,7 @@ import {
   ActionLink,
   CtaArrow,
 } from "../components/ActionControl";
-import { PageHeader, SectionHeader } from "../components/ContentHeaders";
+import { PageHeader } from "../components/ContentHeaders";
 import { CollectionIllustration } from "../components/CollectionIllustration";
 import { WorkspaceLoadingState } from "../components/WorkspaceLoadingState";
 
@@ -114,13 +114,8 @@ export function JobsWorkspace() {
 
       <section
         className="jobs-list-section jobs-overview"
-        aria-labelledby="jobs-list-title"
+        aria-label={t("Lowongan")}
       >
-        <SectionHeader
-          title={t("Lowongan tersimpan")}
-          titleId="jobs-list-title"
-        />
-
         <div className="jobs-filter-panel">
           <label className="jobs-search-field">
             <Search size={18} aria-hidden="true" />

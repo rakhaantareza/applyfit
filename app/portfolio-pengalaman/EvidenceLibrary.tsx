@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { ActionButton, IconButton } from "../components/ActionControl";
-import { SectionHeader } from "../components/ContentHeaders";
+import { PageHeader, SectionHeader } from "../components/ContentHeaders";
 
 export type EvidenceType =
   | "Proyek"
@@ -312,6 +312,22 @@ export function EvidenceLibrary({
 
   return (
     <>
+      <PageHeader
+        title={t("Portfolio & Pengalaman")}
+        description={t("Hasil kerja dan pengalaman yang mendukung skillmu.")}
+        action={
+          evidences.length > 0 && !editor ? (
+            <ActionButton
+              className="evidence-add-button"
+              type="button"
+              onClick={openForm}
+            >
+              <Plus aria-hidden="true" size={16} strokeWidth={2} />
+              {t("Tambah portfolio")}
+            </ActionButton>
+          ) : null
+        }
+      />
       <section
         className="evidence-list-section"
         aria-labelledby={evidences.length ? "evidence-list-title" : undefined}
@@ -330,16 +346,6 @@ export function EvidenceLibrary({
               </>
             }
             titleId="evidence-list-title"
-            action={
-              <ActionButton
-                className="evidence-add-button"
-                type="button"
-                onClick={openForm}
-              >
-                <Plus aria-hidden="true" size={16} strokeWidth={2} />
-                {t("Tambah portfolio")}
-              </ActionButton>
-            }
           />
         ) : null}
 
