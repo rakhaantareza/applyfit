@@ -6,7 +6,7 @@ ApplyFit is an evidence-based career-readiness app for fresh graduates, early-ca
 
 ApplyFit helps users see what is already supported and what is still missing. It does not decide whether they should apply.
 
-![ApplyFit analysis workspace](docs/assets/applyfit-analysis.png)
+![ApplyFit saved jobs workspace](docs/assets/applyfit-jobs.png)
 
 ## How it works
 
