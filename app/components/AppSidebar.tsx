@@ -1,6 +1,6 @@
 "use client";
 import { BrandMotif } from "./BrandMotif";
-import { LanguagePicker } from "./LanguagePicker";
+import { MobileLanguagePicker } from "./LanguagePicker";
 import { SignOutButton } from "./SignOutButton";
 import { useI18n } from "./LanguageProvider";
 import {
@@ -266,7 +266,7 @@ export function AppSidebar({ activeItem = null }: AppSidebarProps) {
             </span>
           </Link>
           <div className="mobile-menu-language">
-            <LanguagePicker />
+            <MobileLanguagePicker />
           </div>
           <nav className="main-nav" aria-label={t("Navigasi utama")}>
             {appNavigation.map((item) => {

@@ -136,3 +136,34 @@ export function LanguagePicker() {
 function subscribe() {
   return () => {};
 }
+
+/** The mobile drawer keeps language choices in its normal layout. */
+export function MobileLanguagePicker() {
+  const { language, setLanguage } = useI18n();
+  return (
+    <div className="mobile-language-control">
+      <span>{language === "id" ? "Bahasa" : "Language"}</span>
+      <div
+        className="mobile-language-options"
+        role="group"
+        aria-label="Bahasa / Language"
+      >
+        {languages.map((item) => (
+          <button
+            key={item.value}
+            type="button"
+            lang={item.value}
+            aria-pressed={language === item.value}
+            onClick={() => setLanguage(item.value)}
+          >
+            <span
+              className={`language-flag language-flag-${item.value}`}
+              aria-hidden="true"
+            />
+            {item.value === "id" ? "Indonesia" : "English"}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
